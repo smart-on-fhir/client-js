@@ -304,9 +304,10 @@ BBClient.authorize = function(params, errback){
 
   var launch = urlParam("launch");
   if (launch){
-    if (!params.client.scope.match(/launch:/)){
-      params.client.scope += " launch:"+launch;
+    if (!params.client.scope.match(/launch/)){
+      params.client.scope += " launch";
     }
+    params.client.launch = launch;
   }
 
   var server = urlParam("iss") || urlParam("fhirServiceUrl");
@@ -343,7 +344,9 @@ BBClient.authorize = function(params, errback){
       "response_type="+encodeURIComponent(params.response_type)+"&"+
       "scope="+encodeURIComponent(client.scope)+"&"+
       "redirect_uri="+encodeURIComponent(client.redirect_uri)+"&"+
-      "state="+encodeURIComponent(state);
+      "state="+encodeURIComponent(state)+"&"+
+      "aud="+encodeURIComponent(server)+"&"+
+      "launch="+encodeURIComponent(client.launch);
 
     window.location.href = redirect_to;
   }, errback);
