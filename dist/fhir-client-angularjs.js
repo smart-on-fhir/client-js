@@ -6327,8 +6327,9 @@ function stripTrailingSlash(str) {
 }
 
 function getPreviousToken(){
-  var ret = sessionStorage.tokenResponse;
-  if (ret) ret = JSON.parse(ret);
+  var state = urlParam('state');
+  var ret = sessionStorage[state];
+  if (ret) ret = JSON.parse(ret).tokenResponse;
   return ret;
 }
 
@@ -6367,7 +6368,7 @@ function completeCodeFlow(params){
   var state = JSON.parse(sessionStorage[params.state]);
 
   if (window.history.replaceState && BBClient.settings.replaceBrowserHistory){
-    window.history.replaceState({}, "", window.location.toString().replace(window.location.search, ""));
+    window.history.replaceState({}, "", window.location.toString().replace(window.location.search, "?state=" + urlParam('state')));
   }
 
   Adapter.get().http({
@@ -6448,9 +6449,10 @@ BBClient.ready = function(input, callback, errback){
 
   // decide between token flow (implicit grant) and code flow (authorization code grant)
   var isCode = urlParam('code') || (args.input && args.input.code);
+  var state = urlParam('state') || (args.input && args.input.state);
 
   var accessTokenResolver = null;
-  if (sessionStorage.tokenResponse) { // we're reloading after successful completion
+  if (state && sessionStorage[state] && JSON.parse(sessionStorage[state]).tokenResponse) { // we're reloading after successful completion
     accessTokenResolver = completePageReload();
   } else if (isCode) { // code flow
     accessTokenResolver = completeCodeFlow(args.input);
@@ -6463,7 +6465,8 @@ BBClient.ready = function(input, callback, errback){
       return args.errback("No 'state' parameter found in authorization response.");
     }
     
-    sessionStorage.tokenResponse = JSON.stringify(tokenResponse);
+    var combinedObject = $.extend(true, JSON.parse(sessionStorage[tokenResponse.state]), { 'tokenResponse' : tokenResponse });
+    sessionStorage[tokenResponse.state] = JSON.stringify(combinedObject);
 
     var state = JSON.parse(sessionStorage[tokenResponse.state]);
     if (state.fake_token_response) {
@@ -6584,9 +6587,6 @@ BBClient.authorize = function(params, errback){
     };
   }
   
-  // prevent inheritance of tokenResponse from parent window
-  delete sessionStorage.tokenResponse;
-
   if (!params.client){
     params = {
       client: params
@@ -6633,8 +6633,8 @@ BBClient.authorize = function(params, errback){
     var client = params.client;
 
     if (params.provider.oauth2 == null) {
-      sessionStorage[state] = JSON.stringify(params);
-      sessionStorage.tokenResponse = JSON.stringify({state: state});
+      var combinedObject = $.extend(true, params, { 'tokenResponse' : {state: state} });
+      sessionStorage[state] = JSON.stringify(combinedObject);
       window.location.href = client.redirect_uri + "#state="+encodeURIComponent(state);
       return;
     }
