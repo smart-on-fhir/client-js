@@ -1169,6 +1169,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }, function(err) {
 	                fail(err);
 	            });
+	        }, function(err) {
+	            fail(err);
 	        });
 	    };
 	    
@@ -1185,6 +1187,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            },
 	            function () {
 	                ret.resolve(results);
+	            },
+	            function (err) {
+	                ret.reject(err);
 	            }
 	        );
 	          
@@ -16964,8 +16969,8 @@ BBClient.ready = function(input, callback, errback){
     sessionStorage.tokenResponse = JSON.stringify(tokenResponse);
 
     var state = JSON.parse(sessionStorage[tokenResponse.state]);
-    if (state.fake_token_response) {
-      tokenResponse = state.fake_token_response;
+    if (state.client.patient && !tokenResponse.patient) {
+      tokenResponse.patient = state.client.patient;
     }
 
     var fhirClientParams = {
@@ -16984,7 +16989,7 @@ BBClient.ready = function(input, callback, errback){
         type: 'bearer',
         token: tokenResponse.access_token
       };
-    } else if (!state.fake_token_response){
+    } else {
       return args.errback("Failed to obtain access token.");
     }
 
@@ -17111,16 +17116,16 @@ BBClient.authorize = function(params, errback){
     params.client.launch = launch;
   }
 
+  var patientId = urlParam("patientId");
+  if ( patientId ) {
+    params.client.patient = patientId;
+  }
+
   var server = urlParam("iss") || urlParam("fhirServiceUrl");
   if (server){
     if (!params.server){
       params.server = server;
     }
-  }
-
-  if (urlParam("patientId")){
-    params.fake_token_response = params.fake_token_response || {};
-    params.fake_token_response.patient = urlParam("patientId");
   }
 
   providers(params.server, function(provider){
