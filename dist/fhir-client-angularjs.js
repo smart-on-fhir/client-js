@@ -6394,6 +6394,44 @@ function completeCodeFlow(params){
   return ret.promise;
 }
 
+function completeJwtFlow(params){
+  if (!params){
+    params = {
+      assertion: urlParam('assertion'),
+      state: urlParam('state')
+    };
+  }
+  
+  var ret = Adapter.get().defer();
+  var state = JSON.parse(sessionStorage[params.state]);
+
+  if (window.history.replaceState && BBClient.settings.replaceBrowserHistory){
+    window.history.replaceState({}, "", window.location.toString().replace(window.location.search, ""));
+  }
+
+  Adapter.get().http({
+    method: 'POST',
+    url: state.provider.oauth2.token_uri,
+    data: {
+      assertion: params.assertion,
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      client_id: state.client.client_id,
+      scope: state.client.scope
+    },
+  }).then(function(authz){
+       for (var i in params) {
+          if (params.hasOwnProperty(i)) {
+             authz[i] = params[i];
+          }
+       }
+       ret.resolve(authz);
+  }, function(){
+    console.log("failed to exchange jwt-bearer assertion for access_token", arguments);
+    ret.reject();
+  });
+
+  return ret.promise;
+}
 function completePageReload(){
   var d = Adapter.get().defer();
   process.nextTick(function(){
@@ -6449,11 +6487,15 @@ BBClient.ready = function(input, callback, errback){
   // decide between token flow (implicit grant) and code flow (authorization code grant)
   var isCode = urlParam('code') || (args.input && args.input.code);
 
+  var isAssertion = urlParam('assertion') || (args.input && args.input.assertion);
+
   var accessTokenResolver = null;
   if (sessionStorage.tokenResponse) { // we're reloading after successful completion
     accessTokenResolver = completePageReload();
   } else if (isCode) { // code flow
     accessTokenResolver = completeCodeFlow(args.input);
+  } else if (isAssertion) {
+    accessTokenResolver = completeJwtFlow(args.input);
   } else { // token flow
     accessTokenResolver = completeTokenFlow(args.input);
   }
@@ -6482,10 +6524,16 @@ BBClient.ready = function(input, callback, errback){
     }
 
     if (tokenResponse.access_token !== undefined) {
+      var access_token = tokenResponse.access_token;
       fhirClientParams.auth = {
         type: 'bearer',
-        token: tokenResponse.access_token
+        token: access_token
       };
+      var payload2 = jwt.decode(access_token);
+      if (payload2["patient"]) {
+        fhirClientParams["patientId"] = payload2["patient"];  
+      }
+
     } else {
       return args.errback("Failed to obtain access token.");
     }
@@ -6625,6 +6673,11 @@ BBClient.authorize = function(params, errback){
     }
   }
 
+  // Assertion should contain a trusted jwt-bearer token
+  if ( urlParam("assertion")){
+    params.assertion = urlParam("assertion")
+  }
+
   providers(params.server, function(provider){
 
     params.provider = provider;
@@ -6643,14 +6696,21 @@ BBClient.authorize = function(params, errback){
 
     console.log("sending client reg", params.client);
 
-    var redirect_to=params.provider.oauth2.authorize_uri + "?" + 
+    var redirect_to;
+    if (params.assertion) {  // already authorized by EHR redirect to client
+      redirect_to = client.redirect_uri + 
+        "?assertion=" + encodeURIComponent(params.assertion) +
+        "&state=" + encodeURIComponent(state);
+    } else {
+      redirect_to=params.provider.oauth2.authorize_uri + "?" + 
       "client_id="+encodeURIComponent(client.client_id)+"&"+
       "response_type="+encodeURIComponent(params.response_type)+"&"+
       "scope="+encodeURIComponent(client.scope)+"&"+
       "redirect_uri="+encodeURIComponent(client.redirect_uri)+"&"+
       "state="+encodeURIComponent(state)+"&"+
       "aud="+encodeURIComponent(params.server);
-    
+    }
+
     if (typeof client.launch !== 'undefined' && client.launch) {
        redirect_to += "&launch="+encodeURIComponent(client.launch);
     }
