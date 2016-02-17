@@ -52,6 +52,7 @@ utils.units = {
     if(pq.code == "kg") return pq.value;
     if(pq.code == "g") return pq.value / 1000;
     if(pq.code.match(/lb/)) return pq.value / 2.20462;
+    if(pq.code.match(/oz/)) return pq.value / 35.274;
     throw "Unrecognized weight unit: " + pq.code
   },
   any: function(pq){

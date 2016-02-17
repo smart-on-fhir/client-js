@@ -1195,12 +1195,68 @@ return /******/ (function(modules) { // webpackBootstrap
 	          
 	        return ret.promise;
 	    };
+
+	    function fetchAllWithReferences (searchParams, resolveParams) {
+	        var ret = adapter.defer();
+	          
+	        fhirAPI.search(searchParams)
+	            .then(function(results){
+
+	                var resolvedReferences = {};
+
+	                var queue = [function() {ret.resolve(results, resolvedReferences);}];
+	                
+	                function enqueue (bundle,resource,reference) {
+	                  queue.push(function() {resolveReference(bundle,resource,reference)});
+	                }
+
+	                function next() {
+	                  (queue.pop())();
+	                }
+
+	                function resolveReference (bundle,resource,reference) {
+	                    var referenceID = reference.reference;
+	                    fhirAPI.resolve({'bundle': bundle, 'resource': resource, 'reference':reference}).then(function(res){
+	                      var referencedObject = res.data || res.content;
+	                      resolvedReferences[referenceID] = referencedObject;
+	                      next();
+	                    });
+	                }
+
+	                var bundle = results.data;
+
+	                bundle.entry && bundle.entry.forEach(function(element){
+	                  var resource = element.resource;
+	                  var type = resource.resourceType;
+	                  resolveParams && resolveParams.forEach(function(resolveParam){
+	                    var param = resolveParam.split('.');
+	                    var targetType = param[0];
+	                    var targetElement = param[1];
+	                    var reference = resource[targetElement];
+	                    if (type === targetType && reference) {
+	                      var referenceID = reference.reference;
+	                      if (!resolvedReferences[referenceID]) {
+	                        enqueue(bundle,resource,reference);
+	                      }
+	                    }
+	                  });
+	                });
+
+	                next();
+
+	            }, function(){
+	                ret.reject("Could not fetch search results");
+	            });
+	          
+	        return ret.promise;
+	    };
 	    
 	    function decorate (client, newAdapter) {
 	        fhirAPI = client;
 	        adapter = newAdapter;
 	        client["drain"] = drain;
 	        client["fetchAll"] = fetchAll;
+	        client["fetchAllWithReferences"] = fetchAllWithReferences;
 	        return client;
 	    }
 	    
@@ -16873,15 +16929,25 @@ function completeCodeFlow(params){
     window.history.replaceState({}, "", window.location.toString().replace(window.location.search, ""));
   }
 
+  var data = {
+      code: params.code,
+      grant_type: 'authorization_code',
+      redirect_uri: state.client.redirect_uri
+  };
+
+  var headers = {};
+
+  if (state.client.secret) {
+    headers['Authorization'] = 'Basic ' + btoa(state.client.client_id + ':' + state.client.secret);
+  } else {
+    data['client_id'] = state.client.client_id;
+  }
+
   Adapter.get().http({
     method: 'POST',
     url: state.provider.oauth2.token_uri,
-    data: {
-      code: params.code,
-      grant_type: 'authorization_code',
-      redirect_uri: state.client.redirect_uri,
-      client_id: state.client.client_id
-    },
+    data: data,
+    headers: headers
   }).then(function(authz){
        for (var i in params) {
           if (params.hasOwnProperty(i)) {
@@ -17052,7 +17118,7 @@ BBClient.ready = function(input, callback, errback){
 
 };
 
-function providers(fhirServiceUrl, callback, errback){
+function providers(fhirServiceUrl, provider, callback, errback){
 
   // Shim for pre-OAuth2 launch parameters
   if (isBypassOAuth()){
@@ -17062,6 +17128,14 @@ function providers(fhirServiceUrl, callback, errback){
     return;
   }
 
+  // Skip conformance statement introspection when overriding provider setting are available
+  if (provider) {
+    provider['url'] = fhirServiceUrl;
+    process.nextTick(function(){
+      callback && callback(provider);
+    });
+    return;
+  }
 
   Adapter.get().http({
     method: "GET",
@@ -17181,7 +17255,7 @@ BBClient.authorize = function(params, errback){
     params.assertion = urlParam("assertion")
   }
 
-  providers(params.server, function(provider){
+  providers(params.server, params.provider, function(provider){
 
     params.provider = provider;
 
@@ -17501,6 +17575,7 @@ utils.units = {
     if(pq.code == "kg") return pq.value;
     if(pq.code == "g") return pq.value / 1000;
     if(pq.code.match(/lb/)) return pq.value / 2.20462;
+    if(pq.code.match(/oz/)) return pq.value / 35.274;
     throw "Unrecognized weight unit: " + pq.code
   },
   any: function(pq){

@@ -6468,15 +6468,25 @@ function completeCodeFlow(params){
     window.history.replaceState({}, "", window.location.toString().replace(window.location.search, ""));
   }
 
+  var data = {
+      code: params.code,
+      grant_type: 'authorization_code',
+      redirect_uri: state.client.redirect_uri
+  };
+
+  var headers = {};
+
+  if (state.client.secret) {
+    headers['Authorization'] = 'Basic ' + btoa(state.client.client_id + ':' + state.client.secret);
+  } else {
+    data['client_id'] = state.client.client_id;
+  }
+
   Adapter.get().http({
     method: 'POST',
     url: state.provider.oauth2.token_uri,
-    data: {
-      code: params.code,
-      grant_type: 'authorization_code',
-      redirect_uri: state.client.redirect_uri,
-      client_id: state.client.client_id
-    },
+    data: data,
+    headers: headers
   }).then(function(authz){
        for (var i in params) {
           if (params.hasOwnProperty(i)) {
@@ -6647,7 +6657,7 @@ BBClient.ready = function(input, callback, errback){
 
 };
 
-function providers(fhirServiceUrl, callback, errback){
+function providers(fhirServiceUrl, provider, callback, errback){
 
   // Shim for pre-OAuth2 launch parameters
   if (isBypassOAuth()){
@@ -6657,6 +6667,14 @@ function providers(fhirServiceUrl, callback, errback){
     return;
   }
 
+  // Skip conformance statement introspection when overriding provider setting are available
+  if (provider) {
+    provider['url'] = fhirServiceUrl;
+    process.nextTick(function(){
+      callback && callback(provider);
+    });
+    return;
+  }
 
   Adapter.get().http({
     method: "GET",
@@ -6776,7 +6794,7 @@ BBClient.authorize = function(params, errback){
     params.assertion = urlParam("assertion")
   }
 
-  providers(params.server, function(provider){
+  providers(params.server, params.provider, function(provider){
 
     params.provider = provider;
 
@@ -7096,6 +7114,7 @@ utils.units = {
     if(pq.code == "kg") return pq.value;
     if(pq.code == "g") return pq.value / 1000;
     if(pq.code.match(/lb/)) return pq.value / 2.20462;
+    if(pq.code.match(/oz/)) return pq.value / 35.274;
     throw "Unrecognized weight unit: " + pq.code
   },
   any: function(pq){

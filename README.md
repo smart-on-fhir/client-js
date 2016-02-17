@@ -25,8 +25,8 @@ If all goes well, the client library will be available in the
 `dist` directory in multiple variants as follows:
 
 * `fhir-client.js` - complete client library with jQuery and fhir.js included (no external dependencies)
-* `fhir-client-jquery.js` - client library for jQuery, but without jQuery inside
-* `fhir-client-angularjs.js` - client library for AngularJS
+* `fhir-client-jquery.js` - client library using jQuery, jQuery and fhir.js not included
+* `fhir-client-angularjs.js` - client library using AngularJS, AngularJS and fhir.js not included
 
 ## Usage
 
