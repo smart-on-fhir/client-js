@@ -6404,7 +6404,8 @@ function urlParam(p, forceArray) {
   for(var i=0; i<data.length; i++) {
     var item = data[i].split("=");
     if (item[0] === p) {
-      result.push(decodeURIComponent(item[1]));
+      var res = item[1].replace(/\+/g, '%20');
+      result.push(decodeURIComponent(res));
     }
   }
 
@@ -6926,7 +6927,7 @@ function FhirClient(p) {
     };
 
     if (!client.server.serviceUrl || !client.server.serviceUrl.match(/https?:\/\/.+[^\/]$/)) {
-      throw "Must supply a `server` propery whose `serviceUrl` begins with http(s) " + 
+      throw "Must supply a `server` property whose `serviceUrl` begins with http(s) " + 
         "and does NOT include a trailing slash. E.g. `https://fhir.aws.af.cm/fhir`";
     }
     
@@ -7010,6 +7011,7 @@ function FhirClient(p) {
 
     return client;
 }
+
 },{"./adapter":43,"./utils":48,"btoa":37}],46:[function(require,module,exports){
 var client = require('./client');
 var oauth2 = require('./bb-client');

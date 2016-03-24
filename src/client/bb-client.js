@@ -17,7 +17,8 @@ function urlParam(p, forceArray) {
   for(var i=0; i<data.length; i++) {
     var item = data[i].split("=");
     if (item[0] === p) {
-      result.push(decodeURIComponent(item[1]));
+      var res = item[1].replace(/\+/g, '%20');
+      result.push(decodeURIComponent(res));
     }
   }
 

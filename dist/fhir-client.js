@@ -285,7 +285,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  exports.mergeLists = mergeLists;
 
 	  var absoluteUrl = function(baseUrl, ref) {
-	    if (ref.slice(ref, baseUrl.length + 1) !== baseUrl + "/") {
+	    if (!ref.match(/https?:\/\/./)) {
 	      return baseUrl + "/" + ref;
 	    } else {
 	      return ref;
@@ -1199,7 +1199,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function fetchAllWithReferences (searchParams, resolveParams) {
 	        var ret = adapter.defer();
 	          
-	        fhirAPI.search(searchParams)
+	        fhirAPI.search(searchParams)  // TODO: THIS IS NOT CORRECT (need fetchAll, but it does not return a bundle yet)
 	            .then(function(results){
 
 	                var resolvedReferences = {};
@@ -16865,7 +16865,8 @@ function urlParam(p, forceArray) {
   for(var i=0; i<data.length; i++) {
     var item = data[i].split("=");
     if (item[0] === p) {
-      result.push(decodeURIComponent(item[1]));
+      var res = item[1].replace(/\+/g, '%20');
+      result.push(decodeURIComponent(res));
     }
   }
 
@@ -17387,7 +17388,7 @@ function FhirClient(p) {
     };
 
     if (!client.server.serviceUrl || !client.server.serviceUrl.match(/https?:\/\/.+[^\/]$/)) {
-      throw "Must supply a `server` propery whose `serviceUrl` begins with http(s) " + 
+      throw "Must supply a `server` property whose `serviceUrl` begins with http(s) " + 
         "and does NOT include a trailing slash. E.g. `https://fhir.aws.af.cm/fhir`";
     }
     
@@ -17471,6 +17472,7 @@ function FhirClient(p) {
 
     return client;
 }
+
 },{"./adapter":45,"./utils":50,"btoa":38}],48:[function(require,module,exports){
 var client = require('./client');
 var oauth2 = require('./bb-client');
