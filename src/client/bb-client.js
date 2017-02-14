@@ -38,10 +38,21 @@ function stripTrailingSlash(str) {
     return str;
 }
 
+/**
+* Get the previous token stored in sessionStorage
+* based on fullSessionStorageSupport flag.
+* @return object JSON tokenResponse
+*/
 function getPreviousToken(){
-  var ret = sessionStorage.tokenResponse;
-  if (ret) ret = JSON.parse(ret);
-  return ret;
+  var token;
+  
+  if (BBClient.settings.fullSessionStorageSupport) {
+    token = sessionStorage.tokenResponse;
+    return JSON.parse(token);
+  } else {
+    var state = urlParam('state');
+    return JSON.parse(sessionStorage[state]).tokenResponse;
+  }
 }
 
 function completeTokenFlow(hash){
@@ -80,6 +91,28 @@ function completeCodeFlow(params){
 
   if (window.history.replaceState && BBClient.settings.replaceBrowserHistory){
     window.history.replaceState({}, "", window.location.toString().replace(window.location.search, ""));
+  } 
+
+  // Using window.history.pushState to append state to the query param.
+  // This will allow session data to be retrieved via the state param.
+  if (window.history.pushState && !BBClient.settings.fullSessionStorageSupport) {
+    
+    var queryParam = window.location.search;
+    if (window.location.search.indexOf('state') == -1) {
+      // Append state query param to URI for later.
+      // state query param will be used to look up
+      // token response upon page reload.
+
+      queryParam += (window.location.search ? '&' : '?');
+      queryParam += 'state=' + params.state;
+      
+      var url = window.location.protocol + '//' + 
+                             window.location.host + 
+                             window.location.pathname + 
+                             queryParam;
+
+      window.history.pushState({}, "", url);
+    }
   }
 
   var data = {
@@ -161,8 +194,41 @@ function readyArgs(){
 
 // Client settings
 BBClient.settings = {
-    replaceBrowserHistory: true
+  // Replaces the browser's current URL
+  // using window.history.replaceState API.
+  // Default to true
+  replaceBrowserHistory: true,
+  
+  // When set to true, this variable will fully utilize
+  // HTML5 sessionStorage API.
+  // Default to true
+  // This variable can be overriden to false by setting
+  // FHIR.oauth2.settings.fullSessionStorageSupport = false.
+  // When set to false, the sessionStorage will be keyed 
+  // by a state variable. This is to allow the embedded IE browser
+  // instances instantiated on a single thread to continue to
+  // function without having sessionStorage data shared 
+  // across the embedded IE instances.
+  fullSessionStorageSupport: true
 };
+
+/**
+* Check the tokenResponse object to see if it is valid or not.
+* This is to handle the case of a refresh/reload of the page
+* after the token was already obtain.
+* @return boolean
+*/
+function validTokenResponse() {
+  if (BBClient.settings.fullSessionStorageSupport && sessionStorage.tokenResponse) {
+    return true;
+  } else {
+    if (!BBClient.settings.fullSessionStorageSupport) {
+      var state = urlParam('state') || (args.input && args.input.state);
+      return (state && sessionStorage[state] && JSON.parse(sessionStorage[state]).tokenResponse);
+    }
+  }
+  return false;
+}
 
 BBClient.ready = function(input, callback, errback){
 
@@ -172,7 +238,8 @@ BBClient.ready = function(input, callback, errback){
   var isCode = urlParam('code') || (args.input && args.input.code);
 
   var accessTokenResolver = null;
-  if (sessionStorage.tokenResponse) { // we're reloading after successful completion
+  
+  if (validTokenResponse()) { // we're reloading after successful completion
     accessTokenResolver = completePageReload();
   } else if (isCode) { // code flow
     accessTokenResolver = completeCodeFlow(args.input);
@@ -184,8 +251,15 @@ BBClient.ready = function(input, callback, errback){
     if (!tokenResponse || !tokenResponse.state) {
       return args.errback("No 'state' parameter found in authorization response.");
     }
-    
-    sessionStorage.tokenResponse = JSON.stringify(tokenResponse);
+
+    // Save the tokenReponse object into sessionStorage
+    if (BBClient.settings.fullSessionStorageSupport) {
+      sessionStorage.tokenResponse = JSON.stringify(tokenResponse);
+    } else {
+      //Save the tokenResponse object and the state into sessionStorage keyed by state
+      var combinedObject = $.extend(true, JSON.parse(sessionStorage[tokenResponse.state]), { 'tokenResponse' : tokenResponse });
+      sessionStorage[tokenResponse.state] = JSON.stringify(combinedObject);
+    }
 
     var state = JSON.parse(sessionStorage[tokenResponse.state]);
     if (state.fake_token_response) {
@@ -363,12 +437,20 @@ BBClient.authorize = function(params, errback){
     var client = params.client;
 
     if (params.provider.oauth2 == null) {
-      sessionStorage[state] = JSON.stringify(params);
-      sessionStorage.tokenResponse = JSON.stringify({state: state});
+
+      // Adding state to tokenResponse object
+      if (BBClient.settings.fullSessionStorageSupport) { 
+        sessionStorage[state] = JSON.stringify(params);
+        sessionStorage.tokenResponse = JSON.stringify({state: state});
+      } else {
+        var combinedObject = $.extend(true, params, { 'tokenResponse' : {state: state} });
+        sessionStorage[state] = JSON.stringify(combinedObject);
+      }
+
       window.location.href = client.redirect_uri + "#state="+encodeURIComponent(state);
       return;
     }
-
+    
     sessionStorage[state] = JSON.stringify(params);
 
     console.log("sending client reg", params.client);
