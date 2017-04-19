@@ -17038,6 +17038,38 @@ function completeCodeFlow(params){
   return ret.promise;
 }
 
+/**
+ * This code is needed for the page refresh/reload workflow.
+ * When the access token is nearing expriration or is expired,
+ * this function will make an ajax POST call to obtain a new
+ * access token using the current refresh token.
+ * @return promise object
+ */
+function completeTokenRefreshFlow() {
+  var ret = Adapter.get().defer();
+  var tokenResponse = getPreviousToken();
+  var state = JSON.parse(sessionStorage[tokenResponse.state]);
+  var refresh_token = tokenResponse.refresh_token;
+
+  Adapter.get().http({
+    method: 'POST',
+    url: state.provider.oauth2.token_uri,
+    data: {
+      grant_type: 'refresh_token',
+      refresh_token: refresh_token
+    },
+  }).then(function(authz) {
+    authz = $.extend(tokenResponse, authz);
+    ret.resolve(authz);
+  }, function() {
+    console.warn('Failed to exchange refresh_token for access_token', arguments);
+    ret.reject('Failed to exchange refresh token for access token. ' +
+      'Please close and re-launch the application again.');
+  });
+
+  return ret.promise;
+}
+
 function completePageReload(){
   var d = Adapter.get().defer();
   process.nextTick(function(){
@@ -17129,7 +17161,18 @@ BBClient.ready = function(input, callback, errback){
   var accessTokenResolver = null;
   
   if (validTokenResponse()) { // we're reloading after successful completion
-    accessTokenResolver = completePageReload();
+    // Check if 2 minutes from access token expiration timestamp
+    var tokenResponse = getPreviousToken();
+    var payloadCheck = jwt.decode(tokenResponse.access_token);
+    var nearExpTime = Math.floor(Date.now() / 1000) >= (payloadCheck['exp'] - 120);
+
+    if (tokenResponse.refresh_token
+      && tokenResponse.scope.indexOf('online_access') > -1
+      && nearExpTime) { // refresh token flow
+      accessTokenResolver = completeTokenRefreshFlow();
+    } else { // existing access token flow
+      accessTokenResolver = completePageReload();
+    }
   } else if (isCode) { // code flow
     accessTokenResolver = completeCodeFlow(args.input);
   } else { // token flow
@@ -17180,8 +17223,8 @@ BBClient.ready = function(input, callback, errback){
     ret.tokenResponse = JSON.parse(JSON.stringify(tokenResponse));
     args.callback(ret);
 
-  }).fail(function(){
-    args.errback("Failed to obtain access token.");
+  }).fail(function(ret){
+    ret ? args.errback(ret) : args.errback("Failed to obtain access token.");
   });
 
 };
