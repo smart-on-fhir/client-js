@@ -17151,6 +17151,17 @@ function validTokenResponse() {
   return false;
 }
 
+function isFakeOAuthToken(){
+  if (validTokenResponse()) {
+    var token = getPreviousToken();
+    if (token && token.state) {
+      var state = JSON.parse(sessionStorage[token.state]);
+      return state.fake_token_response;
+    }
+  }
+  return false;
+}
+
 BBClient.ready = function(input, callback, errback){
 
   var args = readyArgs.apply(this, arguments);
@@ -17159,24 +17170,28 @@ BBClient.ready = function(input, callback, errback){
   var isCode = urlParam('code') || (args.input && args.input.code);
 
   var accessTokenResolver = null;
-  
-  if (validTokenResponse()) { // we're reloading after successful completion
-    // Check if 2 minutes from access token expiration timestamp
-    var tokenResponse = getPreviousToken();
-    var payloadCheck = jwt.decode(tokenResponse.access_token);
-    var nearExpTime = Math.floor(Date.now() / 1000) >= (payloadCheck['exp'] - 120);
 
-    if (tokenResponse.refresh_token
-      && tokenResponse.scope.indexOf('online_access') > -1
-      && nearExpTime) { // refresh token flow
-      accessTokenResolver = completeTokenRefreshFlow();
-    } else { // existing access token flow
-      accessTokenResolver = completePageReload();
+  if (isFakeOAuthToken()) {
+    accessTokenResolver = completePageReload();
+  } else {
+    if (validTokenResponse()) { // we're reloading after successful completion
+      // Check if 2 minutes from access token expiration timestamp
+      var tokenResponse = getPreviousToken();
+      var payloadCheck = jwt.decode(tokenResponse.access_token);
+      var nearExpTime = Math.floor(Date.now() / 1000) >= (payloadCheck['exp'] - 120);
+
+      if (tokenResponse.refresh_token
+        && tokenResponse.scope.indexOf('online_access') > -1
+        && nearExpTime) { // refresh token flow
+        accessTokenResolver = completeTokenRefreshFlow();
+      } else { // existing access token flow
+        accessTokenResolver = completePageReload();
+      }
+    } else if (isCode) { // code flow
+      accessTokenResolver = completeCodeFlow(args.input);
+    } else { // token flow
+      accessTokenResolver = completeTokenFlow(args.input);
     }
-  } else if (isCode) { // code flow
-    accessTokenResolver = completeCodeFlow(args.input);
-  } else { // token flow
-    accessTokenResolver = completeTokenFlow(args.input);
   }
   accessTokenResolver.done(function(tokenResponse){
 
