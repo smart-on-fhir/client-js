@@ -17173,6 +17173,11 @@ BBClient.ready = function(input, callback, errback){
 
   if (isFakeOAuthToken()) {
     accessTokenResolver = completePageReload();
+    if (window.history.replaceState
+      && BBClient.settings.replaceBrowserHistory
+      && BBClient.settings.fullSessionStorageSupport){
+      window.history.replaceState({}, "", window.location.toString().replace(window.location.search, ""));
+    }
   } else {
     if (validTokenResponse()) { // we're reloading after successful completion
       // Check if 2 minutes from access token expiration timestamp
@@ -17394,7 +17399,7 @@ BBClient.authorize = function(params, errback){
         sessionStorage[state] = JSON.stringify(combinedObject);
       }
 
-      window.location.href = client.redirect_uri + "#state="+encodeURIComponent(state);
+      window.location.href = client.redirect_uri + "?state="+encodeURIComponent(state);
       return;
     }
     
