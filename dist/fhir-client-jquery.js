@@ -6671,6 +6671,11 @@ BBClient.ready = function(input, callback, errback){
 
   if (isFakeOAuthToken()) {
     accessTokenResolver = completePageReload();
+    // In order to remove the state query parameter in the URL, both replaceBrowserHistory
+    // and fullSessionStorageSupport setting flags must be set to true. This allows querying the state
+    // through sessionStorage. If the browser does not support the replaceState method for the History Web API,
+    // or if either of the setting flags are false, the state property will be retrieved
+    // from the state query parameter in the URL.
     if (window.history.replaceState
       && BBClient.settings.replaceBrowserHistory
       && BBClient.settings.fullSessionStorageSupport){
