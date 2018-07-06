@@ -2,10 +2,11 @@
   "name": "fhir-js-client",
   "version": "0.0.1",
   "description": "JavaScript client for Fast Healthcare Interoperability Resources",
+  "repository": "https://github.com/smart-on-fhir/client-js",
   "author": "Josh Mandel <joshua.mandel@childrens.harvard.edu>",
   "dependencies": {
+    "browserify": "^16.2.2",
     "btoa": "*",
-    "browserify": "^5.0",
     "jquery": "*",
     "jsonwebtoken": "*",
     "varify": "^0.1.1"
@@ -14,12 +15,11 @@
     "test": "mocha -c -R spec"
   },
   "devDependencies": {
-    "varify": "^0.1.1",
-    "grunt": "~0.4.1",
-    "grunt-contrib-clean": "~0.5.0",
-    "grunt-contrib-concat": "~0.3.0",
-    "grunt-contrib-uglify": "~0.4.0",
-    "grunt-shell": "~0.3.1",
+    "grunt": "^1.0.3",
+    "grunt-contrib-clean": "^1.1.0",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-uglify": "^3.3.0",
+    "grunt-shell": "^2.1.0",
     "jsdom": "*",
     "mocha": "*",
     "should": "*",

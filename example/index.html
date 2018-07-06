@@ -7,7 +7,7 @@
     <script>
 
       var demo = {
-        serviceUrl: "https://fhir-open-api-dstu2.smarthealthit.org",
+        serviceUrl: "https://r2.smarthealthit.org",
         patientId: "99912345",
         auth: {
           type: 'none'
@@ -18,7 +18,7 @@
 
       /* Create a patient welcome banner */
       var pq = smart.patient.read();
-      
+
       pq.then(function(p) {
         var name = p.name[0];
         var formatted = name.given.join(" ") + " " + name.family.join(" ");
