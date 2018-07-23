@@ -5,7 +5,7 @@
   "repository": "https://github.com/smart-on-fhir/client-js",
   "author": "Josh Mandel <joshua.mandel@childrens.harvard.edu>",
   "dependencies": {
-    "browserify": "^16.2.2",
+    "browserify": "^13.3.0",
     "btoa": "*",
     "jquery": "*",
     "jsonwebtoken": "*",
