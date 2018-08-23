@@ -170,7 +170,7 @@ function completeTokenRefreshFlow() {
       refresh_token: refresh_token
     },
   }).then(function(authz) {
-    authz = $.extend(tokenResponse, authz);
+    authz = FhirClient.extend(tokenResponse, authz);
     ret.resolve(authz);
   }, function() {
     console.warn('Failed to exchange refresh_token for access_token', arguments);
@@ -325,7 +325,7 @@ BBClient.ready = function(input, callback, errback){
       sessionStorage.tokenResponse = JSON.stringify(tokenResponse);
     } else {
       //Save the tokenResponse object and the state into sessionStorage keyed by state
-      var combinedObject = $.extend(true, JSON.parse(sessionStorage[tokenResponse.state]), { 'tokenResponse' : tokenResponse });
+      var combinedObject = FhirClient.extend(true, JSON.parse(sessionStorage[tokenResponse.state]), { 'tokenResponse' : tokenResponse });
       sessionStorage[tokenResponse.state] = JSON.stringify(combinedObject);
     }
 
@@ -511,7 +511,7 @@ BBClient.authorize = function(params, errback){
         sessionStorage[state] = JSON.stringify(params);
         sessionStorage.tokenResponse = JSON.stringify({state: state});
       } else {
-        var combinedObject = $.extend(true, params, { 'tokenResponse' : {state: state} });
+        var combinedObject = FhirClient.extend(true, params, { 'tokenResponse' : {state: state} });
         sessionStorage[state] = JSON.stringify(combinedObject);
       }
 

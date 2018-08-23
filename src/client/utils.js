@@ -1,5 +1,89 @@
 var utils = module.exports =  {};
 
+// https://github.com/jquery/jquery/issues/3444
+utils.extend = function() {
+  var source, name, sourceProperty, targetProperty, clonedTargetProperty,
+    target = arguments[ 0 ],
+    i = 1,
+    length = arguments.length,
+    deep = false
+
+  // Handle a deep copy situation
+  if ( typeof target == "boolean" ) {
+    deep = target
+
+    // Skip the boolean and the target
+    target = arguments[ i ]
+    i++
+  }
+
+  // Extend jQuery itself if only one argument is passed
+  if ( i == length ) {
+    target = this
+    i--
+  }
+
+  // Loop through n objects
+  for ( ; i < length; i++ ) {
+    source = arguments[ i ]
+
+    // Only deal with non-null/undefined values
+    // NOTE: How was the previous source != null getting away with loose comparison?
+    // In any event, it is obfuscating to do loose comparison to null
+    if ( source !== null && source !== undefined ) {
+
+      // Extend the base object
+      for ( name in source ) {
+        targetProperty = target[ name ]
+        sourceProperty = source[ name ]
+
+        // Prevent infinite loop
+        if ( target !== sourceProperty ) {
+          if ( deep && sourceProperty ) {
+            clonedTargetProperty = null
+
+            if ( Array.isArray( sourceProperty ) ) {
+              clonedTargetProperty = targetProperty &&
+                Array.isArray( targetProperty )
+                ? targetProperty : []
+            } else if ( isPlainObject( sourceProperty ) ) {
+              clonedTargetProperty = targetProperty &&
+                isPlainObject( targetProperty )
+                ? targetProperty : {}
+            }
+
+            target[ name ] = clonedTargetProperty
+              ? extend( true, clonedTargetProperty, sourceProperty )
+              : sourceProperty
+
+          // Don't bring in undefined values
+          } else if ( sourceProperty !== undefined ) {
+            target[ name ] = sourceProperty
+          }
+        }
+      }
+    }
+  }
+
+  // Return the modified object
+  return target
+}
+
+function getProto() { return Object.getPrototypeOf }
+
+function isPlainObject (obj) {
+  var proto
+
+    if ( toString.call( obj ) == "[object Object]" ) {
+      proto = getProto( obj )
+
+      // Objects foolish enough to have prototypes with their own - hasOwnProperty - method are not supported
+      return !proto || !proto.hasOwnProperty || proto.hasOwnProperty( "hasOwnProperty" )
+    }
+
+    return false
+}
+
 utils.byCodes = function(observations, property){
 
   var bank = utils.byCode(observations, property);
