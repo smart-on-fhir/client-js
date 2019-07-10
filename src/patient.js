@@ -1,56 +1,3 @@
-// List of resources with 'patient' or 'subject' properties (as of FHIR DSTU2 1.0.0)
-// (Based on https://github.com/FHIR/fhir.js/blob/master/src/middlewares/patient.js)
-var targets = [
-    "Account",
-    "AllergyIntolerance",
-    "BodySite",
-    "CarePlan",
-    "Claim",
-    "ClinicalImpression",
-    "Communication",
-    "CommunicationRequest",
-    "Composition",
-    "Condition",
-    "Contract",
-    "DetectedIssue",
-    "Device",
-    "DeviceUseRequest",
-    "DeviceUseStatement",
-    "DiagnosticOrder",
-    "DiagnosticReport",
-    "DocumentManifest",
-    "DocumentReference",
-    "Encounter",
-    "EnrollmentRequest",
-    "EpisodeOfCare",
-    "FamilyMemberHistory",
-    "Flag",
-    "Goal",
-    "ImagingObjectSelection",
-    "ImagingStudy",
-    "Immunization",
-    "ImmunizationRecommendation",
-    "List",
-    "Media",
-    "MedicationAdministration",
-    "MedicationDispense",
-    "MedicationOrder",
-    "MedicationStatement",
-    "NutritionOrder",
-    "Observation",
-    "Order",
-    "Procedure",
-    "ProcedureRequest",
-    "QuestionnaireResponse",
-    "ReferralRequest",
-    "RelatedPerson",
-    "RiskAssessment",
-    "Specimen",
-    "SupplyDelivery",
-    "SupplyRequest",
-    "VisionPrescription"
-];
-
 const {
     absolute,
     debug: _debug
@@ -76,9 +23,12 @@ function contextualize (requestOptions, client) {
         const type = url.pathname.split("/").pop();
         const params = url.searchParams;
 
-        if (targets.indexOf(type) >= 0){
-            params.set("patient", patient);
-        }
+        // Adding a 'patient' parameter may not be appropriate for all
+        // FHIR queries and resource types (this varies between FHIR versions).
+        // To make this as FHIR version independent as possible, we keep it simple
+        // and leave it to the apps using the client to determine if it makes sense
+        // to run a query throught this wrapper or not.
+        params.set("patient", patient);
     
         debug(`Contextualized request url: ${url.href}`);
 
