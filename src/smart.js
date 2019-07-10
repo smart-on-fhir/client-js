@@ -294,6 +294,14 @@ async function completeAuth(env)
             debug("Removed state parameter from the url.");
         }
 
+        // Workaround for Firefox history.replaceState bug (see https://bugzilla.mozilla.org/show_bug.cgi?id=1422334)
+        // Affected Firefox versions: 56.0+
+        // Bug still present in Firefox 68.0
+        // Side effects of workaround: `#` added to app URL. If this is not desirable set `fixBug1422334` to false.
+        if (getPath(env, "options.fixBug1422334")) {
+            location.hash = location.hash;
+        }
+
         // If the browser does not support the replaceState method for the
         // History Web API, the "code" parameter cannot be removed. As a
         // consequence, the page will (re)authorize on every load. The

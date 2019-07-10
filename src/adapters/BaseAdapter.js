@@ -18,6 +18,12 @@ class BaseAdapter
             // using window.history.replaceState API or by reloading.
             replaceBrowserHistory: true,
 
+            // Enables workaround for Firefox history.replaceState bug (see https://bugzilla.mozilla.org/show_bug.cgi?id=1422334)
+            // Affected Firefox versions: 56.0+
+            // Bug still present in Firefox 68.0
+            // Side effects of workaround: `#` added to app URL. If this is not desirable set to false.
+            fixBug1422334: true,
+
             // When set to true, this variable will fully utilize
             // HTML5 sessionStorage API.
             // This variable can be overridden to false by setting
