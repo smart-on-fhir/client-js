@@ -300,6 +300,7 @@ async function completeAuth(env)
         // Side effects of workaround: `#` added to app URL. If this is not desirable set `fixBug1422334` to false.
         if (getPath(env, "options.fixBug1422334")) {
             location.hash = location.hash;
+            debug("Applied workaround for Firefox bug 1422334.");
         }
 
         // If the browser does not support the replaceState method for the
@@ -310,6 +311,7 @@ async function completeAuth(env)
         // should be set to false.
         if (window.history.replaceState) {
             window.history.replaceState({}, "", url.href);
+            debug("Url updated to: " + url.href);
         }
     }
 
