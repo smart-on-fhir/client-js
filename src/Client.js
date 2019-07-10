@@ -14,8 +14,8 @@ const {
 } = require("./lib");
 
 const debug = _debug.extend("client");
-
 const str = require("./strings");
+const contextualize = require("./patient");
 
 /**
  * Gets single reference by id. Caches the result.
@@ -158,6 +158,11 @@ class FhirClient
                 const id = this.patient.id;
                 return id ?
                     this.request(`Patient/${id}`) :
+                    Promise.reject(new Error("Patient is not available"));
+            },
+            request: (requestOptions, fhirOptions = {}, _resolvedRefs = {}) => {
+                return this.patient.id ?
+                    this.request(contextualize(requestOptions, this), fhirOptions, _resolvedRefs) :
                     Promise.reject(new Error("Patient is not available"));
             }
         };
