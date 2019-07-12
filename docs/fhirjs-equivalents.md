@@ -33,6 +33,10 @@ client.request({
     body: data
 })
 ```
+or
+```js
+client.create(data)
+```
 
 ### update
 ```js
@@ -42,6 +46,10 @@ client.request({
     body: data
 })
 ```
+or
+```js
+client.update(data)
+```
 
 ### delete
 ```js
@@ -49,6 +57,10 @@ client.request({
     url: "ResourceType/resourceId",
     method: "DELETE"
 })
+```
+or
+```js
+client.delete("ResourceType/resourceId")
 ```
 
 ### patch

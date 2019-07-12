@@ -97,7 +97,7 @@ must be changed to:
 patient.read().then(...).catch(...).finally(...)
 ```
 
-#### Other requests
+#### Other read requests
 Other requests should be convertible to `client.request()`. We can't
 cover every possible scenario, but we can provide an example for one use case
 that seems to be very common - fetching patient observations.
@@ -135,6 +135,30 @@ FHIR.oauth2.ready()
     .catch(console.error);
 ```
 See [this](./fhirjs-equivalents) for other examples.
+
+#### Common write requests
+The v2 client includes convenience wrappers for FHIR create, update, delete operations.
+
+For example:
+```js
+client.patient.api.update({resource: resource})
+```
+can be changed to:
+```js
+client.update(resource)
+```
+
+Here are examples for create and delete:
+```js
+client.create(resource)
+```
+```js
+client.delete("Patient/123")
+```
+
+#### Other write requests
+Other write requests should be converted to `client.request()`.
+See [this](./fhirjs-equivalents) for examples.
 
 ### Other Changes
 

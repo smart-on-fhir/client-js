@@ -128,6 +128,20 @@ client.request(
 );
 ```
 
+### client.create(resource: Object) `Promise<Object>`
+A wrapper for `client.request` implementing the FHIR resource create operation.
+
+### client.update(resource: Object) `Promise<Object>`
+A wrapper for `client.request` implementing the FHIR resource update operation.
+
+### client.delete(url: String) `Promise<Object>`
+A wrapper for `client.request` implementing the FHIR resource delete operation.
+
+***Example:***
+```js
+client.delete("Patient/id");
+```
+
 ### client.refresh() `Promise<Object>`
 Use the refresh token to obtain new access token. If the refresh token is
 expired (or this fails for any other reason) it will be deleted from the
