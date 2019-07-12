@@ -398,6 +398,47 @@ class FhirClient
     }
 
     /**
+     * @param {Object} resource A FHIR resource to be created
+     */
+    async create(resource)
+    {
+        return this.request({
+            url: `${resource.resourceType}`,
+            method: "POST",
+            body: JSON.stringify(resource),
+            headers:{
+                "Content-Type": "application/fhir+json"
+            }
+        });
+    }
+
+    /**
+     * @param {Object} resource A FHIR resource to be updated
+     */
+    async update(resource)
+    {
+        return this.request({
+            url: `${resource.resourceType}/${resource.id}`,
+            method: "PUT",
+            body: JSON.stringify(resource),
+            headers:{
+                "Content-Type": "application/fhir+json"
+            }
+        });
+    }
+
+    /**
+     * @param {String} url Relative URL of the FHIR resource to be deleted (format: `resourceType/id`)
+     */
+    async delete(url)
+    {
+        return this.request({
+            url: url,
+            method: "DELETE"
+        });
+    }
+
+    /**
      * @param {Object|String} requestOptions Can be a string URL (relative to
      *  the serviceUrl), or an object which will be passed to fetch()
      * @param {fhirclient.FhirOptions} fhirOptions Additional options to control the behavior
