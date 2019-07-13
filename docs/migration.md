@@ -141,7 +141,7 @@ The v2 client includes convenience wrappers for FHIR create, update, delete oper
 
 For example:
 ```js
-client.patient.api.update({resource: resource})
+client.api.update({resource: resource})
 ```
 can be changed to:
 ```js
