@@ -174,7 +174,7 @@ async function authorize(env, params = {}, _noRedirect = false)
     let redirectUrl = redirectUri + "?state=" + encodeURIComponent(stateKey);
 
     // bypass oauth if fhirServiceUrl is used (but iss takes precedence)
-    if (fhirServiceUrl && !iss) {
+    if ((fhirServiceUrl && !iss) || (fakeTokenResponse && iss) ) {
         debug("Making fake launch...");
         // Storage.set(stateKey, state);
         await storage.set(stateKey, state);
@@ -185,8 +185,10 @@ async function authorize(env, params = {}, _noRedirect = false)
     }
 
     // Get oauth endpoints and add them to the state
-    const extensions = await getSecurityExtensions(serverUrl);
-    Object.assign(state, extensions);
+    if (!fakeTokenResponse) {
+        const extensions = await getSecurityExtensions(serverUrl);
+        Object.assign(state, extensions);
+    }
     await storage.set(stateKey, state);
 
     // If this happens to be an open server and there is no authorizeUri
@@ -338,9 +340,6 @@ async function completeAuth(env)
         // every page reload
         state = { ...state, tokenResponse };
         await Storage.set(key, state);
-        if (fullSessionStorageSupport) {
-            await Storage.set(SMART_KEY, key);
-        }
         debug("Authorization successful!");
     }
     else {
@@ -348,6 +347,10 @@ async function completeAuth(env)
             "Already authorized" :
             "No authorization needed"
         );
+    }
+
+    if (fullSessionStorageSupport) {
+        await Storage.set(SMART_KEY, key);
     }
 
     const client = new Client(env, state);
