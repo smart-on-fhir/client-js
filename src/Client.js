@@ -428,12 +428,12 @@ class FhirClient
     }
 
     /**
-     * @param {String} url Relative URL of the FHIR resource to be deleted (format: `resourceType/id`)
+     * @param {String} uri Relative URL of the FHIR resource to be deleted (format: `resourceType/id`)
      */
-    async delete(url)
+    async delete(uri)
     {
         return this.request({
-            url: url,
+            url: uri,
             method: "DELETE"
         });
     }

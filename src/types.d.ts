@@ -201,6 +201,24 @@ declare namespace fhirclient {
         _clearState(): Promise<void>;
 
         /**
+         * Wrapper for `client.request` implementing the FHIR resource create operation
+         * @param {Object} resource A FHIR resource to be created
+         */
+        create(resource: object): Promise<RequestResult>
+
+        /**
+         * Wrapper for `client.request` implementing the FHIR resource update operation
+         * @param {Object} resource A FHIR resource to be updated
+         */
+        update(resource: object): Promise<RequestResult>
+
+        /**
+         * Wrapper for `client.request` implementing the FHIR resource delete operation
+         * @param {String} uri Relative URL of the FHIR resource to be deleted (format: `resourceType/id`)
+         */
+        delete(uri: string): Promise<RequestResult>
+
+        /**
          * Use this method to query the FHIR server
          * @param uri Either the full url, or a path that will be rooted at the FHIR baseUrl.
          * @param fhirOptions Additional options to control the behavior 

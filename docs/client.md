@@ -129,13 +129,13 @@ client.request(
 ```
 
 ### client.create(resource: Object) `Promise<Object>`
-A wrapper for `client.request` implementing the FHIR resource create operation.
+Wrapper for `client.request` implementing the FHIR resource create operation.
 
 ### client.update(resource: Object) `Promise<Object>`
-A wrapper for `client.request` implementing the FHIR resource update operation.
+Wrapper for `client.request` implementing the FHIR resource update operation.
 
-### client.delete(url: String) `Promise<Object>`
-A wrapper for `client.request` implementing the FHIR resource delete operation.
+### client.delete(uri: String) `Promise<Object>`
+Wrapper for `client.request` implementing the FHIR resource delete operation.
 
 ***Example:***
 ```js
