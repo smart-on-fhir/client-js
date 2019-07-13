@@ -400,7 +400,7 @@ class FhirClient
     /**
      * @param {Object} resource A FHIR resource to be created
      */
-    async create(resource)
+    create(resource)
     {
         return this.request({
             url: `${resource.resourceType}`,
@@ -415,7 +415,7 @@ class FhirClient
     /**
      * @param {Object} resource A FHIR resource to be updated
      */
-    async update(resource)
+    update(resource)
     {
         return this.request({
             url: `${resource.resourceType}/${resource.id}`,
@@ -428,9 +428,9 @@ class FhirClient
     }
 
     /**
-     * @param {String} uri Relative URL of the FHIR resource to be deleted (format: `resourceType/id`)
+     * @param {String} uri Relative URI of the FHIR resource to be deleted (format: `resourceType/id`)
      */
-    async delete(uri)
+    delete(uri)
     {
         return this.request({
             url: uri,

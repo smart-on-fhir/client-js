@@ -214,7 +214,7 @@ declare namespace fhirclient {
 
         /**
          * Wrapper for `client.request` implementing the FHIR resource delete operation
-         * @param {String} uri Relative URL of the FHIR resource to be deleted (format: `resourceType/id`)
+         * @param {String} uri Relative URI of the FHIR resource to be deleted (format: `resourceType/id`)
          */
         delete(uri: string): Promise<RequestResult>
 
