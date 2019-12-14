@@ -9,17 +9,16 @@ const moduleConfig = {
             targets: "node 10"
         }]
     ]
-}
+};
 
 module.exports = {
     env: {
         pure: {},
         browser: {
-            plugins: ["@babel/plugin-transform-runtime"],
             presets: [
                 ["@babel/preset-env", {
                     useBuiltIns: "usage",
-                    modules: "commonjs",
+                    modules: false,
                     corejs: {
                         version: 3,
                         proposals: true
@@ -36,6 +35,6 @@ module.exports = {
             ]
         },
         module: moduleConfig,
-        test: moduleConfig,
+        test: moduleConfig
     }
-}
+};
