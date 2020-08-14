@@ -959,7 +959,7 @@ export default class Client
                     "content-type": "application/x-www-form-urlencoded"
                 },
                 body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`,
-                credentials: hasOnlineAccess ? "include" : "same-origin"
+                credentials: hasOnlineAccess ? "omit" : "same-origin"
             }).then(data => {
                 if (!data.access_token) {
                     throw new Error("No access token received");
