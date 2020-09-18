@@ -639,9 +639,9 @@ export default class Client
      * Note that `method` and `body` will be ignored.
      * @category Request
      */
-    create(resource: fhirclient.FHIR.Resource, requestOptions: RequestInit = {}): Promise<fhirclient.FHIR.Resource>
+    create(resource: fhirclient.FHIR.Resource, requestOptions: RequestInit = {}): Promise<Response>
     {
-        return this.request<fhirclient.FHIR.Resource>({
+        return this.request<Response>({
             ...requestOptions,
             url: `${resource.resourceType}`,
             method: "POST",
