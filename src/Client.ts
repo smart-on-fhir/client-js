@@ -637,11 +637,16 @@ export default class Client
      * @param resource A FHIR resource to be created
      * @param [requestOptions] Any options to be passed to the fetch call.
      * Note that `method` and `body` will be ignored.
+     * In case of a 201 repsonse code, this methods return type depends on
+     * the servers reponse and will return a value according to this priority list:
+     * 1. A resource contained inside the body of the response
+     * 2. A resource fetched using the `location` header of the response
+     * 3. A response object as a fallback option
      * @category Request
      */
-    create(resource: fhirclient.FHIR.Resource, requestOptions: RequestInit = {}): Promise<Response>
+    create(resource: fhirclient.FHIR.Resource, requestOptions: RequestInit = {}): Promise<fhirclient.FHIR.Resource | Response>
     {
-        return this.request<Response>({
+        return this.request<fhirclient.FHIR.Resource | Response>({
             ...requestOptions,
             url: `${resource.resourceType}`,
             method: "POST",
