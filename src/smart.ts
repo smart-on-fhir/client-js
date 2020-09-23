@@ -523,8 +523,11 @@ export async function completeAuth(env: fhirclient.Adapter): Promise<Client>
     }
 
     // Assume the client has already completed a token exchange when
-    // there is no code (but we have a state) or access token is found in state
-    const authorized = !code || state?.tokenResponse?.access_token;
+    // there is no code (but we have a state) or access token is found in state and is not expired
+    const token = state?.tokenResponse?.access_token;
+    const tokenBody = JSON.parse(atob(token.split(".")[1]));
+    const tokenExpired = tokenBody.exp < Date.now() / 1000;
+    const authorized = !code || (token && !tokenExpired);
 
     // If we are authorized already, then this is just a reload.
     // Otherwise, we have to complete the code flow
