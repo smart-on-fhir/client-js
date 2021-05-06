@@ -121,10 +121,14 @@ export function request<T = fhirclient.FetchResult>(
         // empty body. In this case check if a location header is received and
         // fetch that to use it as the final result.
         if (!body && res.status == 201) {
-            const location = res.headers.get("location") + "";
-            if (location) {
-                return request(location, { ...options, method: "GET", body: null, includeResponse });
+            const locationHeader = res.headers.get("location");
+            if (locationHeader) {
+                const location = locationHeader + "";
+                if (location) {
+                    return request(location, { ...options, method: "GET", body: null, includeResponse });
+                }
             }
+                
         }
 
         if (includeResponse) {

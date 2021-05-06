@@ -298,6 +298,17 @@ describe("Lib", () => {
                 expect(response).to.equal({ result: "success" });
             });
 
+            it ("correctly handles empty location header when the server replies with 201", async () => {
+                mockServer.mock({
+                    status : 201,
+                    body   : null
+                });
+                // No location to redirect to, so no need for a second call to 
+                // mockServer.mock().
+                const response = await lib.request(mockUrl);
+                expect(response.status).to.equal(201);
+            });
+
             it ("respects the includeResponse option", async () => {
                 mockServer.mock({
                     headers: { "content-type": "application/json" },

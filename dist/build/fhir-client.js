@@ -12673,14 +12673,18 @@ function request(url, requestOptions) {
     // empty body. In this case check if a location header is received and
     // fetch that to use it as the final result.
     if (!body && res.status == 201) {
-      var location = res.headers.get("location") + "";
+      var locationHeader = res.headers.get("location");
 
-      if (location) {
-        return request(location, Object.assign({}, options, {
-          method: "GET",
-          body: null,
-          includeResponse: includeResponse
-        }));
+      if (locationHeader) {
+        var location = locationHeader + "";
+
+        if (location) {
+          return request(location, Object.assign({}, options, {
+            method: "GET",
+            body: null,
+            includeResponse: includeResponse
+          }));
+        }
       }
     }
 
