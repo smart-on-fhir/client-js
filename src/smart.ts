@@ -233,10 +233,11 @@ export async function authorize(
 
     const storage = env.getStorage();
 
-    // For these three an url param takes precedence over inline option
+    // For these four an url param takes precedence over inline option
     iss            = url.searchParams.get("iss")            || iss;
     fhirServiceUrl = url.searchParams.get("fhirServiceUrl") || fhirServiceUrl;
     launch         = url.searchParams.get("launch")         || launch;
+    patientId      = url.searchParams.get("patientId")      || patientId;
 
     if (!clientId) {
         clientId = client_id;
@@ -276,7 +277,7 @@ export async function authorize(
         const inPopUp = isInPopUp();
 
         if ((inFrame || inPopUp) && completeInTarget !== true && completeInTarget !== false) {
-            
+
             // completeInTarget will default to true if authorize is called from
             // within an iframe. This is to avoid issues when the entire app
             // happens to be rendered in an iframe (including in some EHRs),
