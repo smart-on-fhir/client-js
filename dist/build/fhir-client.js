@@ -67876,7 +67876,7 @@ exports.SMART_KEY = "SMART_KEY";
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
+/* WEBPACK VAR INJECTION */(function(Buffer) {
 
 var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
 
@@ -68112,24 +68112,27 @@ function generatePKCECodes() {
 
 function _generatePKCECodes() {
   _generatePKCECodes = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-    var inputBytes, codeVerifier, codeBuffer;
+    var inputBytes, codeVerifier, codeVerifierForDigest, codeBuffer;
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
             inputBytes = jose.util.randomBytes(RECOMMENDED_CODE_VERIFIER_LENGTH);
-            codeVerifier = jose.util.base64url.encode(inputBytes);
-            _context.next = 4;
-            return jose.JWA.digest('SHA-256', codeVerifier);
+            codeVerifier = jose.util.base64url.encode(inputBytes); // node-jose's JWA.digest accepts strings in Node, but not in the browser (yikes!)
+            // TODO: replace this library with something smaller/simpler
 
-          case 4:
+            codeVerifierForDigest = Buffer.from(codeVerifier);
+            _context.next = 5;
+            return jose.JWA.digest('SHA-256', codeVerifierForDigest);
+
+          case 5:
             codeBuffer = _context.sent;
             return _context.abrupt("return", {
               codeChallenge: jose.util.base64url.encode(codeBuffer),
               codeVerifier: codeVerifier
             });
 
-          case 6:
+          case 7:
           case "end":
             return _context.stop();
         }
@@ -68998,6 +69001,7 @@ function _init() {
 }
 
 exports.init = init;
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../node_modules/buffer/index.js */ "./node_modules/buffer/index.js").Buffer))
 
 /***/ }),
 

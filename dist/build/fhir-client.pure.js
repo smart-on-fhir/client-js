@@ -57378,7 +57378,7 @@ exports.SMART_KEY = "SMART_KEY";
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
+/* WEBPACK VAR INJECTION */(function(Buffer) {
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -57530,9 +57530,12 @@ var RECOMMENDED_CODE_VERIFIER_LENGTH = 96;
  */
 
 async function generatePKCECodes() {
-  var inputBytes = jose.util.randomBytes(RECOMMENDED_CODE_VERIFIER_LENGTH);
-  var codeVerifier = jose.util.base64url.encode(inputBytes);
-  const codeBuffer = await jose.JWA.digest('SHA-256', codeVerifier);
+  const inputBytes = jose.util.randomBytes(RECOMMENDED_CODE_VERIFIER_LENGTH);
+  const codeVerifier = jose.util.base64url.encode(inputBytes); // node-jose's JWA.digest accepts strings in Node, but not in the browser (yikes!)
+  // TODO: replace this library with something smaller/simpler
+
+  let codeVerifierForDigest = Buffer.from(codeVerifier);
+  const codeBuffer = await jose.JWA.digest('SHA-256', codeVerifierForDigest);
   return {
     codeChallenge: jose.util.base64url.encode(codeBuffer),
     codeVerifier: codeVerifier
@@ -58160,6 +58163,7 @@ async function init(env, options) {
 }
 
 exports.init = init;
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../node_modules/buffer/index.js */ "./node_modules/buffer/index.js").Buffer))
 
 /***/ }),
 
