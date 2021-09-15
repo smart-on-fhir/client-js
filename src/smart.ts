@@ -152,9 +152,12 @@ function any(tasks: Task[]): Promise<any> {
   * Generates a code_verifier and code_challenge, as specified in rfc7636.
   */
  async function generatePKCECodes(): Promise<{codeChallenge: string, codeVerifier: string}> {
-  var inputBytes:Buffer = jose.util.randomBytes(RECOMMENDED_CODE_VERIFIER_LENGTH);
-   var codeVerifier:string = jose.util.base64url.encode(inputBytes);
-   const codeBuffer = await jose.JWA.digest('SHA-256', codeVerifier);
+   const inputBytes:Buffer = jose.util.randomBytes(RECOMMENDED_CODE_VERIFIER_LENGTH);
+   const codeVerifier:string = jose.util.base64url.encode(inputBytes);
+   // node-jose's JWA.digest accepts strings in Node, but not in the browser (yikes!)
+   // TODO: replace this library with something smaller/simpler
+   let codeVerifierForDigest = Buffer.from(codeVerifier);
+   const codeBuffer = await jose.JWA.digest('SHA-256', codeVerifierForDigest);
     return {
      codeChallenge: jose.util.base64url.encode(codeBuffer),
      codeVerifier: codeVerifier,
