@@ -1013,6 +1013,27 @@ describe("FHIR.client", () => {
             });
         });
 
+        describe("allow overriding the authorization header", () => {
+            crossPlatformTest(async (env) => {
+                const client = new Client(env, {
+                    serverUrl: mockUrl,
+                    tokenResponse: {
+                        access_token: "abc",
+                    }
+                });
+
+                mockServer.mock({
+                    handler(req, res) {
+                        res.json(req.headers.authorization);
+                    }
+                });
+
+                const headers = {"Authorization": "Bearer xyz"};
+                const result = await client.request({url: "/", headers});
+                expect(result).to.equal(headers.Authorization);
+            });
+        });
+
         // ---------------------------------------------------------------------
 
         describe ("can fetch single resource", () => {
