@@ -808,8 +808,8 @@ export default class Client
                 const authHeader = this.getAuthorizationHeader();
                 if (authHeader) {
                     requestOptions.headers = {
-                        ...requestOptions.headers,
-                        Authorization: authHeader
+                        Authorization: authHeader,
+                        ...requestOptions.headers
                     };
                 }
                 return requestOptions;
