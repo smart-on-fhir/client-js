@@ -1,6 +1,6 @@
 {
   "name": "fhirclient",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "JavaScript client for Fast Healthcare Interoperability Resources",
   "author": "SMART Health IT <support@smarthealthit.org> (https://smarthealthit.org/)",
   "contributors": [
@@ -32,18 +32,18 @@
     "doc": "typedoc src && touch docs/typedoc/.nojekyll"
   },
   "devDependencies": {
-    "@babel/cli": "^7.11.5",
-    "@babel/core": "^7.11.5",
-    "@babel/plugin-transform-runtime": "^7.11.5",
-    "@babel/preset-env": "^7.11.5",
-    "@babel/runtime": "^7.11.2",
+    "@babel/cli": "^7.17.10",
+    "@babel/core": "^7.18.0",
+    "@babel/plugin-transform-runtime": "^7.18.0",
+    "@babel/preset-env": "^7.18.0",
+    "@babel/runtime": "^7.18.0",
     "@hapi/code": "^8.0.2",
     "@hapi/lab": "^24.2.1",
     "@types/debug": "^4.1.5",
     "@types/express": "^4.17.8",
     "@types/jsonwebtoken": "^8.5.1",
     "@types/node": "^13.13.16",
-    "babel-loader": "^8.1.0",
+    "babel-loader": "^8.2.5",
     "babel-polyfill": "^6.26.0",
     "cors": "^2.8.5",
     "coveralls": "^3.1.0",
@@ -52,14 +52,14 @@
     "jsdom": "^15.2.1",
     "jsonwebtoken": "^8.5.1",
     "lab-transform-typescript": "^3.0.1",
-    "ts-loader": "^6.2.2",
+    "ts-loader": "^9.3.0",
     "tslint": "^5.20.1",
     "typedoc": "^0.15.8",
     "typescript": "^3.9.7",
-    "webpack": "^4.44.1",
+    "webpack": "^5.72.1",
     "webpack-bundle-analyzer": "^3.8.0",
-    "webpack-cli": "^3.3.12",
-    "webpack-merge": "^4.2.2"
+    "webpack-cli": "^4.9.2",
+    "webpack-merge": "^5.8.0"
   },
   "engine": "node >= 10",
   "repository": {
