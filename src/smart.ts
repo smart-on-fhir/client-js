@@ -238,6 +238,11 @@ export async function authorize(
     fhirServiceUrl = url.searchParams.get("fhirServiceUrl") || fhirServiceUrl;
     launch         = url.searchParams.get("launch")         || launch;
 
+    // For these url param inline takes precedence over url parameter
+    if (!client_id) {
+        client_id = url.searchParams.get("client_id")  
+    }
+    
     if (!clientId) {
         clientId = client_id;
     }
