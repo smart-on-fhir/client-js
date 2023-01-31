@@ -238,7 +238,6 @@ export async function authorize(
     fhirServiceUrl = url.searchParams.get("fhirServiceUrl") || fhirServiceUrl;
     launch         = url.searchParams.get("launch")         || launch;
 
-    
     if (!clientId) {
         clientId = client_id || (url.searchParams.get("clientId") ?? undefined);
     }
