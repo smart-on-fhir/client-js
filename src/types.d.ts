@@ -455,6 +455,9 @@ declare namespace fhirclient {
           * without padding, which is NOT the same as regular base64 encoding.
           */
         codeVerifier?: string;
+
+        associatedEndpointDefaults?: WellKnownSmartConfiguration["associated_endpoints"];
+
     }
 
     /**
@@ -634,6 +637,8 @@ declare namespace fhirclient {
          *    this setting
          */
         pkceMode?: PkceMode;
+
+        associatedEndpointDefaults?: ClientState["associatedEndpointDefaults"];
     }
 
     interface ReadyOptions {
@@ -883,6 +888,10 @@ declare namespace fhirclient {
 
     type permissions = "permission-offline" | "permission-patient" | "permission-user";
 
+    type appState = "smart-app-state";
+
+    type imagingAccess = "smart-imaging-access";
+
     interface WellKnownSmartConfiguration {
         /**
          * URL to the OAuth2 authorization endpoint.
@@ -951,8 +960,18 @@ declare namespace fhirclient {
             launchContext |
             launchContextEHR |
             launchContextStandalone |
-            permissions
+            permissions | 
+            appState | 
+            imagingAccess 
         >;
+        
+        /** Endpoints associated with this one, providing additional capabilities
+         * (e.g., imaging access)
+         */
+        associated_endpoints?: {
+            url: string,
+            capabilities: WellKnownSmartConfiguration["capabilities"]
+        }[];
     }
 
     namespace FHIR {

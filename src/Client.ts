@@ -21,6 +21,7 @@ import { SMART_KEY, patientCompartment, fhirVersions } from "./settings";
 import HttpError from "./HttpError";
 import BrowserAdapter from "./adapters/BrowserAdapter";
 import { fhirclient } from "./types";
+import { fetchWellKnownJson } from "./smart";
 
 // $lab:coverage:off$
 // @ts-ignore
@@ -345,6 +346,15 @@ export default class Client
     api: Record<string, any> | undefined;
 
     /**
+     * Return a new client object scoped for a specific capability.
+     * If the original client supports the capabilitiy, it's a pass-through
+     * operation. Otherwise we use the base server's "associated_endpoints"
+     * to pre-configure a new client. Throws an error if we don't have
+     * exactly one endpoint with the specified capability.
+     */
+    forCapability: (capability: fhirclient.WellKnownSmartConfiguration["capabilities"][number]) => Promise<Client>;
+
+    /**
      * Refers to the refresh task while it is being performed.
      * @see [[refresh]]
      */
@@ -414,6 +424,29 @@ export default class Client
                     Promise.reject(new Error("User is not available"));
             }
         };
+
+        this.forCapability = async (capability: fhirclient.WellKnownSmartConfiguration["capabilities"][number]) => {
+            const smartConfiguration = await fetchWellKnownJson(client.state.serverUrl);
+            const options = (
+                smartConfiguration.capabilities.includes(capability) ? [client.state.serverUrl] : []
+            ).concat(
+                (smartConfiguration?.associated_endpoints || [])
+                .filter(e => e.capabilities.includes(capability))
+                .map(e => e.url)
+            );
+
+            const defaultUrl = client.state.associatedEndpointDefaults?.find(e => e.capabilities.includes(capability))?.url;
+
+            if ((options.length === 0 && !defaultUrl) || options.length > 1) {
+                throw `Expected 1 endpoint for ${capability} but found ${options.length}: ${options}`;
+            }
+
+            return new Client(client.environment, {
+                ...client.state,
+                serverUrl: (options.length === 1 ? options[0] : defaultUrl!)
+            })
+
+        }
 
         // fhir.js api (attached automatically in browser)
         // ---------------------------------------------------------------------
