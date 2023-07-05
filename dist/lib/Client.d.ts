@@ -123,6 +123,14 @@ export default class Client {
      */
     api: Record<string, any> | undefined;
     /**
+     * Return a new client object scoped for a specific capability.
+     * If the original client supports the capabilitiy, it's a pass-through
+     * operation. Otherwise we use the base server's "associated_endpoints"
+     * to pre-configure a new client. Throws an error if we don't have
+     * exactly one endpoint with the specified capability.
+     */
+    forCapability: (capability: fhirclient.WellKnownSmartConfiguration["capabilities"][number]) => Promise<Client>;
+    /**
      * Refers to the refresh task while it is being performed.
      * @see [[refresh]]
      */
