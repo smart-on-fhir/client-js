@@ -634,6 +634,25 @@ declare namespace fhirclient {
          *    this setting
          */
         pkceMode?: PkceMode;
+
+        /**
+         * An opaque value used by the client to maintain state between the request and callback.
+         *
+         * If stateKey is not specified, one will be generated automatically.
+         *
+         * The authorization server includes this value when redirecting the user-agent back to the
+         * client.
+         *
+         * It's important to ensure that no sensitive information is included in the state
+         * parameter because it could be saved in the browser's history or server logs. To prevent
+         * CSRF attacks, the state parameter should be generated with a secure random seed.
+         *
+         * From the perspective of developing client applications, the state parameter is useful
+         * for restoring a user's session, which might involve querying a data structure for cached
+         * objects specific to that user. The state parameter could refer to a user session key,
+         * but its purpose may vary depending on the application.
+         */
+        stateKey?: string;
     }
 
     interface ReadyOptions {
