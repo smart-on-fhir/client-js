@@ -1,6 +1,5 @@
 /* global window */
 import {
-    debug as _debug,
     request,
     getPath,
     getTimeInFuture,
@@ -11,11 +10,11 @@ import {
     getTargetWindow,
     assert
 } from "./lib";
+import { debug } from "./debug";
 import Client from "./Client";
 import { SMART_KEY } from "./settings";
 import { fhirclient } from "./types";
 
-const debug = _debug.extend("oauth2");
 
 export { SMART_KEY as KEY };
 
@@ -165,7 +164,7 @@ export async function authorize(
         redirect_uri,
         client_id,
     } = params;
-    
+
     let {
         iss,
         launch,
@@ -318,7 +317,7 @@ export async function authorize(
         "response_type=code",
         "client_id="    + encodeURIComponent(clientId || ""),
         "scope="        + encodeURIComponent(scope),
-        "redirect_uri=" + encodeURIComponent(redirectUri),
+        "redirect_uri=" + encodeURIComponent(redirectUri!),
         "aud="          + encodeURIComponent(serverUrl),
         "state="        + encodeURIComponent(stateKey)
     ];
@@ -354,7 +353,7 @@ export async function authorize(
                 win.sessionStorage.removeItem(oldKey);
                 win.sessionStorage.setItem(stateKey, JSON.stringify(state));
             } catch (ex) {
-                _debug(`Failed to modify window.sessionStorage. Perhaps it is from different origin?. Failing back to "_self". %s`, ex);
+                debug(`oauth2: Failed to modify window.sessionStorage. Perhaps it is from different origin?. Failing back to "_self". %s`, ex);
                 win = self;
             }
         }
@@ -364,7 +363,7 @@ export async function authorize(
                 win.location.href = redirectUrl;
                 self.addEventListener("message", onMessage);
             } catch (ex) {
-                _debug(`Failed to modify window.location. Perhaps it is from different origin?. Failing back to "_self". %s`, ex);
+                debug(`oauth2: Failed to modify window.location. Perhaps it is from different origin?. Failing back to "_self". %s`, ex);
                 self.location.href = redirectUrl;
             }
         } else {
@@ -373,9 +372,8 @@ export async function authorize(
 
         return;
     }
-    else {
-        return await env.redirect(redirectUrl);
-    }
+    
+    return await env.redirect(redirectUrl);
 }
 
 function shouldIncludeChallenge(S256supported: boolean, pkceMode?: string) {
@@ -666,7 +664,7 @@ export async function buildTokenRequest(
     // Basic authentication is required, where the username is the app’s
     // client_id and the password is the app’s client_secret (see example).
     if (clientSecret) {
-        requestOptions.headers.authorization = "Basic " + env.btoa(
+        requestOptions.headers.authorization = "Basic " + env.base64encode(
             clientId + ":" + clientSecret
         );
         debug(
@@ -746,6 +744,7 @@ export async function buildTokenRequest(
  *    refresh the page twice to re-authorize.
  * @param env The adapter
  * @param authorizeOptions The authorize options
+ * @param [readyOptions]
  */
 export async function init(
     env: fhirclient.Adapter,

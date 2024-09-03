@@ -1,20 +1,8 @@
-/*
- * This file contains some shared functions. They are used by other modules, but
- * are defined here so that tests can import this library and test them.
- */
-
-import HttpError from "./HttpError";
+import HttpError         from "./HttpError";
 import { patientParams } from "./settings";
-import { fhirclient } from "./types";
-const debug = require("debug");
+import { fhirclient }    from "./types";
+import { debug }         from "./debug";
 
-// $lab:coverage:off$
-// @ts-ignore
-const { fetch } = typeof FHIRCLIENT_PURE !== "undefined" ? window : require("cross-fetch");
-// $lab:coverage:on$
-
-const _debug     = debug("FHIR");
-export { _debug as debug };
 
 /**
  * The cache for the `getAndCache` function
@@ -111,14 +99,17 @@ export function loweCaseKeys<T=Record<string, any> | any[] | undefined>(obj: T):
  * - If the response is json return the json object
  * - If the response is text return the result text
  * - Otherwise return the response object on which we call stuff like `.blob()`
+ * @param {string | Request} url
+ * @param {fhirclient.FetchOptions} [requestOptions]
  */
-export function request<T = fhirclient.FetchResult>(
+export async function request<T = fhirclient.FetchResult>(
     url: string | Request,
     requestOptions: fhirclient.FetchOptions = {}
 ): Promise<T>
 {
     const { includeResponse, ...options } = requestOptions;
-    return fetch(url, {
+
+    const response = await fetch(url, {
         mode: "cors",
         ...options,
         headers: {
@@ -126,43 +117,43 @@ export function request<T = fhirclient.FetchResult>(
             ...loweCaseKeys(options.headers)
         }
     })
-    .then(checkResponse)
-    .then((res: Response) => {
-        const type = res.headers.get("content-type") + "";
-        if (type.match(/\bjson\b/i)) {
-            return responseToJSON(res).then(body => ({ res, body }));
-        }
-        if (type.match(/^text\//i)) {
-            return res.text().then(body => ({ res, body }));
-        }
-        return { res };
-    })
-    .then(({res, body}: {res:Response, body?:fhirclient.JsonObject|string}) => {
+    
+    await checkResponse(response)
 
-        // Some servers will reply after CREATE with json content type but with
-        // empty body. In this case check if a location header is received and
-        // fetch that to use it as the final result.
-        if (!body && res.status == 201) {
-            const location = res.headers.get("location");
-            if (location) {
-                return request(location, { ...options, method: "GET", body: null, includeResponse });
-            }
-        }
+    const type = response.headers.get("content-type") + "";
 
-        if (includeResponse) {
-            return { body, response: res };
-        }
+    let body;
 
-        // For any non-text and non-json response return the Response object.
-        // This to let users decide if they want to call text(), blob() or
-        // something else on it
-        if (body === undefined) {
-            return res;
-        }
+    if (type.match(/\bjson\b/i)) {
+        body = await responseToJSON(response);
+    }
+    else if (type.match(/^text\//i)) {
+        body = await response.text();
+    }
 
-        // Otherwise just return the parsed body (can also be "" or null)
-        return body;
-    });
+    // Some servers will reply after CREATE with json content type but with
+    // empty body. In this case check if a location header is received and
+    // fetch that to use it as the final result.
+    if (!body && response.status == 201) {
+        const location = response.headers.get("location");
+        if (location) {
+            return request(location, { ...options, method: "GET", body: null, includeResponse });
+        }
+    }
+
+    if (includeResponse) {
+        return { body, response } as unknown as T;
+    }
+
+    // For any non-text and non-json response return the Response object.
+    // This to let users decide if they want to call text(), blob() or
+    // something else on it
+    if (body === undefined) {
+        return response as unknown as T;
+    }
+
+    // Otherwise just return the parsed body (can also be "" or null)
+    return body as unknown as T;
 }
 
 /**
@@ -170,15 +161,14 @@ export function request<T = fhirclient.FetchResult>(
  * The cache is cleared when the page is unloaded.
  * @param url The URL to request
  * @param requestOptions Request options
- * @param force If true, reload from source and update the cache, even if it has
- * already been cached.
+ * @param [force] If true, reload from source and update the cache, even if it
+ * has already been cached.
  */
-export function getAndCache(url: string, requestOptions?: RequestInit, force: boolean = process.env.NODE_ENV === "test"): Promise<any> {
+export async function getAndCache(url: string, requestOptions?: RequestInit, force: boolean = globalThis?.process?.env?.NODE_ENV === "test"): Promise<any> {
     if (force || !cache[url]) {
         cache[url] = request(url, requestOptions);
-        return cache[url];
     }
-    return Promise.resolve(cache[url]);
+    return cache[url];
 }
 
 /**
@@ -222,7 +212,7 @@ export function getPath(obj: Record<string, any>, path = ""): any {
         if (!key && Array.isArray(result)) {
             return result.map(o => getPath(o, segments.join(".")));
         } else {
-            result = result[key as string];
+            result = result[key + ""];
         }
     }
 
@@ -311,14 +301,14 @@ export function randomString(
 export function jwtDecode(token: string, env: fhirclient.Adapter): Record<string, any> | null
 {
     const payload = token.split(".")[1];
-    return payload ? JSON.parse(env.atob(payload)) : null;
+    return payload ? JSON.parse(env.base64decode(payload)) : null;
 }
 
 /**
  * Add a supplied number of seconds to the supplied Date, returning
  * an integer number of seconds since the epoch
  * @param secondsAhead How far ahead, in seconds (defaults to 120 seconds)
- * @param from Initial time (defaults to current time)
+ * @param [from] Initial time (defaults to current time)
  */
 export function getTimeInFuture(secondsAhead: number = 120, from?: Date | number): number {
     return Math.floor(+(from || new Date()) / 1000 + secondsAhead) 
@@ -481,7 +471,7 @@ export async function getTargetWindow(target: fhirclient.WindowTarget, width: nu
 
     // At this point target must be a string
     if (typeof target != "string") {
-        _debug("Invalid target type '%s'. Failing back to '_self'.", typeof target);
+        debug("Invalid target type '%s'. Failing back to '_self'.", typeof target);
         return self;
     }
 
@@ -513,7 +503,7 @@ export async function getTargetWindow(target: fhirclient.WindowTarget, width: nu
         }
 
         if (!targetWindow) {
-            _debug("Cannot open window. Failing back to '_self'. %s", error);
+            debug("Cannot open window. Failing back to '_self'. %s", error);
             return self;
         } else {
             return targetWindow;
@@ -542,7 +532,7 @@ export async function getTargetWindow(target: fhirclient.WindowTarget, width: nu
         }
 
         if (!targetWindow) {
-            _debug("Cannot open window. Failing back to '_self'. %s", error);
+            debug("Cannot open window. Failing back to '_self'. %s", error);
             return self;
         } else {
             return targetWindow;
@@ -555,7 +545,7 @@ export async function getTargetWindow(target: fhirclient.WindowTarget, width: nu
         return winOrFrame;
     }
 
-    _debug("Unknown target '%s'. Failing back to '_self'.", target);
+    debug("Unknown target '%s'. Failing back to '_self'.", target);
     return self;
 }
 

@@ -1,12 +1,11 @@
-import { fhirclient } from "../types";
-import { ready, authorize, init } from "../smart";
-import Client from "../Client";
-import ServerStorage from "../storage/ServerStorage";
-import { AbortController } from "abortcontroller-polyfill/dist/cjs-ponyfill";
-import { IncomingMessage, ServerResponse } from "http";
-import { TLSSocket } from "tls";
-import * as security from "../security/server"
-import { base64url } from "jose"
+import { TLSSocket }                       from "tls"
+import { IncomingMessage, ServerResponse } from "http"
+import { base64url }                       from "jose"
+import { fhirclient }                      from "../types"
+import { ready, authorize, init }          from "../smart"
+import Client                              from "../Client"
+import ServerStorage                       from "../storage/ServerStorage"
+import * as security                       from "../security/server"
 
 
 interface NodeAdapterOptions {
@@ -112,21 +111,17 @@ export default class NodeAdapter implements fhirclient.Adapter
     /**
      * Base64 to ASCII string
      */
-    btoa(str: string): string
+    base64encode(str: string): string
     {
-        // The "global." makes Webpack understand that it doesn't have to
-        // include the Buffer code in the bundle
-        return global.Buffer.from(str).toString("base64");
+        return Buffer.from(str).toString("base64");
     }
 
     /**
      * ASCII string to Base64
      */
-    atob(str: string): string
+    base64decode(str: string): string
     {
-        // The "global." makes Webpack understand that it doesn't have to
-        // include the Buffer code in the bundle
-        return global.Buffer.from(str, "base64").toString("ascii");
+        return Buffer.from(str, "base64").toString("ascii");
     }
 
     base64urlencode(input: string | Uint8Array)
@@ -137,15 +132,6 @@ export default class NodeAdapter implements fhirclient.Adapter
     base64urldecode(input: string)
     {
         return base64url.decode(input).toString();
-    }
-
-    /**
-     * Returns a reference to the AbortController constructor. In browsers,
-     * AbortController will always be available as global (native or polyfilled)
-     */
-    getAbortController()
-    {
-        return AbortController;
     }
 
     /**

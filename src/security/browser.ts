@@ -1,19 +1,14 @@
-import { encodeURL, fromUint8Array } from "js-base64"
-import { fhirclient }                from "../types"
+import { fhirclient }      from "../types"
+import { base64urlencode } from "../base64/browser"
 
 
-const crypto: Crypto = typeof globalThis === "object" && globalThis.crypto ?
-    globalThis.crypto :
-    require("isomorphic-webcrypto").default;
-
-const subtle = () => {
-    if (!crypto.subtle) {
+export const subtle = () => {
+    if (!crypto?.subtle) {
         if (!globalThis.isSecureContext) {
             throw new Error(
-                "Some of the required subtle crypto functionality is not " +
-                "available unless you run this app in secure context (using " +
-                "HTTPS or running locally). See " +
-                "https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts"
+                "Some of the required subtle crypto functionality is not available " +
+                "unless you run this app in secure context (using HTTPS or running locally). " +
+                "See https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts"
             )
         }
         throw new Error(
@@ -57,8 +52,8 @@ export async function digestSha256(payload: string): Promise<Uint8Array> {
 
 export const generatePKCEChallenge = async (entropy = 96): Promise<PkcePair> => {
     const inputBytes    = randomBytes(entropy)
-    const codeVerifier  = fromUint8Array(inputBytes, true)
-    const codeChallenge = fromUint8Array(await digestSha256(codeVerifier), true)
+    const codeVerifier  = base64urlencode(inputBytes)
+    const codeChallenge = base64urlencode(await digestSha256(codeVerifier))
     return { codeChallenge, codeVerifier }
 }
 
@@ -95,10 +90,9 @@ export async function importJWK(jwk: fhirclient.JWK): Promise<CryptoKey> {
 }
 
 export async function signCompactJws(alg: keyof typeof ALGS, privateKey: CryptoKey, header: any, payload: any): Promise<string> {
-
     const jwtHeader  = JSON.stringify({ ...header, alg });
     const jwtPayload = JSON.stringify(payload);
-    const jwtAuthenticatedContent = `${encodeURL(jwtHeader)}.${encodeURL(jwtPayload)}`;
+    const jwtAuthenticatedContent = `${base64urlencode(jwtHeader)}.${base64urlencode(jwtPayload)}`;
 
     const signature = await subtle().sign(
         { ...privateKey.algorithm, hash: 'SHA-384' },
@@ -106,5 +100,5 @@ export async function signCompactJws(alg: keyof typeof ALGS, privateKey: CryptoK
         new TextEncoder().encode(jwtAuthenticatedContent)
     );
 
-    return `${jwtAuthenticatedContent}.${fromUint8Array(new Uint8Array(signature), true)}`
+    return `${jwtAuthenticatedContent}.${base64urlencode(new Uint8Array(signature))}`
 }

@@ -1,9 +1,9 @@
-import { ready, authorize, init } from "../smart";
-import Client from "../Client";
-import BrowserStorage from "../storage/BrowserStorage";
-import { fhirclient } from "../types";
-import * as security from "../security/browser"
-import { encodeURL, decode, fromUint8Array } from "js-base64"
+import { fhirclient }             from "../types"
+import { ready, authorize, init } from "../smart"
+import Client                     from "../Client"
+import BrowserStorage             from "../storage/BrowserStorage"
+import * as security              from "../security/browser"
+import { base64urldecode, base64urlencode } from "../base64/browser"
 
 /**
  * Browser Adapter
@@ -120,18 +120,9 @@ export default class BrowserAdapter implements fhirclient.Adapter
     }
 
     /**
-     * Returns a reference to the AbortController constructor. In browsers,
-     * AbortController will always be available as global (native or polyfilled)
-     */
-    getAbortController()
-    {
-        return AbortController;
-    }
-
-    /**
      * ASCII string to Base64
      */
-    atob(str: string): string
+    base64encode(str: string): string
     {
         return window.atob(str);
     }
@@ -139,22 +130,19 @@ export default class BrowserAdapter implements fhirclient.Adapter
     /**
      * Base64 to ASCII string
      */
-    btoa(str: string): string
+    base64decode(str: string): string
     {
         return window.btoa(str);
     }
 
     base64urlencode(input: string | Uint8Array)
     {
-        if (typeof input == "string") {
-            return encodeURL(input)
-        }
-        return fromUint8Array(input, true)
+        return base64urlencode(input);
     }
 
     base64urldecode(input: string)
     {
-        return decode(input)
+        return base64urldecode(input);
     }
 
     /**

@@ -152,12 +152,12 @@ declare namespace fhirclient {
         /**
          * Base64 to ASCII string
          */
-        btoa(str: string): string;
+        base64decode(str: string): string;
 
         /**
          * ASCII string to Base64
          */
-        atob(str: string): string;
+        base64encode(str: string): string;
         
         /**
          * ASCII string or Uint8Array to Base64URL
@@ -168,11 +168,6 @@ declare namespace fhirclient {
          * Base64Url to ASCII string
          */
         base64urldecode: (input: string) => string
-
-        /**
-         * Returns a reference to the AbortController class
-         */
-        getAbortController(): typeof AbortController;
 
         /**
          * Creates and returns adapter-aware SMART api. Not that while the shape of

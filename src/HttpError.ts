@@ -1,5 +1,3 @@
-import { fhirclient } from "./types";
-
 
 export default class HttpError extends Error
 {
@@ -57,9 +55,7 @@ export default class HttpError extends Error
                         this.message += "\n\n" + body;
                     }
                 }
-            } catch {
-                // ignore
-            }
+            } catch {}
         }
 
         return this;

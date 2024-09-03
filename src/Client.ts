@@ -1,6 +1,5 @@
 import {
     absolute,
-    debug as _debug,
     getPath,
     setPath,
     jwtDecode,
@@ -15,19 +14,12 @@ import {
     assertJsonPatch,
     assert
 } from "./lib";
-
+import { debug } from "./debug"
 import str from "./strings";
 import { SMART_KEY, patientCompartment, fhirVersions } from "./settings";
 import HttpError from "./HttpError";
-import BrowserAdapter from "./adapters/BrowserAdapter";
 import { fhirclient } from "./types";
 
-// $lab:coverage:off$
-// @ts-ignore
-const { Response } = typeof FHIRCLIENT_PURE !== "undefined" ? window : require("cross-fetch");
-// $lab:coverage:on$
-
-const debug = _debug.extend("client");
 
 /**
  * Adds patient context to requestOptions object to be used with [[Client.request]]
@@ -70,7 +62,7 @@ async function contextualize(
  * @returns The resolved reference
  * @private
  */
-function getRef(
+async function getRef(
     refId: string,
     cache: Record<string, any>,
     client: Client,
@@ -96,7 +88,7 @@ function getRef(
         });
     }
 
-    return Promise.resolve(cache[refId]);
+    return cache[refId];
 }
 
 /**
@@ -166,7 +158,7 @@ function resolveRefs(
     paths = paths.filter((p, i) => {
         const index = paths.indexOf(p, i + 1);
         if (index > -1) {
-            debug("Duplicated reference path \"%s\"", p);
+            debug("client: Duplicated reference path \"%s\"", p);
             return false;
         }
         return true;
@@ -270,12 +262,6 @@ export default class Client
             requestOptions: string|URL|fhirclient.RequestOptions,
             fhirOptions?: fhirclient.FhirOptions
         ) => Promise<R>
-
-        /**
-         * This is the FhirJS Patient API. It will ONLY exist if the `Client`
-         * instance is "connected" to FhirJS.
-         */
-        api?: Record<string, any>
     };
 
     /**
@@ -339,13 +325,6 @@ export default class Client
          */
         resourceType: string | null
     };
-
-    /**
-     * The [FhirJS](https://github.com/FHIR/fhir.js/blob/master/README.md) API.
-     * **NOTE:** This will only be available if `fhir.js` is used. Otherwise it
-     * will be `undefined`.
-     */
-    api: Record<string, any> | undefined;
 
     /**
      * Refers to the refresh task while it is being performed.
@@ -417,51 +396,6 @@ export default class Client
                     Promise.reject(new Error("User is not available"));
             }
         };
-
-        // fhir.js api (attached automatically in browser)
-        // ---------------------------------------------------------------------
-        this.connect((environment as BrowserAdapter).fhir);
-    }
-
-    /**
-     * This method is used to make the "link" between the `fhirclient` and the
-     * `fhir.js`, if one is available.
-     * **Note:** This is called by the constructor. If fhir.js is available in
-     * the global scope as `fhir`, it will automatically be linked to any [[Client]]
-     * instance. You should only use this method to connect to `fhir.js` which
-     * is not global.
-     */
-    connect(fhirJs?: (options: Record<string, any>) => Record<string, any>): Client
-    {
-        if (typeof fhirJs == "function") {
-            const options: Record<string, any> = {
-                baseUrl: this.state.serverUrl.replace(/\/$/, "")
-            };
-
-            const accessToken = this.getState("tokenResponse.access_token");
-            if (accessToken) {
-                options.auth = { token: accessToken };
-            }
-            else {
-                const { username, password } = this.state;
-                if (username && password) {
-                    options.auth = {
-                        user: username,
-                        pass: password
-                    };
-                }
-            }
-            this.api = fhirJs(options);
-
-            const patientId = this.getState("tokenResponse.patient");
-            if (patientId) {
-                this.patient.api = fhirJs({
-                    ...options,
-                    patient: patientId
-                });
-            }
-        }
-        return this;
     }
 
     /**
@@ -476,11 +410,11 @@ export default class Client
             // the patient. This should be a scope issue.
             if (!tokenResponse.patient) {
                 if (!(this.state.scope || "").match(/\blaunch(\/patient)?\b/)) {
-                    debug(str.noScopeForId, "patient", "patient");
+                    debug("client: " + str.noScopeForId, "patient", "patient");
                 }
                 else {
                     // The server should have returned the patient!
-                    debug("The ID of the selected patient is not available. Please check if your server supports that.");
+                    debug("client: The ID of the selected patient is not available. Please check if your server supports that.");
                 }
                 return null;
             }
@@ -488,10 +422,10 @@ export default class Client
         }
 
         if (this.state.authorizeUri) {
-            debug(str.noIfNoAuth, "the ID of the selected patient");
+            debug("client: " + str.noIfNoAuth, "the ID of the selected patient");
         }
         else {
-            debug(str.noFreeContext, "selected patient");
+            debug("client: " + str.noFreeContext, "selected patient");
         }
         return null;
     }
@@ -510,11 +444,11 @@ export default class Client
             // the encounter. This should be a scope issue.
             if (!tokenResponse.encounter) {
                 if (!(this.state.scope || "").match(/\blaunch(\/encounter)?\b/)) {
-                    debug(str.noScopeForId, "encounter", "encounter");
+                    debug("client: " + str.noScopeForId, "encounter", "encounter");
                 }
                 else {
                     // The server should have returned the encounter!
-                    debug("The ID of the selected encounter is not available. Please check if your server supports that, and that the selected patient has any recorded encounters.");
+                    debug("client: The ID of the selected encounter is not available. Please check if your server supports that, and that the selected patient has any recorded encounters.");
                 }
                 return null;
             }
@@ -522,10 +456,10 @@ export default class Client
         }
 
         if (this.state.authorizeUri) {
-            debug(str.noIfNoAuth, "the ID of the selected encounter");
+            debug("client: " + str.noIfNoAuth, "the ID of the selected encounter");
         }
         else {
-            debug(str.noFreeContext, "selected encounter");
+            debug("client: " + str.noFreeContext, "selected encounter");
         }
         return null;
     }
@@ -550,7 +484,7 @@ export default class Client
                 const hasFhirUser = scope.match(/\bfhirUser\b/);
                 if (!hasOpenid || !(hasFhirUser || hasProfile)) {
                     debug(
-                        "You are trying to get the id_token but you are not " +
+                        "client: You are trying to get the id_token but you are not " +
                         "using the right scopes. Please add 'openid' and " +
                         "'fhirUser' or 'profile' to the scopes you are " +
                         "requesting."
@@ -558,17 +492,17 @@ export default class Client
                 }
                 else {
                     // The server should have returned the id_token!
-                    debug("The id_token is not available. Please check if your server supports that.");
+                    debug("client: The id_token is not available. Please check if your server supports that.");
                 }
                 return null;
             }
             return jwtDecode(idToken, this.environment) as fhirclient.IDToken;
         }
         if (this.state.authorizeUri) {
-            debug(str.noIfNoAuth, "the id_token");
+            debug("client: " + str.noIfNoAuth, "the id_token");
         }
         else {
-            debug(str.noFreeContext, "id_token");
+            debug("client: " + str.noFreeContext, "id_token");
         }
         return null;
     }
@@ -629,7 +563,7 @@ export default class Client
         }
         const { username, password } = this.state;
         if (username && password) {
-            return "Basic " + this.environment.btoa(username + ":" + password);
+            return "Basic " + this.environment.base64encode(username + ":" + password);
         }
         return null;
     }
@@ -766,7 +700,6 @@ export default class Client
         _resolvedRefs: fhirclient.JsonObject = {}
     ): Promise<T>
     {
-        const debugRequest = _debug.extend("client:request");
         assert(requestOptions, "request requires an url or request options as argument");
 
         // url -----------------------------------------------------------------
@@ -820,8 +753,8 @@ export default class Client
             
             // Make the request
             .then(requestOptions => {
-                debugRequest(
-                    "%s, options: %O, fhirOptions: %O",
+                debug(
+                    "client:request: %s, options: %O, fhirOptions: %O",
                     url,
                     requestOptions,
                     options
@@ -848,7 +781,7 @@ export default class Client
                     // auto-refresh not enabled and Session expired.
                     // Need to re-launch. Clear state to start over!
                     if (!options.useRefreshToken) {
-                        debugRequest("Your session has expired and the useRefreshToken option is set to false. Please re-launch the app.");
+                        debug("client:request: Your session has expired and the useRefreshToken option is set to false. Please re-launch the app.");
                         await this._clearState();
                         error.message += "\n" + str.expired;
                         throw error;
@@ -860,7 +793,7 @@ export default class Client
 
                     // otherwise -> auto-refresh failed. Session expired.
                     // Need to re-launch. Clear state to start over!
-                    debugRequest("Auto-refresh failed! Please re-launch the app.");
+                    debug("client:request: Auto-refresh failed! Please re-launch the app.");
                     await this._clearState();
                     error.message += "\n" + str.expired;
                     throw error;
@@ -871,7 +804,7 @@ export default class Client
             // Handle 403 ------------------------------------------------------
             .catch((error: HttpError) => {
                 if (error.status == 403) {
-                    debugRequest("Permission denied! Please make sure that you have requested the proper scopes.");
+                    debug("client:request: Permission denied! Please make sure that you have requested the proper scopes.");
                 }
                 throw error;
             })
@@ -1027,8 +960,7 @@ export default class Client
      */
     refresh(requestOptions: RequestInit = {}): Promise<fhirclient.ClientState>
     {
-        const debugRefresh = _debug.extend("client:refresh");
-        debugRefresh("Attempting to refresh with refresh_token...");
+        debug("client:refresh: Attempting to refresh with refresh_token...");
 
         const refreshToken = this.state?.tokenResponse?.refresh_token;
         assert(refreshToken, "Unable to refresh. No refresh_token found.");
@@ -1064,7 +996,7 @@ export default class Client
                 const { clientSecret, clientId } = this.state;
                 if (clientSecret) {
                     // @ts-ignore
-                    refreshRequestOptions.headers.authorization = "Basic " + this.environment.btoa(
+                    refreshRequestOptions.headers.authorization = "Basic " + this.environment.base64encode(
                         clientId + ":" + clientSecret
                     );
                 }
@@ -1073,14 +1005,14 @@ export default class Client
             this._refreshTask = request<fhirclient.TokenResponse>(tokenUri, refreshRequestOptions)
             .then(data => {
                 assert(data.access_token, "No access token received");
-                debugRefresh("Received new access token response %O", data);
+                debug("client:refresh: Received new access token response %O", data);
                 this.state.tokenResponse = { ...this.state.tokenResponse, ...data };
                 this.state.expiresAt = getAccessTokenExpiration(data, this.environment);
                 return this.state;
             })
             .catch((error: Error) => {
                 if (this.state?.tokenResponse?.refresh_token) {
-                    debugRefresh("Deleting the expired or invalid refresh token.");
+                    debug("client:refresh: Deleting the expired or invalid refresh token.");
                     delete this.state.tokenResponse.refresh_token;
                 }
                 throw error;
@@ -1091,7 +1023,7 @@ export default class Client
                 if (key) {
                     this.environment.getStorage().set(key, this.state);
                 } else {
-                    debugRefresh("No 'key' found in Clint.state. Cannot persist the instance.");
+                    debug("client:refresh: No 'key' found in Clint.state. Cannot persist the instance.");
                 }
             });
         }

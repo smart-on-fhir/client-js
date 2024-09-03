@@ -6,7 +6,7 @@ export default class Storage
      */
     async get(key: string): Promise<any>
     {
-        const value = sessionStorage[key];
+        const value = sessionStorage[key as keyof typeof sessionStorage];
         if (value) {
             return JSON.parse(value);
         }
@@ -19,7 +19,7 @@ export default class Storage
      */
     async set(key: string, value: any): Promise<any>
     {
-        sessionStorage[key] = JSON.stringify(value);
+        sessionStorage[key as keyof typeof sessionStorage] = JSON.stringify(value);
         return value;
     }
 
@@ -31,7 +31,7 @@ export default class Storage
     async unset(key: string): Promise<boolean>
     {
         if (key in sessionStorage) {
-            delete sessionStorage[key];
+            delete sessionStorage[key as keyof typeof sessionStorage];
             return true;
         }
         return false;

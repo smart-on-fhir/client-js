@@ -58,12 +58,12 @@ export default class BrowserEnvironment extends EventEmitter implements fhirclie
         return false;
     }
 
-    btoa(str: string): string
+    base64encode(str: string): string
     {
         return Buffer.from(str).toString("base64");
     }
 
-    atob(str: string): string
+    base64decode(str: string): string
     {
         return Buffer.from(str, "base64").toString("ascii");
     }
@@ -76,10 +76,5 @@ export default class BrowserEnvironment extends EventEmitter implements fhirclie
     base64urldecode(input: string)
     {
         return base64url.decode(input).toString();
-    }
-
-    getAbortController()
-    {
-        return AbortController as any;
     }
 }
