@@ -43,6 +43,7 @@ export default class Location extends EventEmitter
     assign(href: string)
     {
         this.href = href;
+        this.emit("change", href);
     }
 
     toString()

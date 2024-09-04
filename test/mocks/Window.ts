@@ -2,18 +2,20 @@ import MockLocation from "./Location";
 import MockSessionStorage from "./SessionStorage";
 import { EventEmitter } from "events";
 
-class History
+class History extends EventEmitter
 {
     _location: string;
 
     constructor()
     {
+        super();
         this._location = "";
     }
 
     replaceState(a: any, b: any, loc: string)
     {
         this._location = loc;
+        this.emit("replaceState", this._location)
     }
 }
 
@@ -55,9 +57,10 @@ export default class Window extends EventEmitter
                 },
                 // ready: (...args) => smart.ready(env, ...args),
                 // authorize: (...args) => smart.authorize(env, ...args)
-                // $lab:coverage:on$
             }
         };
+
+        this.history.on("replaceState", loc => this.location.assign(loc))
     }
 
     atob(str: string) {

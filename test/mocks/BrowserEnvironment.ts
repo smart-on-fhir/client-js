@@ -1,10 +1,8 @@
-/* global fhir */
-const EventEmitter = require("events");
-import BrowserStorage      from "../../src/storage/BrowserStorage";
-import { fhirclient }      from "../../src/types";
-import { AbortController } from "abortcontroller-polyfill/dist/cjs-ponyfill";
-import * as security       from "../../src/security/server"
-import { base64url }       from "jose"
+import EventEmitter   from "events"
+import { base64url }  from "jose"
+import BrowserStorage from "./MemoryStorage"
+import { fhirclient } from "../../src/types"
+import * as security  from "../../src/security/server"
 
 
 export default class BrowserEnvironment extends EventEmitter implements fhirclient.Adapter
@@ -13,6 +11,8 @@ export default class BrowserEnvironment extends EventEmitter implements fhirclie
 
     security = security;
 
+    protected _storage?: BrowserStorage;
+
     constructor(options = {})
     {
         super();
@@ -20,6 +20,7 @@ export default class BrowserEnvironment extends EventEmitter implements fhirclie
             replaceBrowserHistory: true,
             fullSessionStorageSupport: true,
             refreshTokenWithCredentials: "same-origin",
+            window: globalThis.window,
             ...options
         };
     }
@@ -31,12 +32,12 @@ export default class BrowserEnvironment extends EventEmitter implements fhirclie
 
     getUrl()
     {
-        return new URL(window.location.href);
+        return new URL(this.options.window.location.href);
     }
 
     redirect(to: string)
     {
-        window.location.href = to;
+        this.options.window.location.href = to;
         this.emit("redirect");
     }
 
@@ -50,7 +51,7 @@ export default class BrowserEnvironment extends EventEmitter implements fhirclie
 
     relative(url: string)
     {
-        return new URL(url, window.location.href).href;
+        return new URL(url, this.options.window.location.href).href;
     }
 
     getSmartApi(): any

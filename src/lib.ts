@@ -295,7 +295,7 @@ export function randomString(
 /**
  * Decodes a JWT token and returns it's body.
  * @param token The token to read
- * @param env An `Adapter` or any other object that has an `atob` method
+ * @param env An `Adapter` or any other object that has a `base64decode` method
  * @category Utility
  */
 export function jwtDecode(token: string, env: fhirclient.Adapter): Record<string, any> | null

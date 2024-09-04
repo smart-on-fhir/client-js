@@ -1,11 +1,12 @@
-import * as jose      from 'jose';
-import { expect }     from "@hapi/code";
-import * as Lab       from "@hapi/lab";
-import * as smart     from "../src/smart";
-import { fhirclient } from "../src/types";
-import ServerEnv      from "./mocks/ServerEnvironment";
-export const lab = Lab.script();
-const { it, describe } = lab;
+import * as jose        from "jose"
+import chai, { expect } from "chai"
+import chaiAsPromised   from "chai-as-promised"
+import * as smart       from "../src/smart"
+import { fhirclient }   from "../src/types"
+import ServerEnv        from "./mocks/ServerEnvironment"
+
+
+chai.use(chaiAsPromised)
 
 try { var { subtle } = require('node:crypto').webcrypto; } catch {}
 
@@ -35,8 +36,6 @@ const defaultStateAsymmetricAuth: fhirclient.ClientState = {
 const defaultEnv = new ServerEnv();
 
 
-
-
 describe("smart", () => {
 
     describe("buildTokenRequest", () => {
@@ -49,9 +48,10 @@ describe("smart", () => {
                 }
             });
 
-            const authz = requestOptions.headers?.['authorization'] as string;
-            expect(authz).to.exist();
-            expect(authz).to.startWith("Basic ")
+            // @ts-ignore
+            const authz = requestOptions.headers?.authorization as string;
+            expect(authz).to.exist;
+            expect(authz.indexOf("Basic ")).to.equal(0)
         });
 
         it("throws without JWK.alg", async () => {
@@ -60,7 +60,7 @@ describe("smart", () => {
                 state: defaultStateAsymmetricAuth,
                 // @ts-ignore
                 privateKey: { ...clientPrivateJwk, alg: undefined }
-            })).to.reject('The "alg" property of the JWK must be set to "ES384" or "RS384"')
+            })).to.eventually.be.rejectedWith('The "alg" property of the JWK must be set to "ES384" or "RS384"')
         })
 
         it("throws without 'sign' in key_ops", async () => {
@@ -68,7 +68,7 @@ describe("smart", () => {
                 code: "example-code",
                 state: defaultStateAsymmetricAuth,
                 privateKey: { ...clientPrivateJwk, key_ops: ["verify"] }
-            })).to.reject('The "key_ops" property of the JWK does not contain "sign"')
+            })).to.eventually.be.rejectedWith('The "key_ops" property of the JWK does not contain "sign"')
         })
 
         it("generates an assertion with state.clientPrivateJwk", async () => {
@@ -78,9 +78,10 @@ describe("smart", () => {
                 privateKey: clientPrivateJwk
             });
 
-            expect(requestOptions.body).to.exist();
-            expect(requestOptions.body).to.contain('&client_assertion=');
-            expect(requestOptions.body).to.contain('&client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer');
+            const body = requestOptions.body as string
+            expect(body).to.be.string;
+            expect(body).to.contain('&client_assertion=');
+            expect(body).to.contain('&client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer');
 
             const assertionMatch = (requestOptions.body as string).match(/client_assertion=(?<assertion>[^&]+)/);
             expect(assertionMatch).not.to.be.null;
@@ -100,9 +101,8 @@ describe("smart", () => {
             expect(payload["aud"]).to.equal(defaultStateAsymmetricAuth.tokenUri);
             expect(payload["iss"]).to.equal(defaultStateAsymmetricAuth.clientId);
             expect(payload["sub"]).to.equal(defaultStateAsymmetricAuth.clientId);
-            expect(payload["exp"]).to.exist();
-            expect(payload["jti"]).to.exist();
- 
+            expect(payload["exp"]).to.exist;
+            expect(payload["jti"]).to.exist;
         });
 
         if (subtle) {
@@ -127,7 +127,7 @@ describe("smart", () => {
                     }
                 });
 
-                expect(requestOptions.body).to.exist();
+                expect(requestOptions.body).to.exist;
                 expect(requestOptions.body).to.contain('&client_assertion=');
                 expect(requestOptions.body).to.contain('&client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer');
 
@@ -147,8 +147,8 @@ describe("smart", () => {
                 expect(payload["aud"]).to.equal(defaultStateAsymmetricAuth.tokenUri);
                 expect(payload["iss"]).to.equal(defaultStateAsymmetricAuth.clientId);
                 expect(payload["sub"]).to.equal(defaultStateAsymmetricAuth.clientId);
-                expect(payload["exp"]).to.exist();
-                expect(payload["jti"]).to.exist();
+                expect(payload["exp"]).to.exist;
+                expect(payload["jti"]).to.exist;
             });
 
             it("works with RS384 CryptoKey instance", async () => {
@@ -176,7 +176,7 @@ describe("smart", () => {
                     }
                 });
 
-                expect(requestOptions.body).to.exist();
+                expect(requestOptions.body).to.exist;
                 expect(requestOptions.body).to.contain('&client_assertion=');
                 expect(requestOptions.body).to.contain('&client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer');
 
@@ -196,8 +196,8 @@ describe("smart", () => {
                 expect(payload["aud"]).to.equal(defaultStateAsymmetricAuth.tokenUri);
                 expect(payload["iss"]).to.equal(defaultStateAsymmetricAuth.clientId);
                 expect(payload["sub"]).to.equal(defaultStateAsymmetricAuth.clientId);
-                expect(payload["exp"]).to.exist();
-                expect(payload["jti"]).to.exist();
+                expect(payload["exp"]).to.exist;
+                expect(payload["jti"]).to.exist;
             });
         }
 
@@ -212,7 +212,7 @@ describe("smart", () => {
                     kid: "whatever",
                     kty: "RSA"
                 }
-            })).to.reject();
+            })).to.eventually.be.rejected;
         });
 
     });

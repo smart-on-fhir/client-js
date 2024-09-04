@@ -1,10 +1,6 @@
-import { expect } from "@hapi/code";
-import * as Lab   from "@hapi/lab";
+import { expect } from "chai";
 import HttpError  from "../src/HttpError";
-import {Response} from "cross-fetch";
 
-export const lab = Lab.script();
-const { it, describe } = lab;
 
 describe("HttpError", () => {
     it ("create from text response", async () => {

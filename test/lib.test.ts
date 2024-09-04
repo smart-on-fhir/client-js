@@ -1,23 +1,21 @@
-import { expect }   from "@hapi/code";
-import * as Lab     from "@hapi/lab";
-import { Response } from "cross-fetch";
-import * as lib     from "../src/lib";
-import HttpError    from "../src/HttpError";
-import mockServer   from "./mocks/mockServer";
-import ServerEnv    from "./mocks/ServerEnvironment";
-import BrowserEnv   from "./mocks/BrowserEnvironment";
-import { fhirclient } from "../src/types";
+import { AddressInfo, Server } from "net"
+import { Request, Response }   from "express"
+import chai, { expect }        from "chai"
+import chaiAsPromised          from "chai-as-promised"
+import * as lib                from "../src/lib"
+import mockServer              from "./mocks/mockServer"
+import ServerEnv               from "./mocks/ServerEnvironment"
+import BrowserEnv              from "./mocks/BrowserEnvironment"
 
-export const lab = Lab.script();
-const { it, describe, beforeEach, afterEach } = lab;
+chai.use(chaiAsPromised)
 
 describe("Lib", () => {
 
     describe("setPath", () => {
         it ("works as expected", () => {
             const data = { a: 1, b: [0, { a: 2 }] };
-            expect(lib.setPath(data, "b.1.a", 3)).to.equal({ a: 1, b: [0, { a: 3 }] });
-            expect(lib.setPath(data, "b.2"  , 7)).to.equal({ a: 1, b: [0, { a: 3 }, 7] });
+            expect(lib.setPath(data, "b.1.a", 3)).to.deep.equal({ a: 1, b: [0, { a: 3 }] });
+            expect(lib.setPath(data, "b.2"  , 7)).to.deep.equal({ a: 1, b: [0, { a: 3 }, 7] });
         });
 
         it ("does nothing if the first argument is null", () => {
@@ -29,12 +27,12 @@ describe("Lib", () => {
     describe("getPath", () => {
         it ("returns the first arg if no path", () => {
             const data = {};
-            expect(lib.getPath(data)).to.equal(data);
+            expect(lib.getPath(data)).to.deep.equal(data);
         });
 
         it ("returns the first arg for empty path", () => {
             const data = {};
-            expect(lib.getPath(data, "")).to.equal(data);
+            expect(lib.getPath(data, "")).to.deep.equal(data);
         });
 
         it ("works as expected", () => {
@@ -69,7 +67,7 @@ describe("Lib", () => {
             };
 
             for (let path in map) {
-                expect(lib.getPath(data, path)).to.equal(map[path]);
+                expect(lib.getPath(data, path)).to.deep.equal(map[path as keyof typeof map]);
             }
         });
     });
@@ -139,14 +137,14 @@ describe("Lib", () => {
         it ("Using token.exp in the browser", () => {
             const env = new BrowserEnv();
             const now = Math.floor(Date.now() / 1000);
-            const access_token = "." + env.btoa(JSON.stringify({ exp: now + 10 })) + ".";
+            const access_token = "." + env.base64encode(JSON.stringify({ exp: now + 10 })) + ".";
             expect(lib.getAccessTokenExpiration({ access_token }, env)).to.equal(now + 10);
         });
 
         it ("Using token.exp on the server", () => {
             const env = new ServerEnv();
             const now = Math.floor(Date.now() / 1000);
-            const access_token = "." + env.btoa(JSON.stringify({ exp: now + 10 })) + ".";
+            const access_token = "." + env.base64encode(JSON.stringify({ exp: now + 10 })) + ".";
             expect(lib.getAccessTokenExpiration({ access_token }, env)).to.equal(now + 10);
         });
 
@@ -165,40 +163,18 @@ describe("Lib", () => {
         });
     });
 
-    // describe("btoa", () => {
-    //     it ("works in node", () => {
-    //         expect(lib.btoa("abc")).to.equal("YWJj");
-    //     });
-
-    //     it ("works in browser", () => {
-    //         // @ts-ignore
-    //         global.window = 1;
-    //         try {
-    //             expect(lib.btoa("abc")).to.equal("YWJj");
-    //         } catch (ex) {
-    //             throw ex;
-    //         } finally {
-    //             // @ts-ignore
-    //             delete global.window;
-    //         }
-    //     });
-    // });
-
     describe("Request Functions", () => {
 
-        let mockDataServer: any, mockUrl: string;
-
+        let mockDataServer: Server, mockUrl: string;
 
         beforeEach(() => {
             return new Promise((resolve, reject) => {
-                // @ts-ignore
-                mockDataServer = mockServer.listen(null, "0.0.0.0", (error: Error) => {
+                mockDataServer = mockServer.listen(0, "0.0.0.0", (error?: Error) => {
                     if (error) {
                         return reject(error);
                     }
-                    const addr: any = mockDataServer.address();
+                    const addr = mockDataServer.address() as AddressInfo;
                     mockUrl = `http://127.0.0.1:${addr.port}`;
-                    // console.log(`Mock Data Server listening at ${mockUrl}`);
                     resolve(void 0);
                 });
             });
@@ -208,11 +184,10 @@ describe("Lib", () => {
             if (mockDataServer && mockDataServer.listening) {
                 return new Promise(resolve => {
                     mockUrl = "";
-                    mockDataServer.close((error: Error) => {
+                    mockDataServer.close(error => {
                         if (error) {
                             console.log("Error shutting down the mock-data server: ", error);
                         }
-                        // console.log("Mock Data Server CLOSED!");
                         resolve(void 0);
                     });
                 });
@@ -261,10 +236,10 @@ describe("Lib", () => {
         describe("fetchConformanceStatement", () => {
 
             it ("rejects bad baseUrl values", async () => {
-                await expect(lib.fetchConformanceStatement("")).to.reject();
+                await expect(lib.fetchConformanceStatement("")).to.eventually.be.rejected;
                 // @ts-ignore
-                await expect(lib.fetchConformanceStatement(null)).to.reject();
-                await expect(lib.fetchConformanceStatement("whatever")).to.reject();
+                await expect(lib.fetchConformanceStatement(null)).to.eventually.be.rejected;
+                await expect(lib.fetchConformanceStatement("whatever")).to.eventually.be.rejected;
             });
 
             it("works", async () => {
@@ -277,7 +252,7 @@ describe("Lib", () => {
                 });
                 const conformance = await lib.fetchConformanceStatement(mockUrl);
                 // @ts-ignore
-                expect(conformance).to.equal({resourceType: "Conformance"});
+                expect(conformance).to.deep.equal({resourceType: "Conformance"});
             });
 
             it("rejects on error", async () => {
@@ -285,7 +260,7 @@ describe("Lib", () => {
                     status: 404,
                     body: "Not Found"
                 });
-                await expect(lib.fetchConformanceStatement(mockUrl)).to.reject(Error, /Not Found/);
+                await expect(lib.fetchConformanceStatement(mockUrl)).to.rejectedWith(Error, /Not Found/);
             });
         });
 
@@ -293,7 +268,7 @@ describe("Lib", () => {
 
             it ("follows the location header if the server replies with 201", async () => {
                 mockServer.mock({
-                    headers: { "location": mockUrl },
+                    headers: { location: mockUrl },
                     status : 201,
                     body   : null
                 });
@@ -302,8 +277,8 @@ describe("Lib", () => {
                     status : 200,
                     body   : { result: "success" }
                 });
-                const response = await lib.request(mockUrl);
-                expect(response).to.equal({ result: "success" });
+                const response: any = await lib.request(mockUrl);
+                expect(response).to.deep.equal({ result: "success" });
             });
 
             it ("respects the includeResponse option", async () => {
@@ -313,10 +288,51 @@ describe("Lib", () => {
                     body   : { result: "success" }
                 });
 
-                const result = await lib.request<fhirclient.CombinedFetchResult>(mockUrl, { includeResponse: true });
-                expect(result.body).to.equal({ result: "success" });
-                expect(result.response.headers.get("content-type")).to.startWith("application/json");
+                const result: any = await lib.request(mockUrl, { includeResponse: true });
+                expect(result.body).to.deep.equal({ result: "success" });
+                expect(result.response.headers.get("content-type") + "").to.include("application/json");
             });
+
+            it ("returns the response object if the response body is undefined", async () => {
+                mockServer.mock({
+                    headers: { "content-type": "application/json" },
+                    status : 200,
+                    handler: (_: Request, res: Response) => res.end()
+                });
+
+                const result: any = await lib.request(mockUrl);
+                expect(result).to.be.instanceOf(Response);
+            });
+        });
+    });
+
+    describe("units", () => {
+        describe ("cm", () => {
+            expect(lib.units.cm({ code: "cm", value: 3 })).to.equal(3);
+            expect(lib.units.cm({ code: "m", value: 3 })).to.equal(300);
+            expect(lib.units.cm({ code: "in", value: 3 })).to.equal(3 * 2.54);
+            expect(lib.units.cm({ code: "[in_us]", value: 3 })).to.equal(3 * 2.54);
+            expect(lib.units.cm({ code: "[in_i]", value: 3 })).to.equal(3 * 2.54);
+            expect(lib.units.cm({ code: "ft", value: 3 })).to.equal(3 * 30.48);
+            expect(lib.units.cm({ code: "[ft_us]", value: 3 })).to.equal(3 * 30.48);
+            expect(() => lib.units.cm({ code: "xx", value: 3 })).to.throw();
+            // @ts-ignore
+            expect(() => lib.units.cm({ code: "m", value: "x" })).to.throw();
+        });
+        describe ("kg", () => {
+            expect(lib.units.kg({ code: "kg", value: 3 })).to.equal(3);
+            expect(lib.units.kg({ code: "g", value: 3 })).to.equal(3 / 1000);
+            expect(lib.units.kg({ code: "lb", value: 3 })).to.equal(3 / 2.20462);
+            expect(lib.units.kg({ code: "oz", value: 3 })).to.equal(3 / 35.274);
+            expect(() => lib.units.kg({ code: "xx", value: 3 })).to.throw();
+            // @ts-ignore
+            expect(() => lib.units.kg({ code: "lb", value: "x" })).to.throw();
+        });
+        describe ("any", () => {
+            // @ts-ignore
+            expect(lib.units.any({ value: 3 })).to.equal(3);
+            // @ts-ignore
+            expect(() => lib.units.kg({ value: "x" })).to.throw();
         });
     });
 });

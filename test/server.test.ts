@@ -1,10 +1,9 @@
 
-import { expect }        from "@hapi/code";
-import * as Lab          from "@hapi/lab";
+import { expect }        from "chai";
 import Adapter           from "../src/adapters/NodeAdapter";
 import { KEY }           from "../src/smart";
 import ServerStorage     from "../src/storage/ServerStorage";
-import FHIR              = require("../src/entry/node");
+import FHIR              from "../src/entry/node";
 
 // Mocks
 import mockServer        from "./mocks/mockServer";
@@ -13,23 +12,20 @@ import HttpResponse      from "./mocks/HttpResponse";
 import MemoryStorage     from "./mocks/MemoryStorage";
 import { IncomingMessage } from "http";
 
-export const lab = Lab.script();
-const { it, describe, before, after, afterEach } = lab;
 
-let mockDataServer, mockUrl;
+let mockDataServer: any, mockUrl: string;
 
 
 before(() => {
     // debug.enable("FHIRClient:*");
     return new Promise((resolve, reject) => {
-        mockDataServer = mockServer.listen(null, "0.0.0.0", error => {
+        mockDataServer = mockServer.listen(0, "0.0.0.0", (error?: Error) => {
             if (error) {
                 return reject(error);
             }
             const addr = mockDataServer.address();
             mockUrl = `http://127.0.0.1:${addr.port}`;
-            // console.log(`Mock Data Server listening at ${mockUrl}`);
-            resolve();
+            resolve(void 0);
         });
     });
 });
@@ -38,12 +34,11 @@ after(() => {
     if (mockDataServer && mockDataServer.listening) {
         return new Promise(resolve => {
             mockUrl = "";
-            mockDataServer.close(error => {
+            mockDataServer.close((error?: Error) => {
                 if (error) {
                     console.log("Error shutting down the mock-data server: ", error);
                 }
-                // console.log("Mock Data Server CLOSED!");
-                resolve();
+                resolve(void 0);
             });
         });
     }
@@ -82,7 +77,7 @@ describe("Complete authorization [SERVER]", () => {
         });
 
         expect(res1.status).to.equal(302);
-        expect(res1.headers.location).to.exist();
+        expect(res1.headers.location).to.exist;
 
         const url = new URL(res1.headers.location);
 
@@ -90,8 +85,8 @@ describe("Complete authorization [SERVER]", () => {
         expect(url.searchParams.get("client_id")).to.equal("my_client_id");
         expect(url.searchParams.get("scope")).to.equal("my_scope launch");
         expect(url.searchParams.get("launch")).to.equal("123");
-        expect(url.searchParams.get("redirect_uri")).to.exist();
-        expect(url.searchParams.get("state")).to.exist();
+        expect(url.searchParams.get("redirect_uri")).to.exist;
+        expect(url.searchParams.get("state")).to.exist;
 
         // Now we have been redirected to `redirect` and then back to our
         // redirect_uri. It is time to complete the authorization.
@@ -174,7 +169,7 @@ describe("Complete authorization [SERVER]", () => {
         const smart = FHIR(req as any, res as any);
         await smart.authorize({ fhirServiceUrl: "http://localhost" });
         expect(res.status).to.equal(302);
-        expect(res.headers.location).to.exist();
+        expect(res.headers.location).to.exist;
         const url = new URL(res.headers.location);
         expect(url.href).to.match(/http:\/\/localhost\/\?state=./);
     });
@@ -190,9 +185,9 @@ describe("Complete authorization [SERVER]", () => {
             launch: "123"
         });
         expect(res.status).to.equal(302);
-        expect(res.headers.location).to.exist();
+        expect(res.headers.location).to.exist;
         const url = new URL(res.headers.location);
-        const state = url.searchParams.get("state");
+        const state = url.searchParams.get("state")!;
         const stored = await storage.get(state);
         expect(stored.scope).to.equal("x launch");
     });
@@ -205,7 +200,7 @@ describe("ServerStorage", () => {
         const session = { a: "b" };
         const storage = new ServerStorage({ session } as any);
         expect(await storage.get("a")).to.equal("b");
-        expect(await storage.get("b")).to.equal(undefined);
+        expect(await storage.get("b")).to.be.undefined;
     });
     it ("can 'set'", async () => {
         const session = {};
@@ -217,8 +212,8 @@ describe("ServerStorage", () => {
         const session = { a: "b" };
         const storage = new ServerStorage({ session } as any);
         const result = await storage.unset("a");
-        expect(result).to.equal(true);
-        expect(session.a).to.equal(undefined);
+        expect(result).to.be.true;
+        expect(session.a).to.be.undefined;
         const result2 = await storage.unset("a");
         expect(result2).to.equal(false);
     });
@@ -245,6 +240,13 @@ describe("NodeAdapter", () => {
         const env = new Adapter({})
         const input = Buffer.from("test").toString("base64url")
         expect(env.base64urldecode(input)).to.equal("test")
+    })
+
+    it ("base64encode", () => {
+        // @ts-ignore
+        const env = new Adapter({})
+        const input = "This is a test"
+        expect(env.base64encode(input)).to.equal(Buffer.from(input, "utf8").toString("base64"))
     })
 
     it ("getUrl", () => {
@@ -291,11 +293,11 @@ describe("NodeAdapter", () => {
 
     it ("getStorage() works with factory function", () => {
 
-        const callLog = [];
+        const callLog: any[] = [];
 
         const fakeStorage: any = { fakeStorage: "whatever" };
 
-        function getStorage(...args) {
+        function getStorage(...args: any[]) {
             callLog.push(args);
             return fakeStorage;
         }
@@ -309,7 +311,7 @@ describe("NodeAdapter", () => {
         // Call it twice and make sure that only one instance is created
         expect(adapter.getStorage()).to.equal(fakeStorage);
         expect(adapter.getStorage()).to.equal(fakeStorage);
-        expect(callLog).to.equal([[{
+        expect(callLog).to.deep.equal([[{
             storage : getStorage,
             request : "my-request",
             response: "my-response"

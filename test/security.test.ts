@@ -1,21 +1,11 @@
-// @ts-ignore These tests cannot run without webcrypto
-if (+process.version.replace(/^v/, "").split(".").shift() < 16) return;
-
-// provide global crypto for older Node versions
-if (!global.crypto) {
-    global.crypto = require('node:crypto').webcrypto;
-}
-
-import { expect }           from "@hapi/code";
-import { fhirclient }       from "../src/types";
-import * as jose            from 'jose';
-import * as Lab             from "@hapi/lab";
+import * as jose            from "jose"
+import chai, { expect }     from "chai"
+import chaiAsPromised       from "chai-as-promised"
+import { fhirclient }       from "../src/types"
 import * as serverSecurity  from "../src/security/server"
 import * as browserSecurity from "../src/security/browser"
 
-export const lab = Lab.script();
-const { it, describe } = lab;
-
+chai.use(chaiAsPromised)
 // =============================================================================
 
 // base64urlencode -------------------------------------------------------------
@@ -49,29 +39,6 @@ const { it, describe } = lab;
 // =============================================================================
 
 describe("security", () => {
-    // describe("base64urlencode", () => {
-    //     it ("from string", () => {
-    //         const input = "This is a test"
-    //         const s = serverSecurity .base64urlencode(input)
-    //         const b = browserSecurity.base64urlencode(input)
-    //         expect(s).to.equal(b)
-    //     })
-
-    //     it ("from Uint8Array", () => {
-    //         const input = "This is a test"
-    //         const s = serverSecurity .base64urlencode(new TextEncoder().encode(input))
-    //         const b = browserSecurity.base64urlencode(new TextEncoder().encode(input))
-    //         expect(s).to.equal(b)
-    //     })
-    // })
-
-    // it ("base64urldecode", () => {
-    //     const input = "This is a test"
-    //     const s = serverSecurity .base64urldecode(Buffer.from(input, "utf8").toString("base64url"))
-    //     const b = browserSecurity.base64urldecode(Buffer.from(input, "utf8").toString("base64url"))
-    //     expect(s).to.equal(b)
-    //     expect(s).to.equal(input)
-    // })
 
     it ("randomBytes", () => {
         const s = serverSecurity .randomBytes(90)
@@ -90,10 +57,21 @@ describe("security", () => {
     it ("generatePKCEChallenge", async () => {
         const s = await serverSecurity .generatePKCEChallenge(90)
         const b = await browserSecurity.generatePKCEChallenge(90)
-        expect(s).to.contain("codeChallenge")
-        expect(s).to.contain("codeVerifier")
-        expect(b).to.contain("codeChallenge")
-        expect(b).to.contain("codeVerifier")
+        expect(s).to.haveOwnProperty("codeChallenge")
+        expect(s).to.haveOwnProperty("codeVerifier")
+        expect(b).to.haveOwnProperty("codeChallenge")
+        expect(b).to.haveOwnProperty("codeVerifier")
+        expect(s.codeChallenge).to.not.equal(b.codeChallenge)
+        expect(s.codeVerifier).to.not.equal(b.codeVerifier)
+    })
+
+    it ("generatePKCEChallenge with default entropy", async () => {
+        const s = await serverSecurity .generatePKCEChallenge()
+        const b = await browserSecurity.generatePKCEChallenge()
+        expect(s).to.haveOwnProperty("codeChallenge")
+        expect(s).to.haveOwnProperty("codeVerifier")
+        expect(b).to.haveOwnProperty("codeChallenge")
+        expect(b).to.haveOwnProperty("codeVerifier")
         expect(s.codeChallenge).to.not.equal(b.codeChallenge)
         expect(s.codeVerifier).to.not.equal(b.codeVerifier)
     })
@@ -128,10 +106,12 @@ describe("security", () => {
 
         it ("ES384 in the browser", async () => {
             await browserSecurity.importJWK(ES384_JWK as fhirclient.JWK)
+            await browserSecurity.importJWK({ ...ES384_JWK as fhirclient.JWK, key_ops: undefined })
         })
 
         it ("ES384 on the server", async () => {
             await serverSecurity.importJWK(ES384_JWK as fhirclient.JWK)
+            await serverSecurity.importJWK({ ...ES384_JWK as fhirclient.JWK, key_ops: undefined })
         })
 
         it ("RS384 in the browser", async () => {
@@ -143,59 +123,67 @@ describe("security", () => {
         })
 
         it ("ES384 in the browser throws without 'sign' in key_ops", async () => {
-            expect(browserSecurity.importJWK({ ...ES384_JWK, key_ops: ["verify"] } as fhirclient.JWK)).to.reject('The "key_ops" property of the JWK does not contain "sign"')
+            expect(browserSecurity.importJWK({ ...ES384_JWK, key_ops: ["verify"] } as fhirclient.JWK))
+            .to.eventually.be.rejectedWith('The "key_ops" property of the JWK does not contain "sign"')
         })
 
         it ("ES384 on the server throws without 'sign' in key_ops", async () => {
-            expect(serverSecurity.importJWK({ ...ES384_JWK, key_ops: ["verify"] } as fhirclient.JWK)).to.reject('The "key_ops" property of the JWK does not contain "sign"')
+            expect(serverSecurity.importJWK({ ...ES384_JWK, key_ops: ["verify"] } as fhirclient.JWK))
+            .to.eventually.be.rejectedWith('The "key_ops" property of the JWK does not contain "sign"')
         })
 
         it ("RS384 in the browser throws without 'sign' in key_ops", async () => {
-            expect(browserSecurity.importJWK({ ...RS384_JWK, key_ops: ["verify"] } as fhirclient.JWK)).to.reject('The "key_ops" property of the JWK does not contain "sign"')
+            expect(browserSecurity.importJWK({ ...RS384_JWK, key_ops: ["verify"] } as fhirclient.JWK))
+            .to.eventually.be.rejectedWith('The "key_ops" property of the JWK does not contain "sign"')
         })
 
         it ("RS384 on the server throws without 'sign' in key_ops", async () => {
-            expect(serverSecurity.importJWK({ ...RS384_JWK, key_ops: ["verify"] } as fhirclient.JWK)).to.reject('The "key_ops" property of the JWK does not contain "sign"')
+            expect(serverSecurity.importJWK({ ...RS384_JWK, key_ops: ["verify"] } as fhirclient.JWK))
+            .to.eventually.be.rejectedWith('The "key_ops" property of the JWK does not contain "sign"')
         })
 
         it ("ES384 in the browser throws without JWK.alg", async () => {
             // @ts-ignore
-            expect(browserSecurity.importJWK({ ...ES384_JWK, alg: undefined } as fhirclient.JWK)).to.reject('The "alg" property of the JWK must be set to "ES384" or "RS384"')
+            expect(browserSecurity.importJWK({ ...ES384_JWK, alg: undefined } as fhirclient.JWK))
+            .to.eventually.be.rejectedWith('The "alg" property of the JWK must be set to "ES384" or "RS384"')
         })
 
         it ("ES384 on the server throws without JWK.alg", async () => {
             // @ts-ignore
-            expect(serverSecurity.importJWK({ ...ES384_JWK, alg: undefined } as fhirclient.JWK)).to.reject('The "alg" property of the JWK must be set to "ES384" or "RS384"')
+            expect(serverSecurity.importJWK({ ...ES384_JWK, alg: undefined } as fhirclient.JWK))
+            .to.eventually.be.rejectedWith('The "alg" property of the JWK must be set to "ES384" or "RS384"')
         })
 
         it ("RS384 in the browser throws without JWK.alg", async () => {
             // @ts-ignore
-            expect(browserSecurity.importJWK({ ...RS384_JWK, alg: undefined } as fhirclient.JWK)).to.reject('The "alg" property of the JWK must be set to "ES384" or "RS384"')
+            expect(browserSecurity.importJWK({ ...RS384_JWK, alg: undefined } as fhirclient.JWK))
+            .to.eventually.be.rejectedWith('The "alg" property of the JWK must be set to "ES384" or "RS384"')
         })
 
         it ("RS384 on the server throws without JWK.alg", async () => {
             // @ts-ignore
-            expect(serverSecurity.importJWK({ ...RS384_JWK, alg: undefined } as fhirclient.JWK)).to.reject('The "alg" property of the JWK must be set to "ES384" or "RS384"')
+            expect(serverSecurity.importJWK({ ...RS384_JWK, alg: undefined } as fhirclient.JWK))
+            .to.eventually.be.rejectedWith('The "alg" property of the JWK must be set to "ES384" or "RS384"')
         })
 
         it ("ES384 in the browser throws with bad JWK", async () => {
             // @ts-ignore
-            expect(browserSecurity.importJWK({ ...ES384_JWK, kty: "x" } as fhirclient.JWK)).to.reject()
+            expect(browserSecurity.importJWK({ ...ES384_JWK, kty: "x" } as fhirclient.JWK)).to.eventually.be.rejected;
         })
 
         it ("ES384 on the server throws with bad JWK", async () => {
             // @ts-ignore
-            expect(serverSecurity.importJWK({ ...ES384_JWK, kty: "x" } as fhirclient.JWK)).to.reject()
+            expect(serverSecurity.importJWK({ ...ES384_JWK, kty: "x" } as fhirclient.JWK)).to.eventually.be.rejected;
         })
 
         it ("RS384 in the browser throws with bad JWK", async () => {
             // @ts-ignore
-            expect(browserSecurity.importJWK({ ...RS384_JWK, kty: "x" } as fhirclient.JWK)).to.reject()
+            expect(browserSecurity.importJWK({ ...RS384_JWK, kty: "x" } as fhirclient.JWK)).to.eventually.be.rejected;
         })
 
         it ("RS384 on the server throws with bad JWK", async () => {
             // @ts-ignore
-            expect(serverSecurity.importJWK({ ...RS384_JWK, kty: "x" } as fhirclient.JWK)).to.reject()
+            expect(serverSecurity.importJWK({ ...RS384_JWK, kty: "x" } as fhirclient.JWK)).to.eventually.be.rejected;
         })
     })
 

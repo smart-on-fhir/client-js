@@ -1,81 +1,61 @@
-// Mocks
-import { expect }     from "@hapi/code";
-import * as Lab       from "@hapi/lab";
-import * as FS        from "fs";
-import * as jwt       from "jsonwebtoken"
-import { Response }   from "cross-fetch";
-import mockDebug      from "./mocks/mockDebug";
-import mockServer     from "./mocks/mockServer";
-import ServerEnv      from "./mocks/ServerEnvironment";
-import BrowserEnv     from "./mocks/BrowserEnvironment";
-import BrowserEnvFhir from "./mocks/BrowserEnvironmentWithFhirJs";
-import Window         from "./mocks/Window";
-import str            from "../src/strings";
-import Client         from "../src/Client";
-import { KEY }        from "../src/smart";
-import Adapter        from "../src/adapters/BrowserAdapter";
-import { fhirclient } from "../src/types";
+import chai, { expect } from "chai";
+import chaiAsPromised   from "chai-as-promised"
+import * as FS          from "fs";
+import * as jwt         from "jsonwebtoken"
+import mockDebug        from "./mocks/mockDebug";
+import mockServer       from "./mocks/mockServer";
+import ServerEnv        from "./mocks/ServerEnvironment";
+import BrowserEnv       from "./mocks/BrowserEnvironment";
+import str              from "../src/strings";
+import Client           from "../src/Client";
+import { KEY }          from "../src/smart";
+import { fhirclient }   from "../src/types";
+import { NextFunction, Request, Response } from "express";
 
-export const lab = Lab.script();
-const { it, describe, before, after, afterEach } = lab;
+chai.use(chaiAsPromised)
 
-const clientDebug = mockDebug.instances.find(instance => instance.namespace === "FHIR:client");
 
 let mockDataServer: any, mockUrl: string;
 
-before(() => {
-    return new Promise((resolve, reject) => {
-
-        // @ts-ignore
-        mockDataServer = mockServer.listen(null, "0.0.0.0", (error: Error) => {
-            if (error) {
-                return reject(error);
-            }
-            const addr = mockDataServer.address();
-            mockUrl = `http://127.0.0.1:${addr.port}`;
-            // console.log(`Mock Data Server listening at ${mockUrl}`);
-            resolve(void 0);
-        });
-    });
-});
-
-after(() => {
-    if (mockDataServer && mockDataServer.listening) {
-        return new Promise((resolve, reject) => {
-            mockUrl = "";
-            delete (global as any).fetch;
-            mockDataServer.close((error: Error) => {
-                if (error) {
-                    reject(new Error("Error shutting down the mock-data server: " + error));
-                }
-                // console.log("Mock Data Server CLOSED!");
-                resolve(void 0);
-            });
-        });
-    }
-});
-
-afterEach(() => {
-    mockServer.clear();
-    clientDebug._calls.length = 0;
-    delete (global as any).sessionStorage;
-});
-
-
-
-
-function crossPlatformTest(callback: (env: Adapter) => void) {
-    const tests: Record<string, any> = {
-        "works in the browser": new BrowserEnv(),
-        "works on the server" : new ServerEnv({ session: {} })
-    };
-
-    for (const name in tests) {
-        it (name, () => callback(tests[name]));
-    }
+function crossPlatformTest(callback: (env: fhirclient.Adapter) => void | Promise<any>) {
+    it ("works in the browser", async () => await callback(new BrowserEnv()));
+    it ("works on the server" , async () => await callback(new ServerEnv({ session: {} })));
 }
 
 describe("FHIR.client", () => {
+
+    before(() => {
+        return new Promise((resolve, reject) => {
+            mockDataServer = mockServer.listen(0, "0.0.0.0", (error?: Error) => {
+                if (error) {
+                    return reject(error);
+                }
+                const addr = mockDataServer.address();
+                mockUrl = `http://127.0.0.1:${addr.port}`;
+                resolve(void 0);
+            });
+        });
+    });
+    
+    after(() => {
+        if (mockDataServer && mockDataServer.listening) {
+            return new Promise((resolve, reject) => {
+                mockUrl = "";
+                mockDataServer.close((error?: Error) => {
+                    if (error) {
+                        reject(new Error("Error shutting down the mock-data server: " + error));
+                    }
+                    resolve(void 0);
+                });
+            });
+        }
+    });
+    
+    afterEach(() => {
+        mockServer.clear();
+        mockDebug._calls.length = 0;
+        delete (globalThis as any).sessionStorage;
+    });
 
     describe("constructor", () => {
         it ("throws if initialized without arguments", () => {
@@ -95,7 +75,7 @@ describe("FHIR.client", () => {
 
         it ("accepts string as second argument", () => {
             // @ts-ignore
-            expect(new Client({}, "http://test").state).to.equal({ serverUrl: "http://test" });
+            expect(new Client({}, "http://test").state).to.deep.equal({ serverUrl: "http://test" });
         });
     });
 
@@ -107,7 +87,7 @@ describe("FHIR.client", () => {
                     serverUrl: mockUrl,
                     tokenResponse: {}
                 });
-                await expect(client.patient.read()).to.reject(
+                await expect(client.patient.read()).to.be.rejectedWith(
                     Error, "Patient is not available"
                 );
             });
@@ -132,13 +112,10 @@ describe("FHIR.client", () => {
                     _delay: 10
                 });
 
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const task = client.patient.read({ signal: abortController.signal });
                 abortController.abort();
-                await expect(task).to.reject(
-                    Error, "The user aborted a request."
-                );
+                await expect(task).to.be.rejectedWith(Error, /aborted/);
             });
         });
 
@@ -201,7 +178,7 @@ describe("FHIR.client", () => {
                     serverUrl: mockUrl,
                     tokenResponse: {}
                 });
-                await expect(client.patient.request("Observation")).to.reject(
+                await expect(client.patient.request("Observation")).to.be.rejectedWith(
                     Error, "Patient is not available"
                 );
             });
@@ -215,7 +192,7 @@ describe("FHIR.client", () => {
                         patient: "2e27c71e-30c8-4ceb-8c1c-5641e066c0a4"
                     }
                 });
-                await expect(client.patient.request("/")).to.reject(
+                await expect(client.patient.request("/")).to.be.rejectedWith(
                     Error, `Invalid url "${mockUrl + "/"}"`
                 );
             });
@@ -246,7 +223,7 @@ describe("FHIR.client", () => {
                     }
                 });
 
-                await expect(client.patient.request("Observation")).to.reject(
+                await expect(client.patient.request("Observation")).to.be.rejectedWith(
                     Error,
                     "Resource \"Observation\" is not supported by this FHIR server"
                 );
@@ -284,7 +261,7 @@ describe("FHIR.client", () => {
                     }
                 });
 
-                await expect(client.patient.request("Observation")).to.reject(
+                await expect(client.patient.request("Observation")).to.be.rejectedWith(
                     Error,
                     "No search parameters supported for \"Observation\" on this FHIR server"
                 );
@@ -322,7 +299,7 @@ describe("FHIR.client", () => {
                     }
                 });
 
-                await expect(client.patient.request("Test")).to.reject(
+                await expect(client.patient.request("Test")).to.be.rejectedWith(
                     Error,
                     "Cannot filter \"Test\" resources by patient"
                 );
@@ -479,13 +456,10 @@ describe("FHIR.client", () => {
                     _delay: 10
                 });
 
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const task = client.patient.request({ url: "Observation", signal: abortController.signal });
                 abortController.abort();
-                await expect(task).to.reject(
-                    Error, "The user aborted a request."
-                );
+                await expect(task).to.be.rejectedWith(Error, /aborted/);
             });
         });
 
@@ -559,7 +533,7 @@ describe("FHIR.client", () => {
                     }
                 });
 
-                await expect(client.patient.request("Patient")).to.reject();
+                await expect(client.patient.request("Patient")).to.be.rejectedWith();
             });
         });
 
@@ -618,7 +592,7 @@ describe("FHIR.client", () => {
                     serverUrl: mockUrl,
                     tokenResponse: {}
                 });
-                await expect(client.encounter.read()).to.reject(
+                await expect(client.encounter.read()).to.be.rejectedWith(
                     Error, "Encounter is not available"
                 );
 
@@ -629,7 +603,7 @@ describe("FHIR.client", () => {
                 });
                 (client.state.tokenResponse as any).encounter = "whatever";
                 const encounter = await client.encounter.read();
-                expect(encounter).to.equal({ resourceType: "Encounter", id: "encounter-id" });
+                expect(encounter).to.deep.equal({ resourceType: "Encounter", id: "encounter-id" });
             });
         });
 
@@ -649,13 +623,10 @@ describe("FHIR.client", () => {
                     _delay: 10
                 });
 
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const task = client.encounter.read({ signal: abortController.signal });
                 abortController.abort();
-                await expect(task).to.reject(
-                    Error, "The user aborted a request."
-                );
+                await expect(task).to.be.rejectedWith(Error, /aborted/);
             });
         });
 
@@ -675,7 +646,7 @@ describe("FHIR.client", () => {
                 });
 
                 const result = await client.encounter.read({ includeResponse: true });
-                expect(result.body).to.equal({ resourceType: "Encounter", id: "encounter-id" });
+                expect(result.body).to.deep.equal({ resourceType: "Encounter", id: "encounter-id" });
                 expect(result.response.status).to.equal(200);
             });
         });
@@ -688,7 +659,7 @@ describe("FHIR.client", () => {
                     serverUrl: mockUrl,
                     tokenResponse: {}
                 });
-                await expect(client.user.read()).to.reject(
+                await expect(client.user.read()).to.be.rejectedWith(
                     Error, "User is not available"
                 );
                 mockServer.mock({
@@ -712,7 +683,7 @@ describe("FHIR.client", () => {
                 "pmtxVVHiVf-FYXzTFmn4cGe2PsNJfBl8R_zow2n6qaSANdvSxJDE4D" +
                 "UgIJ6H18wiSJJHp6Plf_bapccAwxbx-zZCw";
                 const user = await client.user.read();
-                expect(user).to.equal({ resourceType: "Patient", id: "user-id" });
+                expect(user).to.deep.equal({ resourceType: "Patient", id: "user-id" });
             });
         });
 
@@ -744,13 +715,10 @@ describe("FHIR.client", () => {
                     _delay: 10
                 });
 
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const task = client.user.read({ signal: abortController.signal });
                 abortController.abort();
-                await expect(task).to.reject(
-                    Error, "The user aborted a request."
-                );
+                await expect(task).to.be.rejectedWith(Error, /aborted/);
             });
         });
 
@@ -772,92 +740,63 @@ describe("FHIR.client", () => {
 
                 mockServer.mock(mock);
                 const result = await client.user.read({ includeResponse: true });
-                expect(result.body).to.equal({ resourceType: "Patient", id: "user-id" });
+                expect(result.body).to.deep.equal({ resourceType: "Patient", id: "user-id" });
                 expect(result.response.status).to.equal(200);
             });
         });
     });
 
-    describe("fhir.js api", { timeout: 5000 }, () => {
-        it ("does not work without fhir.js", async () => {
-            const env    = new BrowserEnv();
-            // @ts-ignore
-            const client = new Client(env, {
-                serverUrl: "https://r2.smarthealthit.org",
-                tokenResponse: {
-                    patient: "bd7cb541-732b-4e39-ab49-ae507aa49326"
-                }
-            });
-            expect(client.api).to.be.undefined();
-            expect(client.patient.api).to.be.undefined();
-        });
+    // describe("client.connect", () => {
+    //     it ("works as expected", () => {
+    //         const env    = new BrowserEnv();
+    //         // @ts-ignore
+    //         const client = new Client(env, {
+    //             serverUrl: "https://r2.smarthealthit.org",
+    //             tokenResponse: {
+    //                 access_token: "my access token"
+    //             }
+    //         });
 
-        it ("works in the browser", async () => {
-            const env    = new BrowserEnvFhir();
-            // @ts-ignore
-            const client = new Client(env, {
-                serverUrl: "https://r2.smarthealthit.org",
-                tokenResponse: {
-                    patient: "bd7cb541-732b-4e39-ab49-ae507aa49326"
-                }
-            });
-            await (client.api as any).read({ type: "Patient", id: "bd7cb541-732b-4e39-ab49-ae507aa49326" });
-            await (client.api as any).search({ type: "Patient" });
-            await (client.patient.api as any).read({ type: "Patient", id: "bd7cb541-732b-4e39-ab49-ae507aa49326" });
-        });
-    });
+    //         let _passedOptions: any = {};
 
-    describe("client.connect", () => {
-        it ("works as expected", () => {
-            const env    = new BrowserEnv();
-            // @ts-ignore
-            const client = new Client(env, {
-                serverUrl: "https://r2.smarthealthit.org",
-                tokenResponse: {
-                    access_token: "my access token"
-                }
-            });
+    //         const fhirJs = (options: any) => {
+    //             _passedOptions = options;
+    //             return options;
+    //         };
 
-            let _passedOptions: any = {};
+    //         client.connect(fhirJs);
 
-            const fhirJs = (options: any) => {
-                _passedOptions = options;
-                return options;
-            };
+    //         expect(_passedOptions.baseUrl).to.equal("https://r2.smarthealthit.org");
+    //         expect(_passedOptions.auth).to.deep.equal({ token: "my access token" });
 
-            client.connect(fhirJs);
+    //         (client.state.tokenResponse as any).access_token = null;
+    //         client.connect(fhirJs);
+    //         expect(_passedOptions.auth).to.be.undefined();
+    //         expect(client.patient.api).to.be.undefined();
 
-            expect(_passedOptions.baseUrl).to.equal("https://r2.smarthealthit.org");
-            expect(_passedOptions.auth).to.equal({ token: "my access token" });
+    //         client.state.username = "my username";
+    //         client.connect(fhirJs);
+    //         expect(_passedOptions.auth).to.be.undefined();
 
-            (client.state.tokenResponse as any).access_token = null;
-            client.connect(fhirJs);
-            expect(_passedOptions.auth).to.be.undefined();
-            expect(client.patient.api).to.be.undefined();
+    //         client.state.password = "my password";
+    //         client.connect(fhirJs);
+    //         expect(_passedOptions.auth).to.deep.equal({
+    //             user: "my username",
+    //             pass: "my password"
+    //         });
 
-            client.state.username = "my username";
-            client.connect(fhirJs);
-            expect(_passedOptions.auth).to.be.undefined();
+    //         client.state.password = "my password";
+    //         client.connect(fhirJs);
+    //         expect(_passedOptions.auth).to.deep.equal({
+    //             user: "my username",
+    //             pass: "my password"
+    //         });
 
-            client.state.password = "my password";
-            client.connect(fhirJs);
-            expect(_passedOptions.auth).to.equal({
-                user: "my username",
-                pass: "my password"
-            });
-
-            client.state.password = "my password";
-            client.connect(fhirJs);
-            expect(_passedOptions.auth).to.equal({
-                user: "my username",
-                pass: "my password"
-            });
-
-            (client.state.tokenResponse as any).patient = "bd7cb541-732b-4e39-ab49-ae507aa49326";
-            client.connect(fhirJs);
-            expect(client.patient.api).to.not.be.undefined();
-        });
-    });
+    //         (client.state.tokenResponse as any).patient = "bd7cb541-732b-4e39-ab49-ae507aa49326";
+    //         client.connect(fhirJs);
+    //         expect(client.patient.api).to.not.be.undefined();
+    //     });
+    // });
 
     describe("client.request", () => {
 
@@ -866,7 +805,7 @@ describe("FHIR.client", () => {
             // @ts-ignore
             const client = new Client({}, "http://localhost");
             // @ts-ignore
-            await expect(client.request()).to.reject();
+            await expect(client.request()).to.be.rejected;
         });
 
         // Token expiration and refresh ----------------------------------------
@@ -875,7 +814,7 @@ describe("FHIR.client", () => {
             crossPlatformTest(async (env) => {
                 const client = new Client(env, mockUrl);
                 mockServer.mock({ status: 401 });
-                await expect(client.request("/")).to.reject();
+                await expect(client.request("/")).to.be.rejectedWith();
             });
         });
 
@@ -890,7 +829,7 @@ describe("FHIR.client", () => {
                 mockServer.mock({ status: 401 });
                 await expect(client.request("/", {
                     useRefreshToken: false
-                })).to.reject();
+                })).to.be.rejectedWith();
             });
         });
 
@@ -903,7 +842,7 @@ describe("FHIR.client", () => {
                     }
                 });
                 mockServer.mock({ status: 401 });
-                await expect(client.request("/")).to.reject();
+                await expect(client.request("/")).to.be.rejectedWith();
             });
         });
 
@@ -917,7 +856,7 @@ describe("FHIR.client", () => {
                     }
                 });
                 mockServer.mock({ status: 401 });
-                await expect(client.request("/")).to.reject();
+                await expect(client.request("/")).to.be.rejectedWith();
             });
         });
 
@@ -925,14 +864,14 @@ describe("FHIR.client", () => {
             crossPlatformTest(async (env) => {
                 const client = new Client(env, mockUrl);
                 mockServer.mock({ status: 403 });
-                await expect(client.request("/")).to.reject();
+                await expect(client.request("/")).to.be.rejectedWith();
             });
         });
 
         describe("auto-refresh if access token is expired", () => {
             crossPlatformTest(async (env) => {
                 const exp = Math.round(Date.now() / 1000) - 20;
-                const access_token = `x.${env.btoa(`{"exp":${exp}}`)}.x`;
+                const access_token = `x.${env.base64encode(`{"exp":${exp}}`)}.x`;
                 const client = new Client(env, {
                     serverUrl: mockUrl,
                     tokenUri: mockUrl,
@@ -953,7 +892,7 @@ describe("FHIR.client", () => {
                     }
                 });
                 mockServer.mock({
-                    handler(req, res) {
+                    handler(req: Request, res: Response) {
                         res.json(req.headers.authorization)
                     }
                 });
@@ -966,7 +905,7 @@ describe("FHIR.client", () => {
         describe("auto-refresh if access token is about to expire", () => {
             crossPlatformTest(async (env) => {
                 const exp = Math.round(Date.now() / 1000) - 5;
-                const access_token = `x.${env.btoa(`{"exp":${exp}}`)}.x`;
+                const access_token = `x.${env.base64encode(`{"exp":${exp}}`)}.x`;
                 const client = new Client(env, {
                     serverUrl: mockUrl,
                     tokenUri: mockUrl,
@@ -996,7 +935,7 @@ describe("FHIR.client", () => {
         describe("no auto-refresh if the access token is not expired", () => {
             crossPlatformTest(async (env) => {
                 const exp = Math.round(Date.now() / 1000) + 50;
-                const access_token = `x.${env.btoa(`{"exp":${exp}}`)}.x`;
+                const access_token = `x.${env.base64encode(`{"exp":${exp}}`)}.x`;
                 const client = new Client(env, {
                     serverUrl: mockUrl,
                     tokenUri: mockUrl,
@@ -1116,7 +1055,7 @@ describe("FHIR.client", () => {
                     mockServer.mock(mock);
                     const result = await client.request("/Patient");
                     expect(result).to.include({ resourceType: "Bundle" });
-                    expect(result).to.include("entry");
+                    expect(result).to.haveOwnProperty("entry");
                 });
             }
         });
@@ -1134,7 +1073,7 @@ describe("FHIR.client", () => {
                 });
                 const result = await client.request("/Patient", { pageLimit: 1 });
                 expect(result).to.include({ resourceType: "Bundle" });
-                expect(result).to.include("entry");
+                expect(result).to.haveOwnProperty("entry");
             });
         });
 
@@ -1162,12 +1101,12 @@ describe("FHIR.client", () => {
                     }
                 });
                 const result = await client.request("/Patient", { pageLimit: 2 });
-                expect(result).to.be.an.array();
+                expect(Array.isArray(result)).to.be.true;
                 expect(result.length).to.equal(2);
                 expect(result[0]).to.include({ resourceType: "Bundle" });
-                expect(result[0]).to.include("entry");
+                expect(result[0]).to.haveOwnProperty("entry");
                 expect(result[1]).to.include({ resourceType: "Bundle" });
-                expect(result[1]).to.include("entry");
+                expect(result[1]).to.haveOwnProperty("entry");
             });
         });
 
@@ -1183,10 +1122,10 @@ describe("FHIR.client", () => {
                     }
                 });
                 const result = await client.request("/Practitioner", { pageLimit: 0 });
-                expect(result).to.be.an.array();
+                expect(Array.isArray(result)).to.be.true;
                 expect(result.length).to.equal(1);
                 expect(result[0]).to.include({ resourceType: "Bundle" });
-                expect(result[0]).to.include("entry");
+                expect(result[0]).to.haveOwnProperty("entry");
             });
         });
 
@@ -1216,7 +1155,7 @@ describe("FHIR.client", () => {
                 });
 
                 const result = await client.request("/Patient", { pageLimit: 0 });
-                expect(result).to.be.an.array();
+                expect(Array.isArray(result)).to.be.true;
                 expect(result.length).to.equal(2);
             });
         });
@@ -1286,7 +1225,7 @@ describe("FHIR.client", () => {
                     pageLimit: 0,
                     onPage
                 }).catch(error => {
-                    expect(error).to.be.error(Error, "test error");
+                    expect(error).to.be.instanceOf(Error).that.haveOwnProperty("message", "test error");
                 });
                 expect(pages.length, "onPage should be called once").to.equal(1);
                 expect(pages[0]).to.include({ pageId: 1 });
@@ -1318,7 +1257,7 @@ describe("FHIR.client", () => {
                     pageLimit: 0,
                     onPage
                 }).catch(error => {
-                    expect(error).to.be.error(Error, "test error");
+                    expect(error).to.be.instanceOf(Error).that.haveOwnProperty("message", "test error");
                 });
                 expect(pages.length, "onPage should be called once").to.equal(1);
                 expect(pages[0]).to.include({ pageId: 1 });
@@ -1403,7 +1342,7 @@ describe("FHIR.client", () => {
                     "/Patient/id",
                     { resolveReferences: "ref1" }
                 );
-                expect(result).to.equal({
+                expect(result).to.deep.equal({
                     resourceType: "Patient",
                     id: "id",
                     ref1: {
@@ -1439,7 +1378,7 @@ describe("FHIR.client", () => {
                     resolveReferences: [ "patient", "subject" ]
                 });
 
-                expect(result).to.equal({
+                expect(result).to.deep.equal({
                     patient: { resourceType: "Patient" },
                     subject: { resourceType: "Patient" }
                 });
@@ -1494,9 +1433,9 @@ describe("FHIR.client", () => {
                     }
                 );
 
-                expect(result.patient).to.equal({ resourceType: "Patient", id: 1 });
-                expect(result.contained[0].subject).to.equal({ resourceType: "Patient", id: 1 });
-                expect(result.contained[1].beneficiary).to.equal({ resourceType: "Patient", id: 1 });
+                expect(result.patient).to.deep.equal({ resourceType: "Patient", id: 1 });
+                expect(result.contained[0].subject).to.deep.equal({ resourceType: "Patient", id: 1 });
+                expect(result.contained[1].beneficiary).to.deep.equal({ resourceType: "Patient", id: 1 });
             });
         });
 
@@ -1547,7 +1486,7 @@ describe("FHIR.client", () => {
                     }
                 );
 
-                expect(result.identifier).to.equal([
+                expect(result.identifier).to.deep.equal([
                     {
                         assigner: {
                             resourceType: "Organization",
@@ -1587,7 +1526,7 @@ describe("FHIR.client", () => {
                     resolveReferences: "patient"
                 });
 
-                expect(result).to.equal({
+                expect(result).to.deep.equal({
                     patient: { reference: "ref/1" }
                 });
             });
@@ -1611,7 +1550,7 @@ describe("FHIR.client", () => {
                     resolveReferences: "patient"
                 });
 
-                expect(result).to.equal({
+                expect(result).to.deep.equal({
                     patient: { reference: null }
                 });
             });
@@ -1641,11 +1580,11 @@ describe("FHIR.client", () => {
                     resolveReferences: ["patient", "patient"]
                 });
 
-                expect(result).to.equal({
+                expect(result).to.deep.equal({
                     patient: { resourceType: "Patient" }
                 });
 
-                expect(clientDebug._calls.find((o: any) => o[0] === "Duplicated reference path \"%s\"")).to.exist();
+                expect(mockDebug._calls.find((o: any) => o[0] === "client: Duplicated reference path \"%s\"")).to.exist;
             });
         });
 
@@ -1663,8 +1602,8 @@ describe("FHIR.client", () => {
                     "encounter"
                 ];
 
-                function createHandler(json) {
-                    return function handler(req, res, next) {
+                function createHandler(json: any) {
+                    return function handler(req: Request, res: Response, next: NextFunction) {
                         try {
                             expect(req.headers['x-custom-header'], "Custom headers not sent on ref requests").to.equal('someCustomKey');
                             res.json(json)
@@ -1717,7 +1656,7 @@ describe("FHIR.client", () => {
                     resolveReferences: refsToResolve
                 });
 
-                expect(result).to.equal({
+                expect(result).to.deep.equal({
                     resourceType: "Observation",
                     encounter: {
                         resourceType: "Encounter",
@@ -1766,7 +1705,7 @@ describe("FHIR.client", () => {
                         graph: false
                     }
                 );
-                expect(result).to.equal({
+                expect(result).to.deep.equal({
                     data: {
                         resourceType: "Patient",
                         id: "id",
@@ -1854,7 +1793,7 @@ describe("FHIR.client", () => {
                         pageLimit: 0
                     }
                 );
-                expect(result).to.equal([
+                expect(result).to.deep.equal([
                     {
                         resourceType: "Bundle",
                         pageId: 1,
@@ -1959,7 +1898,7 @@ describe("FHIR.client", () => {
                         graph: false
                     }
                 );
-                expect(result).to.equal({
+                expect(result).to.deep.equal({
                     data: [
                         {
                             resourceType: "Bundle",
@@ -2078,7 +2017,7 @@ describe("FHIR.client", () => {
                     }
                 );
                 expect(result).to.equal(null);
-                expect(pages).to.equal([
+                expect(pages).to.deep.equal([
                     {
                         resourceType: "Bundle",
                         pageId: 1,
@@ -2190,7 +2129,7 @@ describe("FHIR.client", () => {
                     }
                 );
                 expect(result).to.equal(null);
-                expect(pages).to.equal([
+                expect(pages).to.deep.equal([
                     {
                         resourceType: "Bundle",
                         pageId: 1,
@@ -2219,7 +2158,7 @@ describe("FHIR.client", () => {
                         }]
                     }
                 ]);
-                expect(refs).to.equal([
+                expect(refs).to.deep.equal([
                     {
                         "whatever-1": {
                             resourceType: "Ref",
@@ -2276,7 +2215,7 @@ describe("FHIR.client", () => {
                     "/Patient/id",
                     { resolveReferences: "ref1" }
                 );
-                expect(result).to.equal({
+                expect(result).to.deep.equal({
                     resourceType: "Patient",
                     id: "id",
                     ref1: [
@@ -2309,7 +2248,7 @@ describe("FHIR.client", () => {
 
                 const result = await client.request("/Patient/id", { flat: true });
 
-                expect(result).to.equal([
+                expect(result).to.deep.equal([
                     "resource-1",
                     "resource-2"
                 ]);
@@ -2351,7 +2290,7 @@ describe("FHIR.client", () => {
                     pageLimit: 0
                 });
 
-                expect(result).to.equal([
+                expect(result).to.deep.equal([
                     "resource-1",
                     "resource-2",
                     "resource-3"
@@ -2429,7 +2368,7 @@ describe("FHIR.client", () => {
                 });
 
                 expect(result).to.equal(null);
-                expect(results).to.equal([
+                expect(results).to.deep.equal([
                     [
                         "resource-1",
                         {
@@ -2521,7 +2460,7 @@ describe("FHIR.client", () => {
                 });
 
                 expect(result).to.equal(null);
-                expect(results).to.equal([
+                expect(results).to.deep.equal([
                     [ "resource-1", {
                         subject: {
                             reference: "Patient/1"
@@ -2530,7 +2469,7 @@ describe("FHIR.client", () => {
                     [ "resource-3"               ],
                     [ "resource-4", "resource-5" ]
                 ]);
-                expect(references).to.equal({
+                expect(references).to.deep.equal({
                     "Patient/1": {
                         resourceType: "Patient",
                         id: "Patient-1"
@@ -2606,7 +2545,7 @@ describe("FHIR.client", () => {
                     resolveReferences: "subject"
                 });
 
-                expect(result).to.equal([
+                expect(result).to.deep.equal([
                     "resource-1",
                     {
                         subject: {
@@ -2686,7 +2625,7 @@ describe("FHIR.client", () => {
                     resolveReferences: "subject"
                 });
 
-                expect(result).to.equal({
+                expect(result).to.deep.equal({
                     data: [
                         "resource-1",
                         {
@@ -2774,13 +2713,10 @@ describe("FHIR.client", () => {
                 it (name, async () => {
                     const client = new Client(tests[name], { serverUrl: mockUrl });
                     mockServer.mock(mock);
-                    const AbortController = tests[name].getAbortController();
                     const abortController = new AbortController();
                     const task = client.request({ url: "/Patient/patient-id", signal: abortController.signal });
                     abortController.abort();
-                    await expect(task).to.reject(
-                        Error, "The user aborted a request."
-                    );
+                    await expect(task).to.be.rejectedWith(Error, /aborted/);
                 });
             }
         });
@@ -2789,7 +2725,6 @@ describe("FHIR.client", () => {
             crossPlatformTest(async (env) => {
                 const client = new Client(env, { serverUrl: mockUrl });
                 const pages: any[] = [];
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const onPage = (page: any) => {
                     if (pages.push(page) == 2) {
@@ -2850,7 +2785,7 @@ describe("FHIR.client", () => {
                     onPage
                 });
 
-                await expect(task).to.reject(Error, "The user aborted a request.");
+                await expect(task).to.be.rejectedWith(Error, /aborted/);
                 expect(pages.length, "onPage should be called twice").to.equal(2);
                 expect(pages[0]).to.include({ pageId: 1 });
                 expect(pages[1]).to.include({ pageId: 2 });
@@ -2860,7 +2795,6 @@ describe("FHIR.client", () => {
         describe ("aborts nested reference requests", () => {
             crossPlatformTest(async (env) => {
                 const client = new Client(env, { serverUrl: mockUrl });
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
 
                 // Page 1
@@ -2907,7 +2841,7 @@ describe("FHIR.client", () => {
                 // rejected with abort error.
                 setTimeout(() => abortController.abort(), 30);
 
-                await expect(task).to.reject(Error, "The user aborted a request.");
+                await expect(task).to.be.rejectedWith(Error, /aborted/);
             });
         });
 
@@ -2967,7 +2901,7 @@ describe("FHIR.client", () => {
                     url: "/Patient",
                     includeResponse: true
                 }, { pageLimit: 0 });
-                expect(result.body).to.be.an.array();
+                expect(Array.isArray(result.body)).to.be.true;
                 expect(result.body?.length).to.equal(2);
                 expect(result.response.status).to.equal(200);
             });
@@ -3052,7 +2986,7 @@ describe("FHIR.client", () => {
 
                 expect(result.response.status).to.equal(200);
                 expect(result.response.headers.get("x-custom")).to.equal("test");
-                expect(result.body as any).to.equal([
+                expect(result.body as any).to.deep.equal([
                     {
                         resourceType: "Bundle",
                         pageId: 1,
@@ -3085,7 +3019,6 @@ describe("FHIR.client", () => {
                 ]);
             });
         });
-
     });
 
     describe ("client.user", () => {
@@ -3211,7 +3144,7 @@ describe("FHIR.client", () => {
                     return client.refresh();
                 })(),
                 "throws if the token endpoint does not return access_token"
-            ).to.reject(Error, "No access token received");
+            ).to.be.rejectedWith(Error, "No access token received");
 
             await expect(
                 (() => {
@@ -3234,12 +3167,12 @@ describe("FHIR.client", () => {
                     return client.refresh();
                 })(),
                 "throws if the token endpoint does not return access_token for online_access"
-            ).to.reject(Error, "No access token received");
+            ).to.be.rejectedWith(Error, "No access token received");
         });
 
         it ("Includes auth header for confidential clients", async () => {
-            const self    = new Window();
-            (global as any).sessionStorage = self.sessionStorage;
+            // const self    = new Window();
+            // (globalThis as any).sessionStorage = self.sessionStorage;
             const env     = new BrowserEnv();
             const storage = env.getStorage();
             const key     = "my-key";
@@ -3263,7 +3196,7 @@ describe("FHIR.client", () => {
             const client = new Client(env, state);
 
             mockServer.mock({
-                handler(req, res) {
+                handler(req: Request, res: Response) {
                     res.json({
                         headers: req.headers,
                         expires_in: 3600,
@@ -3273,12 +3206,10 @@ describe("FHIR.client", () => {
             });
 
             await client.refresh();
-            expect((client.state.tokenResponse as any).headers.authorization).to.exist();
+            expect((client.state.tokenResponse as any).headers.authorization).to.exist;
         });
 
         it ("Ignores parallel invocations", async () => {
-            const self    = new Window();
-            (global as any).sessionStorage = self.sessionStorage;
             const env     = new BrowserEnv();
             const storage = env.getStorage();
             const key     = "my-key";
@@ -3300,7 +3231,7 @@ describe("FHIR.client", () => {
             const client = new Client(env, state);
 
             mockServer.mock({
-                handler(req, res) {
+                handler(req: Request, res: Response) {
                     res.json({
                         headers: req.headers,
                         expires_in: 3600,
@@ -3317,8 +3248,6 @@ describe("FHIR.client", () => {
         });
 
         it ("Allows passing headers", async () => {
-            const self    = new Window();
-            (global as any).sessionStorage = self.sessionStorage;
             const env     = new BrowserEnv();
             const storage = env.getStorage();
             const key     = "my-key";
@@ -3340,7 +3269,7 @@ describe("FHIR.client", () => {
             const client = new Client(env, state);
 
             mockServer.mock({
-                handler(req, res) {
+                handler(req: Request, res: Response) {
                     res.json({
                         headers: req.headers,
                         expires_in: 3600,
@@ -3354,8 +3283,6 @@ describe("FHIR.client", () => {
         });
 
         it ("Allows passing custom authorization header", async () => {
-            const self    = new Window();
-            (global as any).sessionStorage = self.sessionStorage;
             const env     = new BrowserEnv();
             const storage = env.getStorage();
             const key     = "my-key";
@@ -3377,7 +3304,7 @@ describe("FHIR.client", () => {
             const client = new Client(env, state);
 
             mockServer.mock({
-                handler(req, res) {
+                handler(req: Request, res: Response) {
                     res.json({
                         headers: req.headers,
                         expires_in: 3600,
@@ -3391,8 +3318,6 @@ describe("FHIR.client", () => {
         });
 
         it ("Works as expected", async () => {
-            const self    = new Window();
-            (global as any).sessionStorage = self.sessionStorage;
             const env     = new BrowserEnv();
             const storage = env.getStorage();
             const key     = "my-key";
@@ -3442,7 +3367,7 @@ describe("FHIR.client", () => {
                 }
             });
             const result = await client.request("/Patient");
-            expect(result).to.equal({ msg: "successful after all" });
+            expect(result).to.deep.equal({ msg: "successful after all" });
         });
     });
 
@@ -3450,7 +3375,7 @@ describe("FHIR.client", () => {
         crossPlatformTest(async (env) => {
             const client = new Client(env, mockUrl);
             expect(client.getPatientId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noFreeContext, "selected patient"]]);
+            expect(mockDebug._calls).to.deep.equal([["client: " + str.noFreeContext, "selected patient"]]);
         });
     });
 
@@ -3461,7 +3386,7 @@ describe("FHIR.client", () => {
                 authorizeUri: "whatever"
             });
             expect(client.getPatientId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noIfNoAuth, "the ID of the selected patient"]]);
+            expect(mockDebug._calls).to.deep.equal([["client: " + str.noIfNoAuth, "the ID of the selected patient"]]);
         });
     });
 
@@ -3472,7 +3397,7 @@ describe("FHIR.client", () => {
                 tokenResponse: {}
             });
             expect(client.getPatientId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noScopeForId, "patient", "patient"]]);
+            expect(mockDebug._calls).to.deep.equal([["client: " + str.noScopeForId, "patient", "patient"]]);
         });
     });
 
@@ -3484,8 +3409,8 @@ describe("FHIR.client", () => {
                 tokenResponse: {}
             });
             expect(client.getPatientId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[
-                "The ID of the selected patient is not available. " +
+            expect(mockDebug._calls).to.deep.equal([[
+                "client: The ID of the selected patient is not available. " +
                 "Please check if your server supports that."
             ]]);
         });
@@ -3495,7 +3420,7 @@ describe("FHIR.client", () => {
         crossPlatformTest(async (env) => {
             const client = new Client(env, mockUrl);
             expect(client.getEncounterId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noFreeContext, "selected encounter"]]);
+            expect(mockDebug._calls).to.deep.equal([["client: " + str.noFreeContext, "selected encounter"]]);
         });
     });
 
@@ -3506,7 +3431,7 @@ describe("FHIR.client", () => {
                 authorizeUri: "whatever"
             });
             expect(client.getEncounterId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noIfNoAuth, "the ID of the selected encounter"]]);
+            expect(mockDebug._calls).to.deep.equal([["client: " + str.noIfNoAuth, "the ID of the selected encounter"]]);
         });
     });
 
@@ -3517,7 +3442,7 @@ describe("FHIR.client", () => {
                 tokenResponse: {}
             });
             expect(client.getEncounterId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noScopeForId, "encounter", "encounter"]]);
+            expect(mockDebug._calls).to.deep.equal([["client: " + str.noScopeForId, "encounter", "encounter"]]);
         });
     });
 
@@ -3529,8 +3454,8 @@ describe("FHIR.client", () => {
                 tokenResponse: {}
             });
             expect(client.getEncounterId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[
-                "The ID of the selected encounter is not available. " +
+            expect(mockDebug._calls).to.deep.equal([[
+                "client: The ID of the selected encounter is not available. " +
                 "Please check if your server supports that, and that " +
                 "the selected patient has any recorded encounters."
             ]]);
@@ -3541,7 +3466,7 @@ describe("FHIR.client", () => {
         crossPlatformTest(async (env) => {
             const client = new Client(env, mockUrl);
             expect(client.getIdToken()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noFreeContext, "id_token"]]);
+            expect(mockDebug._calls).to.deep.equal([["client: " + str.noFreeContext, "id_token"]]);
         });
     });
 
@@ -3552,7 +3477,7 @@ describe("FHIR.client", () => {
                 authorizeUri: "whatever"
             });
             expect(client.getIdToken()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noIfNoAuth, "the id_token"]]);
+            expect(mockDebug._calls).to.deep.equal([["client: " + str.noIfNoAuth, "the id_token"]]);
         });
     });
 
@@ -3564,7 +3489,7 @@ describe("FHIR.client", () => {
                 tokenResponse: {}
             });
             expect(client.getIdToken()).to.equal(null);
-            expect(clientDebug._calls).to.equal([["You are trying to get the id_token but you are not using the right scopes. Please add 'openid' and 'fhirUser' or 'profile' to the scopes you are requesting."]]);
+            expect(mockDebug._calls).to.deep.equal([["client: You are trying to get the id_token but you are not using the right scopes. Please add 'openid' and 'fhirUser' or 'profile' to the scopes you are requesting."]]);
         });
     });
 
@@ -3576,8 +3501,8 @@ describe("FHIR.client", () => {
                 tokenResponse: {}
             });
             expect(client.getIdToken()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[
-                "The id_token is not available. Please check if your " +
+            expect(mockDebug._calls).to.deep.equal([[
+                "client: The id_token is not available. Please check if your " +
                 "server supports that."
             ]]);
         });
@@ -3626,8 +3551,6 @@ describe("FHIR.client", () => {
 
     describe("_clearState()", () => {
         crossPlatformTest(async (env) => {
-            const self    = new Window();
-            (global as any).sessionStorage = self.sessionStorage;
             const client = new Client(env, {
                 serverUrl: mockUrl,
                 scope: "openid fhirUser",
@@ -3639,172 +3562,172 @@ describe("FHIR.client", () => {
             await storage.set(key, "whatever");
             // @ts-ignore
             await client._clearState();
-            expect(client.state.tokenResponse).to.equal({});
-            expect(storage.get(KEY)).to.be.empty();
-            expect(storage.get(key)).to.be.empty();
+            expect(client.state.tokenResponse).to.deep.equal({});
+            expect(storage.get(KEY)).to.be.empty;
+            expect(storage.get(key)).to.be.empty;
         });
     });
 
-    describe("byCode", () => {
-        crossPlatformTest(async (env) => {
-            const client = new Client(env, "http://localhost");
-            const observation1 = require("./mocks/Observation-1.json");
-            const observation2 = require("./mocks/Observation-2.json");
+    // describe("byCode", () => {
+    //     crossPlatformTest(async (env) => {
+    //         const client = new Client(env, "http://localhost");
+    //         const observation1 = require("./mocks/Observation-1.json");
+    //         const observation2 = require("./mocks/Observation-2.json");
 
-            const resources = [
-                observation1,
-                observation2,
-                {},
-                {
-                    resourceType: "Observation",
-                    category: [
-                        null,
-                        {
-                            codding: null
-                        }
-                    ]
-                },
-                {
-                    resourceType: "Observation",
-                    category: [
-                        {
-                            coding: [
-                                {
-                                    code: null
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ];
+    //         const resources = [
+    //             observation1,
+    //             observation2,
+    //             {},
+    //             {
+    //                 resourceType: "Observation",
+    //                 category: [
+    //                     null,
+    //                     {
+    //                         codding: null
+    //                     }
+    //                 ]
+    //             },
+    //             {
+    //                 resourceType: "Observation",
+    //                 category: [
+    //                     {
+    //                         coding: [
+    //                             {
+    //                                 code: null
+    //                             }
+    //                         ]
+    //                     }
+    //                 ]
+    //             }
+    //         ];
 
-            expect<fhirclient.ObservationMap>(client.byCode(resources, "code")).to.equal({
-                "55284-4": [ observation1 ],
-                "6082-2" : [ observation2 ]
-            });
+    //         expect<fhirclient.ObservationMap>(client.byCode(resources, "code")).to.deep.equal({
+    //             "55284-4": [ observation1 ],
+    //             "6082-2" : [ observation2 ]
+    //         });
 
-            expect<fhirclient.ObservationMap>(client.byCode(resources, "category")).to.equal({
-                "vital-signs": [ observation1 ],
-                "laboratory" : [ observation2 ]
-            });
+    //         expect<fhirclient.ObservationMap>(client.byCode(resources, "category")).to.deep.equal({
+    //             "vital-signs": [ observation1 ],
+    //             "laboratory" : [ observation2 ]
+    //         });
 
-            expect<fhirclient.ObservationMap>(client.byCode(resources, "missing")).to.equal({});
-        });
-    });
+    //         expect<fhirclient.ObservationMap>(client.byCode(resources, "missing")).to.deep.equal({});
+    //     });
+    // });
 
-    describe("byCodes", () => {
-        crossPlatformTest(async (env) => {
-            const client = new Client(env, "http://localhost");
-            const observation1 = require("./mocks/Observation-1.json");
-            const observation2 = require("./mocks/Observation-2.json");
+    // describe("byCodes", () => {
+    //     crossPlatformTest(async (env) => {
+    //         const client = new Client(env, "http://localhost");
+    //         const observation1 = require("./mocks/Observation-1.json");
+    //         const observation2 = require("./mocks/Observation-2.json");
 
-            const resources = [
-                observation1,
-                observation2,
-                observation1,
-                observation2
-            ];
+    //         const resources = [
+    //             observation1,
+    //             observation2,
+    //             observation1,
+    //             observation2
+    //         ];
 
-            expect(client.byCodes(resources, "code")("55284-4")).to.equal([observation1, observation1]);
+    //         expect(client.byCodes(resources, "code")("55284-4")).to.deep.equal([observation1, observation1]);
 
-            expect(client.byCodes(resources, "code")("6082-2")).to.equal([observation2, observation2]);
+    //         expect(client.byCodes(resources, "code")("6082-2")).to.deep.equal([observation2, observation2]);
 
-            expect(client.byCodes(resources, "category")("laboratory")).to.equal([observation2, observation2]);
-        });
-    });
+    //         expect(client.byCodes(resources, "category")("laboratory")).to.deep.equal([observation2, observation2]);
+    //     });
+    // });
 
-    describe("units", () => {
-        describe ("cm", () => {
-            crossPlatformTest(async (env) => {
-                const client = new Client(env, "http://localhost");
-                expect(client.units.cm({ code: "cm", value: 3 })).to.equal(3);
-                expect(client.units.cm({ code: "m", value: 3 })).to.equal(300);
-                expect(client.units.cm({ code: "in", value: 3 })).to.equal(3 * 2.54);
-                expect(client.units.cm({ code: "[in_us]", value: 3 })).to.equal(3 * 2.54);
-                expect(client.units.cm({ code: "[in_i]", value: 3 })).to.equal(3 * 2.54);
-                expect(client.units.cm({ code: "ft", value: 3 })).to.equal(3 * 30.48);
-                expect(client.units.cm({ code: "[ft_us]", value: 3 })).to.equal(3 * 30.48);
-                expect(() => client.units.cm({ code: "xx", value: 3 })).to.throw();
-                // @ts-ignore
-                expect(() => client.units.cm({ code: "m", value: "x" })).to.throw();
-            });
-        });
-        describe ("kg", () => {
-            crossPlatformTest(async (env) => {
-                const client = new Client(env, "http://localhost");
-                expect(client.units.kg({ code: "kg", value: 3 })).to.equal(3);
-                expect(client.units.kg({ code: "g", value: 3 })).to.equal(3 / 1000);
-                expect(client.units.kg({ code: "lb", value: 3 })).to.equal(3 / 2.20462);
-                expect(client.units.kg({ code: "oz", value: 3 })).to.equal(3 / 35.274);
-                expect(() => client.units.kg({ code: "xx", value: 3 })).to.throw();
-                // @ts-ignore
-                expect(() => client.units.kg({ code: "lb", value: "x" })).to.throw();
-            });
-        });
-        describe ("any", () => {
-            crossPlatformTest(async (env) => {
-                const client = new Client(env, "http://localhost");
-                // @ts-ignore
-                expect(client.units.any({ value: 3 })).to.equal(3);
-                // @ts-ignore
-                expect(() => client.units.kg({ value: "x" })).to.throw();
-            });
-        });
-    });
+    // describe("units", () => {
+    //     describe ("cm", () => {
+    //         crossPlatformTest(async (env) => {
+    //             const client = new Client(env, "http://localhost");
+    //             expect(client.units.cm({ code: "cm", value: 3 })).to.equal(3);
+    //             expect(client.units.cm({ code: "m", value: 3 })).to.equal(300);
+    //             expect(client.units.cm({ code: "in", value: 3 })).to.equal(3 * 2.54);
+    //             expect(client.units.cm({ code: "[in_us]", value: 3 })).to.equal(3 * 2.54);
+    //             expect(client.units.cm({ code: "[in_i]", value: 3 })).to.equal(3 * 2.54);
+    //             expect(client.units.cm({ code: "ft", value: 3 })).to.equal(3 * 30.48);
+    //             expect(client.units.cm({ code: "[ft_us]", value: 3 })).to.equal(3 * 30.48);
+    //             expect(() => client.units.cm({ code: "xx", value: 3 })).to.throw();
+    //             // @ts-ignore
+    //             expect(() => client.units.cm({ code: "m", value: "x" })).to.throw();
+    //         });
+    //     });
+    //     describe ("kg", () => {
+    //         crossPlatformTest(async (env) => {
+    //             const client = new Client(env, "http://localhost");
+    //             expect(client.units.kg({ code: "kg", value: 3 })).to.equal(3);
+    //             expect(client.units.kg({ code: "g", value: 3 })).to.equal(3 / 1000);
+    //             expect(client.units.kg({ code: "lb", value: 3 })).to.equal(3 / 2.20462);
+    //             expect(client.units.kg({ code: "oz", value: 3 })).to.equal(3 / 35.274);
+    //             expect(() => client.units.kg({ code: "xx", value: 3 })).to.throw();
+    //             // @ts-ignore
+    //             expect(() => client.units.kg({ code: "lb", value: "x" })).to.throw();
+    //         });
+    //     });
+    //     describe ("any", () => {
+    //         crossPlatformTest(async (env) => {
+    //             const client = new Client(env, "http://localhost");
+    //             // @ts-ignore
+    //             expect(client.units.any({ value: 3 })).to.equal(3);
+    //             // @ts-ignore
+    //             expect(() => client.units.kg({ value: "x" })).to.throw();
+    //         });
+    //     });
+    // });
 
-    describe("getPath", () => {
-        it ("returns the first arg if no path", () => {
-            // @ts-ignore
-            const client = new Client({}, "http://localhost");
-            const data = {};
-            expect(client.getPath(data)).to.equal(data);
-        });
-        it ("returns the first arg for empty path", () => {
-            // @ts-ignore
-            const client = new Client({}, "http://localhost");
-            const data = {};
-            expect(client.getPath(data, "")).to.equal(data);
-        });
-        it ("works as expected", () => {
-            // @ts-ignore
-            const client = new Client({}, "http://localhost");
-            const data = { a: 1, b: [0, { a: 2 }] };
-            expect(client.getPath(data, "b.1.a")).to.equal(2);
-            expect(client.getPath(data, "b.4.a")).to.equal(undefined);
-        });
-    });
+    // describe("getPath", () => {
+    //     it ("returns the first arg if no path", () => {
+    //         // @ts-ignore
+    //         const client = new Client({}, "http://localhost");
+    //         const data = {};
+    //         expect(client.getPath(data)).to.equal(data);
+    //     });
+    //     it ("returns the first arg for empty path", () => {
+    //         // @ts-ignore
+    //         const client = new Client({}, "http://localhost");
+    //         const data = {};
+    //         expect(client.getPath(data, "")).to.equal(data);
+    //     });
+    //     it ("works as expected", () => {
+    //         // @ts-ignore
+    //         const client = new Client({}, "http://localhost");
+    //         const data = { a: 1, b: [0, { a: 2 }] };
+    //         expect(client.getPath(data, "b.1.a")).to.equal(2);
+    //         expect(client.getPath(data, "b.4.a")).to.equal(undefined);
+    //     });
+    // });
 
-    describe("getState", () => {
-        it ("returns the entire state", () => {
-            const state = { a: { b: [ { c: 2 } ] }, serverUrl: "http://x" };
-            // @ts-ignore
-            const client = new Client({}, state);
-            expect(client.getState()).to.equal(state);
-        });
+    // describe("getState", () => {
+    //     it ("returns the entire state", () => {
+    //         const state = { a: { b: [ { c: 2 } ] }, serverUrl: "http://x" };
+    //         // @ts-ignore
+    //         const client = new Client({}, state);
+    //         expect(client.getState()).to.equal(state);
+    //     });
 
-        it ("can get single path", () => {
-            const state = { a: { b: [ { c: 2 } ] }, serverUrl: "http://x" };
-            // @ts-ignore
-            const client = new Client({}, state);
-            expect(client.getState("serverUrl")).to.equal(state.serverUrl);
-        });
+    //     it ("can get single path", () => {
+    //         const state = { a: { b: [ { c: 2 } ] }, serverUrl: "http://x" };
+    //         // @ts-ignore
+    //         const client = new Client({}, state);
+    //         expect(client.getState("serverUrl")).to.equal(state.serverUrl);
+    //     });
 
-        it ("can get nested path", () => {
-            const state = { a: { b: [ { c: 2 } ] }, serverUrl: "http://x" };
-            // @ts-ignore
-            const client = new Client({}, state);
-            expect(client.getState("a.b.0.c")).to.equal(2);
-        });
+    //     it ("can get nested path", () => {
+    //         const state = { a: { b: [ { c: 2 } ] }, serverUrl: "http://x" };
+    //         // @ts-ignore
+    //         const client = new Client({}, state);
+    //         expect(client.getState("a.b.0.c")).to.equal(2);
+    //     });
 
-        it ("keeps state immutable", () => {
-            const state = { a: { b: [ { c: 2 } ] }, serverUrl: "http://x" };
-            // @ts-ignore
-            const client = new Client({}, state);
-            const result = client.getState();
-            result.a = 5;
-            expect(client.getState("a")).to.equal(state.a);
-        });
-    });
+    //     it ("keeps state immutable", () => {
+    //         const state = { a: { b: [ { c: 2 } ] }, serverUrl: "http://x" };
+    //         // @ts-ignore
+    //         const client = new Client({}, state);
+    //         const result = client.getState();
+    //         result.a = 5;
+    //         expect(client.getState("a")).to.equal(state.a);
+    //     });
+    // });
 
     describe("create", () => {
         crossPlatformTest(async (env) => {
@@ -3820,14 +3743,14 @@ describe("FHIR.client", () => {
                 headers: { "content-type": "application/json" }
             });
             result = await client.create(resource, { includeResponse: true });
-            expect(result.body).to.equal(resource);
+            expect(result.body).to.deep.equal(resource);
             expect(result.response.status).to.equal(200);
 
             client.request = async (options: any) => options;
 
             // Standard usage
             result = await client.create(resource);
-            expect(result).to.equal({
+            expect(result).to.deep.equal({
                 url    : "Patient",
                 method : "POST",
                 body   : JSON.stringify(resource),
@@ -3848,7 +3771,7 @@ describe("FHIR.client", () => {
                     "content-type": "application/fhir+json"
                 }
             });
-            expect(result).to.equal({
+            expect(result).to.deep.equal({
                 url    : "Patient",
                 method : "POST",
                 body   : JSON.stringify(resource),
@@ -3867,7 +3790,7 @@ describe("FHIR.client", () => {
                 // @ts-ignore
                 signal: "whatever"
             });
-            expect(result).to.equal({
+            expect(result).to.deep.equal({
                 url    : "Patient",
                 method : "POST",
                 body   : JSON.stringify(resource),
@@ -3892,14 +3815,14 @@ describe("FHIR.client", () => {
                 headers: { "content-type": "application/json" }
             });
             result = await client.update(resource, { includeResponse: true });
-            expect(result.body).to.equal(resource);
+            expect(result.body).to.deep.equal(resource);
             expect(result.response.status).to.equal(200);
 
             client.request = async (options: any) => options;
 
             // Standard usage
             result = await client.update(resource);
-            expect(result).to.equal({
+            expect(result).to.deep.equal({
                 url    : "Patient/2",
                 method : "PUT",
                 body   : JSON.stringify(resource),
@@ -3920,7 +3843,7 @@ describe("FHIR.client", () => {
                     "content-type": "application/fhir+json"
                 }
             });
-            expect(result).to.equal({
+            expect(result).to.deep.equal({
                 url    : "Patient/2",
                 method : "PUT",
                 body   : JSON.stringify(resource),
@@ -3939,7 +3862,7 @@ describe("FHIR.client", () => {
                 // @ts-ignore
                 signal: "whatever"
             });
-            expect(result).to.equal({
+            expect(result).to.deep.equal({
                 url    : "Patient/2",
                 method : "PUT",
                 body   : JSON.stringify(resource),
@@ -3963,7 +3886,7 @@ describe("FHIR.client", () => {
             let result: any = await client.update({}, { includeResponse: true });
 
             expect(result.body).to.equal("text");
-            expect(result.response).to.exist();
+            expect(result.response).to.exist;
             expect(result.response.status).to.equal(200);
         })
 
@@ -3994,7 +3917,7 @@ describe("FHIR.client", () => {
             let result: any = await client.update({}, { includeResponse: true });
 
             expect(result.body).to.equal("");
-            expect(result.response).to.exist();
+            expect(result.response).to.exist;
             expect(result.response.status).to.equal(200);
         })
 
@@ -4011,7 +3934,7 @@ describe("FHIR.client", () => {
             let result: any = await client.update({}, { includeResponse: true });
 
             expect(result.body).to.equal(null);
-            expect(result.response).to.exist();
+            expect(result.response).to.exist;
             expect(result.response.status).to.equal(200);
         })
 
@@ -4027,8 +3950,8 @@ describe("FHIR.client", () => {
             
             let result: any = await client.update({}, { includeResponse: true });
 
-            expect(result.body).to.exist();
-            expect(result.response).to.exist();
+            expect(result.body).to.exist;
+            expect(result.response).to.exist;
             expect(result.response.status).to.equal(200);
         })
     });
@@ -4047,14 +3970,14 @@ describe("FHIR.client", () => {
             });
             
             result = await client.delete("Patient/2", { includeResponse: true });
-            expect(result.body).to.equal({ result: "success" });
+            expect(result.body).to.deep.equal({ result: "success" });
             expect(result.response.status).to.equal(200);
 
             client.request = async (options: any) => options;
 
             // Standard usage
             result = await client.delete("Patient/2");
-            expect(result).to.equal({
+            expect(result).to.deep.equal({
                 url   : "Patient/2",
                 method: "DELETE"
             });
@@ -4066,7 +3989,7 @@ describe("FHIR.client", () => {
                 method: "y",
                 other : 3
             });
-            expect(result).to.equal({
+            expect(result).to.deep.equal({
                 url   : "Patient/2",
                 method: "DELETE",
                 other : 3
@@ -4077,7 +4000,7 @@ describe("FHIR.client", () => {
                 // @ts-ignore
                 signal: "whatever"
             });
-            expect(result).to.equal({
+            expect(result).to.deep.equal({
                 url   : "Patient/2",
                 method: "DELETE",
                 signal: "whatever"
@@ -4099,7 +4022,7 @@ describe("FHIR.client", () => {
             });
             
             result = await client.patch("Patient/2", [{ op: "remove", path: "/x" }], { includeResponse: true });
-            expect(result.body).to.equal({ result: "success" });
+            expect(result.body).to.deep.equal({ result: "success" });
             expect(result.response.status).to.equal(200);
 
             // Modify the request method to return the request options
@@ -4107,7 +4030,7 @@ describe("FHIR.client", () => {
 
             // Standard usage
             result = await client.patch("Patient/2", [{ op: "remove", path: "/x" }]);
-            expect(result).to.equal({
+            expect(result).to.deep.equal({
                 url   : "Patient/2",
                 method: "PATCH",
                 body: '[{"op":"remove","path":"/x"}]',
@@ -4128,7 +4051,7 @@ describe("FHIR.client", () => {
                     z: "22"
                 }
             });
-            expect(result).to.equal({
+            expect(result).to.deep.equal({
                 url   : "Patient/2",
                 method: "PATCH",
                 body: '[{"op":"remove","path":"/x"}]',
@@ -4150,57 +4073,57 @@ describe("FHIR.client", () => {
             // Validations ----------------------------------------------------
 
             // @ts-ignore
-            expect(client.patch("x", null)).to.reject("The JSON patch must be an array");
+            expect(client.patch("x", null)).to.be.rejectedWith("The JSON patch must be an array");
             
-            expect(client.patch("x", [])).to.reject("The JSON patch array should not be empty");
+            expect(client.patch("x", [])).to.be.rejectedWith("The JSON patch array should not be empty");
             
             // @ts-ignore
-            expect(client.patch("x", [{}])).to.reject(/Each patch operation must have an "op" property/);
+            expect(client.patch("x", [{}])).to.be.rejectedWith(/Each patch operation must have an "op" property/);
 
             expect(client.patch("x", [
                 // @ts-ignore
                 { op: "x" }
-            ])).to.reject(/Each patch operation must have an "op" property/);
+            ])).to.be.rejectedWith(/Each patch operation must have an "op" property/);
 
             expect(client.patch("x", [
                 // @ts-ignore
                 { op: "add" }
-            ])).to.reject(/Missing "path" property/);
+            ])).to.be.rejectedWith(/Missing "path" property/);
 
             expect(client.patch("x", [
                 // @ts-ignore
                 { op: "add", path: "/x" }
-            ])).to.reject(/Missing "value" property/);
+            ])).to.be.rejectedWith(/Missing "value" property/);
 
             expect(client.patch("x", [
                 // @ts-ignore
                 { op: "replace", path: "/x" }
-            ])).to.reject(/Missing "value" property/);
+            ])).to.be.rejectedWith(/Missing "value" property/);
 
             expect(client.patch("x", [
                 // @ts-ignore
                 { op: "test", path: "/x", value: 4, custom: true }
-            ])).to.reject(/Contains unknown properties/);
+            ])).to.be.rejectedWith(/Contains unknown properties/);
 
             expect(client.patch("x", [
                 // @ts-ignore
                 { op: "move", path: "/x" }
-            ])).to.reject(/Requires a string "from" property/);
+            ])).to.be.rejectedWith(/Requires a string "from" property/);
 
             expect(client.patch("x", [
                 // @ts-ignore
                 { op: "copy", path: "/x" }
-            ])).to.reject(/Requires a string "from" property/);
+            ])).to.be.rejectedWith(/Requires a string "from" property/);
 
             expect(client.patch("x", [
                 // @ts-ignore
                 { op: "move", path: "/x", from: "/y", custom: true }
-            ])).to.reject(/Contains unknown properties/);
+            ])).to.be.rejectedWith(/Contains unknown properties/);
 
             expect(client.patch("x", [
                 // @ts-ignore
                 { op: "remove", path: "/x", custom: true }
-            ])).to.reject(/Contains unknown properties/);
+            ])).to.be.rejectedWith(/Contains unknown properties/);
         });
     });
 

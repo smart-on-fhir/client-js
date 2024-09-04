@@ -1,11 +1,10 @@
 const chai           = require("chai");
+const chaiAsPromised = require("chai-as-promised");
 const express        = require("express");
 const jose           = require('jose');
 const cors           = require("cors");
-const mockServer     = require("../mocks/mockServer2");
-const chaiAsPromised = require("chai-as-promised");
-// const { default: fetch } = require("cross-fetch");
-const path = require("path");
+const path           = require("path");
+const mockServer     = require("../mocks/mockServer3");
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -149,7 +148,7 @@ async function startFileServer(context) {
             next();
         });
         app.use("/", express.static(
-            process.env.GITHUB_WORKSPACE || path.resolve(__dirname, "../../")
+            process?.env?.GITHUB_WORKSPACE || path.resolve(__dirname, "../../")
         ));
 
         context.fileServer = app.listen(0, "127.0.0.1", () => {
@@ -441,7 +440,7 @@ describe("authorization", () => {
 
     it("using pkceMode = 'disabled' does not include code_challenge, even if the server supports S256", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.rs",
             pkceMode : "disabled"
         });
@@ -451,7 +450,7 @@ describe("authorization", () => {
 
     it("using pkceMode = 'disabled' does not include code_challenge if server does not declare S256 support", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.rs",
             pkceMode : "disabled"
         }, { ...MOCK_WELL_KNOWN_JSON, code_challenge_methods_supported: [] });
@@ -461,7 +460,7 @@ describe("authorization", () => {
 
     it("using pkceMode = 'disabled' does not include code_challenge if server does not have a well-known statement", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.rs",
             pkceMode : "disabled"
         }, null);
@@ -473,7 +472,7 @@ describe("authorization", () => {
 
     it("using pkceMode = 'disabled' does not include code_challenge, even if the server supports S256", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.rs",
             pkceMode : "disabled"
         });
@@ -483,7 +482,7 @@ describe("authorization", () => {
 
     it("using pkceMode = 'disabled' does not include code_challenge if server does not declare S256 support", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.rs",
             pkceMode : "disabled"
         }, { ...MOCK_WELL_KNOWN_JSON, code_challenge_methods_supported: [] });
@@ -493,7 +492,7 @@ describe("authorization", () => {
 
     it("using pkceMode = 'disabled' does not include code_challenge if server does not have a well-known statement", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.rs",
             pkceMode : "disabled"
         }, null);
@@ -505,7 +504,7 @@ describe("authorization", () => {
 
     it("using pkceMode = 'unsafeV1' includes code_challenge", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.rs",
             pkceMode : "unsafeV1"
         });
@@ -515,7 +514,7 @@ describe("authorization", () => {
 
     it("using pkceMode = 'unsafeV1' includes code_challenge, even if the server does not advertise S256 support", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.rs",
             pkceMode : "unsafeV1"
         }, { ...MOCK_WELL_KNOWN_JSON, code_challenge_methods_supported: [] });
@@ -525,7 +524,7 @@ describe("authorization", () => {
 
     it("using pkceMode = 'unsafeV1' includes code_challenge, even if the server does not have a well-known statement", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.rs",
             pkceMode : "unsafeV1"
         }, null);
@@ -537,7 +536,7 @@ describe("authorization", () => {
     
     it("using pkceMode = 'required' includes code_challenge", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope   : "patient/*.rs",
             pkceMode: "required"
         });
@@ -547,7 +546,7 @@ describe("authorization", () => {
 
     it("using pkceMode = 'required' throws if the server does not declare S256 support", async () => {
         await assertThrows(async () => await authorize({
-                client_id : CLIENT_ID,
+                clientId : CLIENT_ID,
                 scope     : "patient/*.rs",
                 pkceMode  : "required"
             }, { ...MOCK_WELL_KNOWN_JSON, code_challenge_methods_supported: [] }),
@@ -558,7 +557,7 @@ describe("authorization", () => {
     it("using pkceMode = 'required' throws if the server does not have a well-known statement", async () => {
         await assertThrows(
             async () => await authorize({
-                client_id : CLIENT_ID,
+                clientId : CLIENT_ID,
                 scope     : "patient/*.rs",
                 pkceMode  : "required"
             }, null),
@@ -570,7 +569,7 @@ describe("authorization", () => {
 
     it("using pkceMode = 'ifSupported' includes code_challenge", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.rs",
             pkceMode : "ifSupported"
         });
@@ -580,7 +579,7 @@ describe("authorization", () => {
 
     it("using pkceMode = 'ifSupported' does not include code_challenge if server does not declare S256 support", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.rs",
             pkceMode : "ifSupported"
         }, { ...MOCK_WELL_KNOWN_JSON, code_challenge_methods_supported: [] });
@@ -590,7 +589,7 @@ describe("authorization", () => {
 
     it("using pkceMode = 'ifSupported' does not include code_challenge if the server does not have a well-known statement", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.rs",
             pkceMode : "ifSupported"
         }, null);
@@ -608,7 +607,7 @@ describe("authorization", () => {
 
     it("authorize options - client_id", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.read"
         });
         expect(redirectUrl.searchParams.get("client_id"), `The redirect url should include client_id=${CLIENT_ID}`).to.equal(CLIENT_ID)
@@ -616,7 +615,7 @@ describe("authorization", () => {
 
     it("authorize options - v2 scope", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.rs"
         });
         expect(redirectUrl.searchParams.get("scope"), `The redirect url should include patient/*.rs in its scope parameter`).to.contain("patient/*.rs")
@@ -624,7 +623,7 @@ describe("authorization", () => {
 
     it("authorize options - v1 scope", async () => {
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.read"
         });
         expect(redirectUrl.searchParams.get("scope"), `The redirect url should include patient/*.read in its scope parameter`).to.contain("patient/*.read")
@@ -634,7 +633,7 @@ describe("authorization", () => {
 
         // launch --------------------------------------------------------------
         const redirectUrl = await authorize({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             scope    : "patient/*.read"
         });
 
@@ -692,7 +691,7 @@ describe("authorization", () => {
             // console.log(clientPrivateJwk, clientPublicJwk)
             
             const redirectUrl = await authorize({
-                client_id: CLIENT_ID,
+                clientId: CLIENT_ID,
                 scope    : "patient/*.read",
                 clientPublicKeySetUrl: KEY_SET_URL,
                 // @ts-ignore
@@ -767,7 +766,7 @@ describe("authorization", () => {
             const kid = "my-kid";
 
             const redirectUrl = await authorize({
-                client_id: CLIENT_ID,
+                clientId: CLIENT_ID,
                 scope    : "patient/*.read",
                 clientPublicKeySetUrl: KEY_SET_URL
             });
@@ -873,7 +872,7 @@ describe("authorization", () => {
             const { privateKey } = await jose.generateKeyPair(alg)
             const clientPrivateJwk = await jose.exportJWK(privateKey)
             const redirectUrl = await authorize({
-                client_id: CLIENT_ID,
+                clientId: CLIENT_ID,
                 scope    : "patient/*.read",
                 clientPublicKeySetUrl: KEY_SET_URL,
                 // @ts-ignore
@@ -892,7 +891,7 @@ describe("authorization", () => {
             const clientPublicJwk  = await jose.exportJWK(publicKey )
 
             const redirectUrl = await authorize({
-                client_id: CLIENT_ID,
+                clientId: CLIENT_ID,
                 scope    : "patient/*.read",
                 clientPublicKeySetUrl: KEY_SET_URL,
                 // @ts-ignore
@@ -926,7 +925,7 @@ describe("authorization", () => {
             const clientPublicJwk  = await jose.exportJWK(publicKey )
 
             const redirectUrl = await authorize({
-                client_id: CLIENT_ID,
+                clientId: CLIENT_ID,
                 scope    : "patient/*.read",
                 clientPublicKeySetUrl: KEY_SET_URL,
                 // @ts-ignore
@@ -981,5 +980,24 @@ describe("authorization", () => {
         expect(authz, "authorization header should exist").to.exist;
         expect(authz, "authorization header should be string").to.be.a("string");
         expect(authz, "authorization header should start with 'Basic '").to.match(/^Basic\s/)
+    });
+
+    it("uses state.clientSecret", async () => {
+        await navigate(`${ctx.REDIRECT_URL}`);
+        const result = await executeAsync(function(done) {
+            try {
+                const a = FHIR.utils.base64urlencode("this is a test")
+                const b = FHIR.utils.base64urldecode("dGhpcyBpcyBhIHRlc3Q")
+                const c = FHIR.utils.base64encode("this is a test")
+                const d = FHIR.utils.base64decode("dGhpcyBpcyBhIHRlc3Q=")
+                done({ a, b, c, d });
+            } catch (ex) {
+                done({ error: ex + "" })
+            }
+        });
+        expect(result.a).to.equal(jose.base64url.encode("this is a test"))
+        expect(result.b).to.equal(jose.base64url.decode("dGhpcyBpcyBhIHRlc3Q").toString())
+        expect(result.c).to.equal(Buffer.from("this is a test", "utf8").toString("base64"))
+        expect(result.d).to.equal(Buffer.from("dGhpcyBpcyBhIHRlc3Q=", "base64url").toString("utf8"))
     });
 });
