@@ -124,7 +124,7 @@ export default class BrowserAdapter implements fhirclient.Adapter
      */
     base64encode(str: string): string
     {
-        return window.atob(str);
+        return window.btoa(str);
     }
 
     /**
@@ -132,7 +132,7 @@ export default class BrowserAdapter implements fhirclient.Adapter
      */
     base64decode(str: string): string
     {
-        return window.btoa(str);
+        return window.atob(str);
     }
 
     base64urlencode(input: string | Uint8Array)
