@@ -1,5 +1,5 @@
-import BrowserStorage from "../storage/BrowserStorage";
 import { fhirclient } from "../types";
+import BrowserStorage from "../storage/BrowserStorage";
 import * as security from "../security/browser";
 /**
  * Browser Adapter
@@ -27,12 +27,6 @@ export default class BrowserAdapter implements fhirclient.Adapter {
      */
     relative(path: string): string;
     /**
-     * In browsers we need to be able to (dynamically) check if fhir.js is
-     * included in the page. If it is, it should have created a "fhir" variable
-     * in the global scope.
-     */
-    get fhir(): any;
-    /**
      * Given the current environment, this method must return the current url
      * as URL instance
      */
@@ -48,21 +42,13 @@ export default class BrowserAdapter implements fhirclient.Adapter {
      */
     getStorage(): BrowserStorage;
     /**
-     * Returns a reference to the AbortController constructor. In browsers,
-     * AbortController will always be available as global (native or polyfilled)
-     */
-    getAbortController(): {
-        new (): AbortController;
-        prototype: AbortController;
-    };
-    /**
      * ASCII string to Base64
      */
-    atob(str: string): string;
+    base64encode(str: string): string;
     /**
      * Base64 to ASCII string
      */
-    btoa(str: string): string;
+    base64decode(str: string): string;
     base64urlencode(input: string | Uint8Array): string;
     base64urldecode(input: string): string;
     /**

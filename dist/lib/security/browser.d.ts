@@ -1,4 +1,5 @@
 import { fhirclient } from "../types";
+export declare const subtle: () => SubtleCrypto;
 interface PkcePair {
     codeChallenge: string;
     codeVerifier: string;

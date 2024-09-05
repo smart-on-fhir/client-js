@@ -1,13 +1,14 @@
 "use strict";
-
-const NodeAdapter_1 = require("../adapters/NodeAdapter");
-const cjs_ponyfill_1 = require("abortcontroller-polyfill/dist/cjs-ponyfill");
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const NodeAdapter_1 = __importDefault(require("../adapters/NodeAdapter"));
 function smart(request, response, storage) {
-  return new NodeAdapter_1.default({
-    request,
-    response,
-    storage
-  }).getSmartApi();
+    return new NodeAdapter_1.default({
+        request,
+        response,
+        storage
+    }).getSmartApi();
 }
-smart.AbortController = cjs_ponyfill_1.AbortController;
-module.exports = smart;
+exports.default = smart;

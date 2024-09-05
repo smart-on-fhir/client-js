@@ -1,6 +1,6 @@
 /// <reference types="node" />
-import { fhirclient } from "../types";
 import { IncomingMessage, ServerResponse } from "http";
+import { fhirclient } from "../types";
 import * as security from "../security/server";
 interface NodeAdapterOptions {
     request: IncomingMessage;
@@ -50,21 +50,13 @@ export default class NodeAdapter implements fhirclient.Adapter {
     /**
      * Base64 to ASCII string
      */
-    btoa(str: string): string;
+    base64encode(str: string): string;
     /**
      * ASCII string to Base64
      */
-    atob(str: string): string;
+    base64decode(str: string): string;
     base64urlencode(input: string | Uint8Array): string;
     base64urldecode(input: string): string;
-    /**
-     * Returns a reference to the AbortController constructor. In browsers,
-     * AbortController will always be available as global (native or polyfilled)
-     */
-    getAbortController(): {
-        new (): AbortController;
-        prototype: AbortController;
-    };
     /**
      * Creates and returns adapter-aware SMART api. Not that while the shape of
      * the returned object is well known, the arguments to this function are not.

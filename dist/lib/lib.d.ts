@@ -1,6 +1,4 @@
 import { fhirclient } from "./types";
-declare const _debug: any;
-export { _debug as debug };
 /**
  * A namespace with functions for converting between different measurement units
  */
@@ -29,6 +27,8 @@ export declare function loweCaseKeys<T = Record<string, any> | any[] | undefined
  * - If the response is json return the json object
  * - If the response is text return the result text
  * - Otherwise return the response object on which we call stuff like `.blob()`
+ * @param {string | Request} url
+ * @param {fhirclient.FetchOptions} [requestOptions]
  */
 export declare function request<T = fhirclient.FetchResult>(url: string | Request, requestOptions?: fhirclient.FetchOptions): Promise<T>;
 /**
@@ -36,8 +36,8 @@ export declare function request<T = fhirclient.FetchResult>(url: string | Reques
  * The cache is cleared when the page is unloaded.
  * @param url The URL to request
  * @param requestOptions Request options
- * @param force If true, reload from source and update the cache, even if it has
- * already been cached.
+ * @param [force] If true, reload from source and update the cache, even if it
+ * has already been cached.
  */
 export declare function getAndCache(url: string, requestOptions?: RequestInit, force?: boolean): Promise<any>;
 /**
@@ -93,7 +93,7 @@ export declare function randomString(strLength?: number, charSet?: string): stri
 /**
  * Decodes a JWT token and returns it's body.
  * @param token The token to read
- * @param env An `Adapter` or any other object that has an `atob` method
+ * @param env An `Adapter` or any other object that has a `base64decode` method
  * @category Utility
  */
 export declare function jwtDecode(token: string, env: fhirclient.Adapter): Record<string, any> | null;
@@ -101,7 +101,7 @@ export declare function jwtDecode(token: string, env: fhirclient.Adapter): Recor
  * Add a supplied number of seconds to the supplied Date, returning
  * an integer number of seconds since the epoch
  * @param secondsAhead How far ahead, in seconds (defaults to 120 seconds)
- * @param from Initial time (defaults to current time)
+ * @param [from] Initial time (defaults to current time)
  */
 export declare function getTimeInFuture(secondsAhead?: number, from?: Date | number): number;
 /**

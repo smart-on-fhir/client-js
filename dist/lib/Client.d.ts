@@ -60,11 +60,6 @@ export default class Client {
          * @category Request
          */
         request: <R = fhirclient.FetchResult>(requestOptions: string | URL | fhirclient.RequestOptions, fhirOptions?: fhirclient.FhirOptions) => Promise<R>;
-        /**
-         * This is the FhirJS Patient API. It will ONLY exist if the `Client`
-         * instance is "connected" to FhirJS.
-         */
-        api?: Record<string, any>;
     };
     /**
      * The client may be associated with a specific encounter, if the scopes
@@ -117,30 +112,14 @@ export default class Client {
         resourceType: string | null;
     };
     /**
-     * The [FhirJS](https://github.com/FHIR/fhir.js/blob/master/README.md) API.
-     * **NOTE:** This will only be available if `fhir.js` is used. Otherwise it
-     * will be `undefined`.
-     */
-    api: Record<string, any> | undefined;
-    /**
      * Refers to the refresh task while it is being performed.
      * @see [[refresh]]
      */
     private _refreshTask;
     /**
-     * Validates the parameters, creates an instance and tries to connect it to
-     * FhirJS, if one is available globally.
+     * Validates the parameters and creates an instance
      */
     constructor(environment: fhirclient.Adapter, state: fhirclient.ClientState | string);
-    /**
-     * This method is used to make the "link" between the `fhirclient` and the
-     * `fhir.js`, if one is available.
-     * **Note:** This is called by the constructor. If fhir.js is available in
-     * the global scope as `fhir`, it will automatically be linked to any [[Client]]
-     * instance. You should only use this method to connect to `fhir.js` which
-     * is not global.
-     */
-    connect(fhirJs?: (options: Record<string, any>) => Record<string, any>): Client;
     /**
      * Returns the ID of the selected patient or null. You should have requested
      * "launch/patient" scope. Otherwise this will return null.

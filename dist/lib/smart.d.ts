@@ -113,5 +113,6 @@ export declare function buildTokenRequest(env: fhirclient.Adapter, { code, state
  *    refresh the page twice to re-authorize.
  * @param env The adapter
  * @param authorizeOptions The authorize options
+ * @param [readyOptions]
  */
 export declare function init(env: fhirclient.Adapter, authorizeOptions: fhirclient.AuthorizeParams, readyOptions?: fhirclient.ReadyOptions): Promise<Client | never>;
