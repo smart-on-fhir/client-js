@@ -40,7 +40,8 @@ jobs:
 
       # Upload coverage to Coveralls
       - name: Coveralls
-        uses: coverallsapp/github-action@v2
+        # uses: coverallsapp/github-action@v2
+        uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          file: coverage/lcov-report/lcov.info
+          # file: ./coverage/lcov-report/lcov.info
