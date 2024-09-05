@@ -36,7 +36,7 @@ jobs:
 
       # Run tests
       - name: Run tests
-        run: npm run cover:unit
+        run: npm run cover
 
       # Upload coverage to Coveralls
       - name: Coveralls
