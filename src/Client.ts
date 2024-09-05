@@ -158,7 +158,7 @@ function resolveRefs(
     paths = paths.filter((p, i) => {
         const index = paths.indexOf(p, i + 1);
         if (index > -1) {
-            debug("client: Duplicated reference path \"%s\"", p);
+            debug("Client: Duplicated reference path \"%s\"", p);
             return false;
         }
         return true;
@@ -409,11 +409,11 @@ export default class Client
             // the patient. This should be a scope issue.
             if (!tokenResponse.patient) {
                 if (!(this.state.scope || "").match(/\blaunch(\/patient)?\b/)) {
-                    debug("client: " + str.noScopeForId, "patient", "patient");
+                    debug("Client: " + str.noScopeForId, "patient", "patient");
                 }
                 else {
                     // The server should have returned the patient!
-                    debug("client: The ID of the selected patient is not available. Please check if your server supports that.");
+                    debug("Client: The ID of the selected patient is not available. Please check if your server supports that.");
                 }
                 return null;
             }
@@ -421,10 +421,10 @@ export default class Client
         }
 
         if (this.state.authorizeUri) {
-            debug("client: " + str.noIfNoAuth, "the ID of the selected patient");
+            debug("Client: " + str.noIfNoAuth, "the ID of the selected patient");
         }
         else {
-            debug("client: " + str.noFreeContext, "selected patient");
+            debug("Client: " + str.noFreeContext, "selected patient");
         }
         return null;
     }
@@ -443,11 +443,11 @@ export default class Client
             // the encounter. This should be a scope issue.
             if (!tokenResponse.encounter) {
                 if (!(this.state.scope || "").match(/\blaunch(\/encounter)?\b/)) {
-                    debug("client: " + str.noScopeForId, "encounter", "encounter");
+                    debug("Client: " + str.noScopeForId, "encounter", "encounter");
                 }
                 else {
                     // The server should have returned the encounter!
-                    debug("client: The ID of the selected encounter is not available. Please check if your server supports that, and that the selected patient has any recorded encounters.");
+                    debug("Client: The ID of the selected encounter is not available. Please check if your server supports that, and that the selected patient has any recorded encounters.");
                 }
                 return null;
             }
@@ -455,10 +455,10 @@ export default class Client
         }
 
         if (this.state.authorizeUri) {
-            debug("client: " + str.noIfNoAuth, "the ID of the selected encounter");
+            debug("Client: " + str.noIfNoAuth, "the ID of the selected encounter");
         }
         else {
-            debug("client: " + str.noFreeContext, "selected encounter");
+            debug("Client: " + str.noFreeContext, "selected encounter");
         }
         return null;
     }
@@ -483,7 +483,7 @@ export default class Client
                 const hasFhirUser = scope.match(/\bfhirUser\b/);
                 if (!hasOpenid || !(hasFhirUser || hasProfile)) {
                     debug(
-                        "client: You are trying to get the id_token but you are not " +
+                        "Client: You are trying to get the id_token but you are not " +
                         "using the right scopes. Please add 'openid' and " +
                         "'fhirUser' or 'profile' to the scopes you are " +
                         "requesting."
@@ -491,17 +491,17 @@ export default class Client
                 }
                 else {
                     // The server should have returned the id_token!
-                    debug("client: The id_token is not available. Please check if your server supports that.");
+                    debug("Client: The id_token is not available. Please check if your server supports that.");
                 }
                 return null;
             }
             return jwtDecode(idToken, this.environment) as fhirclient.IDToken;
         }
         if (this.state.authorizeUri) {
-            debug("client: " + str.noIfNoAuth, "the id_token");
+            debug("Client: " + str.noIfNoAuth, "the id_token");
         }
         else {
-            debug("client: " + str.noFreeContext, "id_token");
+            debug("Client: " + str.noFreeContext, "id_token");
         }
         return null;
     }
@@ -753,7 +753,7 @@ export default class Client
             // Make the request
             .then(requestOptions => {
                 debug(
-                    "client:request: %s, options: %O, fhirOptions: %O",
+                    "Client.request: %s, options: %O, fhirOptions: %O",
                     url,
                     requestOptions,
                     options
@@ -780,7 +780,7 @@ export default class Client
                     // auto-refresh not enabled and Session expired.
                     // Need to re-launch. Clear state to start over!
                     if (!options.useRefreshToken) {
-                        debug("client:request: Your session has expired and the useRefreshToken option is set to false. Please re-launch the app.");
+                        debug("Client.request: Your session has expired and the useRefreshToken option is set to false. Please re-launch the app.");
                         await this._clearState();
                         error.message += "\n" + str.expired;
                         throw error;
@@ -792,7 +792,7 @@ export default class Client
 
                     // otherwise -> auto-refresh failed. Session expired.
                     // Need to re-launch. Clear state to start over!
-                    debug("client:request: Auto-refresh failed! Please re-launch the app.");
+                    debug("Client.request: Auto-refresh failed! Please re-launch the app.");
                     await this._clearState();
                     error.message += "\n" + str.expired;
                     throw error;
@@ -803,7 +803,7 @@ export default class Client
             // Handle 403 ------------------------------------------------------
             .catch((error: HttpError) => {
                 if (error.status == 403) {
-                    debug("client:request: Permission denied! Please make sure that you have requested the proper scopes.");
+                    debug("Client.request: Permission denied! Please make sure that you have requested the proper scopes.");
                 }
                 throw error;
             })
@@ -959,7 +959,7 @@ export default class Client
      */
     refresh(requestOptions: RequestInit = {}): Promise<fhirclient.ClientState>
     {
-        debug("client:refresh: Attempting to refresh with refresh_token...");
+        debug("Client.refresh: Attempting to refresh with refresh_token...");
 
         const refreshToken = this.state?.tokenResponse?.refresh_token;
         assert(refreshToken, "Unable to refresh. No refresh_token found.");
@@ -1004,7 +1004,7 @@ export default class Client
             this._refreshTask = request<fhirclient.TokenResponse>(tokenUri, refreshRequestOptions)
             .then(data => {
                 assert(data.access_token, "No access token received");
-                debug("client:refresh: Received new access token response %O", data);
+                debug("Client.refresh: Received new access token response %O", data);
                 this.state.tokenResponse = { ...this.state.tokenResponse, ...data };
                 this.state.expiresAt = getAccessTokenExpiration(data, this.environment);
                 return this.state;
@@ -1022,7 +1022,7 @@ export default class Client
                 if (key) {
                     this.environment.getStorage().set(key, this.state);
                 } else {
-                    debug("client:refresh: No 'key' found in Clint.state. Cannot persist the instance.");
+                    debug("Client.refresh: No 'key' found in Clint.state. Cannot persist the instance.");
                 }
             });
         }

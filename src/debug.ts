@@ -1,9 +1,11 @@
-// This is defined in it's own file so that tests can mock it!
-
-const debugEnabled = globalThis.localStorage ?
-    globalThis.localStorage?.debugFhirClient :
-    (globalThis?.process?.env?.NODE_DEBUG || "").match(/\bdebugFhirClient\b/)
-
-export const debug = debugEnabled ?
-    (...args: any[]) => console.debug("FHIR:", ...args) :
-    () => {}
+export const debug = typeof window === "undefined" ?
+    (process.env.NODE_DEBUG || "").match(/\bdebugFhirClient\b/) ?
+        require("util").debug("FhirClient"):
+        () => {} :
+    localStorage?.debugFhirClient ?
+        (...args: any[]) => {
+            const newArgs = ["%cFHIR: %c" + args.shift()]
+            newArgs.push("color:#d900a5; font-weight: bold;", "", ...args)
+            console.debug(...newArgs)
+        } :
+        () => {};
