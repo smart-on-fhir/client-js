@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Request Example</title>
+    </head>
+    <body>
+        <div>
+            <h3>Display the current user</h3>
+            <p>
+                <b>NOTE:</b> Properly launched and authenticated clients will
+                have a <code>user</code> property. To get that, you need to
+                request <code>openid</code> and <code>fhirUser</code> scopes.
+                This example uses an open FHIR server so we pass an <code>id_token</code>
+                to manually specify which the current user is.
+            </p>
+            <hr/>
+            <h5>Code:</h5>
+            <pre id="user">
+const id_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9." +
+"eyJwcm9maWxlIjoiUHJhY3RpdGlvbmVyL3NtYXJ0LVByYWN0aXRpb2" +
+"5lci03MjA4MDQxNiIsImZoaXJVc2VyIjoiUHJhY3RpdGlvbmVyL3Nt" +
+"YXJ0LVByYWN0aXRpb25lci03MjA4MDQxNiIsInN1YiI6IjM2YTEwYm" +
+"M0ZDJhNzM1OGI0YWZkYWFhZjlhZjMyYmFjY2FjYmFhYmQxMDkxYmQ0" +
+"YTgwMjg0MmFkNWNhZGQxNzgiLCJpc3MiOiJodHRwOi8vbGF1bmNoLn" +
+"NtYXJ0aGVhbHRoaXQub3JnIiwiaWF0IjoxNTU5MzkyMjk1LCJleHAi" +
+"OjE1NTkzOTU4OTV9.niEs55G4AFJZtU_b9Y1Y6DQmXurUZZkh3WCud" +
+"ZgwvYasxVU8x3gJiX3jqONttqPhkh7418EFssCKnnaBlUDwsbhp7xd" +
+"WN4o1L1NvH4bp_R_zJ25F1s6jLmNm2Qp9LqU133PEdcRIqQPgBMyZB" +
+"WUTyxQ9ihKY1RAjlztAULQ3wKea-rfe0BXJZeUJBsQPzYCnbKY1dON" +
+"_NRd8N9pTImqf41MpIbEe7YEOHuirIb6HBpurhAHjTLDv1IuHpEAOx" +
+"pmtxVVHiVf-FYXzTFmn4cGe2PsNJfBl8R_zow2n6qaSANdvSxJDE4D" +
+"UgIJ6H18wiSJJHp6Plf_bapccAwxbx-zZCw";
+
+const client = FHIR.client({
+    serverUrl: "https://r3.smarthealthit.org",
+    tokenResponse: { id_token }
+});
+
+client.request(client.user.fhirUser);
+            </pre>
+        </div>
+        <div>
+            <h5>Output:</h5>
+            <pre id="output">Loading...</pre>
+        </div>
+        <script type="module">
+            import FHIR from "../../../../dist/build/fhir-client.mjs"
+            import { App, createRenderer } from "../app.mjs"
+            const render = createRenderer("output")
+
+
+            const id_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9." +
+            "eyJwcm9maWxlIjoiUHJhY3RpdGlvbmVyL3NtYXJ0LVByYWN0aXRpb2" +
+            "5lci03MjA4MDQxNiIsImZoaXJVc2VyIjoiUHJhY3RpdGlvbmVyL3Nt" +
+            "YXJ0LVByYWN0aXRpb25lci03MjA4MDQxNiIsInN1YiI6IjM2YTEwYm" +
+            "M0ZDJhNzM1OGI0YWZkYWFhZjlhZjMyYmFjY2FjYmFhYmQxMDkxYmQ0" +
+            "YTgwMjg0MmFkNWNhZGQxNzgiLCJpc3MiOiJodHRwOi8vbGF1bmNoLn" +
+            "NtYXJ0aGVhbHRoaXQub3JnIiwiaWF0IjoxNTU5MzkyMjk1LCJleHAi" +
+            "OjE1NTkzOTU4OTV9.niEs55G4AFJZtU_b9Y1Y6DQmXurUZZkh3WCud" +
+            "ZgwvYasxVU8x3gJiX3jqONttqPhkh7418EFssCKnnaBlUDwsbhp7xd" +
+            "WN4o1L1NvH4bp_R_zJ25F1s6jLmNm2Qp9LqU133PEdcRIqQPgBMyZB" +
+            "WUTyxQ9ihKY1RAjlztAULQ3wKea-rfe0BXJZeUJBsQPzYCnbKY1dON" +
+            "_NRd8N9pTImqf41MpIbEe7YEOHuirIb6HBpurhAHjTLDv1IuHpEAOx" +
+            "pmtxVVHiVf-FYXzTFmn4cGe2PsNJfBl8R_zow2n6qaSANdvSxJDE4D" +
+            "UgIJ6H18wiSJJHp6Plf_bapccAwxbx-zZCw";
+
+            const client = FHIR.client({
+                serverUrl: "https://r3.smarthealthit.org",
+                tokenResponse: { id_token }
+            });
+
+            client.request(client.user.fhirUser).then(render, render);
+        </script>
+    </body>
+</html>

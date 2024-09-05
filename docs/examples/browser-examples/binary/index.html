@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Binary Example</title>
+    </head>
+    <body>
+        <script type="module">
+            import FHIR from "../../../../dist/build/fhir-client.mjs"
+            const client = FHIR.client("https://r2.smarthealthit.org");
+            client.request("Binary/smart-Binary-2-document")
+            .then(res => res.blob())
+            .then(blob => {
+                const image = document.createElement("img");
+                document.body.appendChild(image);
+                image.src = URL.createObjectURL(blob);
+            });
+        </script>
+    </body>
+</html>

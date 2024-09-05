@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>MultiConfig Example - Launch Page</title>
+    </head>
+    <body>
+        <script type="module">
+          import FHIR from "../../../../dist/build/fhir-client.mjs"
+
+          var url = new URL(location.href);
+          if (!url.searchParams.has("launch") || !url.searchParams.has("iss")) {
+            url.searchParams.set("launch", "eyJhIjoiMSIsImciOiIxIn0");
+            url.searchParams.set("iss", "https://launch.smarthealthit.org/v/r3/fhir");
+            document.body.innerHTML = '<a href="' + url.href +
+              '">Click here to simulate EHR launch from the SMART launcher</a>';
+          }
+          else {
+            FHIR.oauth2.authorize([
+              {
+                // This configuration is ignored (unless `iss` equals "x" which would never happen)
+                issMatch: "x"
+              },
+              {
+                // use this config if called by the SMART launcher
+                issMatch: /launch\.smarthealthit\.org/,
+
+                // The client_id that you should have obtained after registering a client at
+                // the EHR.
+                clientId: "3ab1d54f-b004-48fd-a1b6-eeae73d8858e",
+
+                // The scopes that you request from the EHR
+                scope: [
+                  "launch",           // Get the launch context in EHR launch mode
+                  "openid fhirUser",  // Get the current user
+                  "patient/*.read",   // Read patient data
+                  "offline_access"
+                ].join(" "),
+
+                // Typically, if your redirectUri points to the root of the current directory
+                // (where the launchUri is), you can omit this option because the default
+                // value is ".". However, some servers (like this one) do not support directory
+                // indexes so "." and "./" will not automatically map to the "index.html" file
+                // in that directory.
+                redirectUri: "index.html"
+              }
+            ]);
+          }
+        </script>
+    </body>
+</html>

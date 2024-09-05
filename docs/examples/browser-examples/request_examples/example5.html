@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Request Example</title>
+    </head>
+    <body>
+        <div>
+            <h3>Resolve references</h3>
+            <p>
+                You can pass one or more reference paths as <code>resolveReferences</code>
+                option. The final result will contain the references replaced with resolved
+                resources.
+            </p>
+            <hr/>
+            <h5>Code:</h5>
+            <pre id="user">
+const client = FHIR.client("https://r3.smarthealthit.org");
+const result = await client.request("/Encounter/3d1ae6a9-b8c1-4c12-a8ba-b44d96ddfe24", {
+    resolveReferences: ["serviceProvider", "subject"]
+});
+            </pre>
+        </div>
+        <div>
+            <h5>Output:</h5>
+            <pre id="output">Loading...</pre>
+        </div>
+        <script type="module">
+            import FHIR from "../../../../dist/build/fhir-client.mjs"
+            import { createRenderer } from "../app.mjs"
+            const render = createRenderer("output")
+            const client = FHIR.client("https://r3.smarthealthit.org");
+            const result = await client.request("/Encounter/3d1ae6a9-b8c1-4c12-a8ba-b44d96ddfe24", {
+                resolveReferences: ["serviceProvider", "subject"]
+            }).then(render, render);
+        </script>
+    </body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Request Example</title>
+    </head>
+    <body>
+        <div>
+            <h3>Get multiple pages</h3>
+            <p>
+                This shows how to fetch 2 pages. Not that the result is an array of page bundles.
+            </p>
+            <hr/>
+            <h5>Code:</h5>
+            <pre id="user">
+const client = FHIR.client("https://r3.smarthealthit.org");
+client.request("/Patient", { pageLimit: 2 });
+            </pre>
+        </div>
+        <div>
+            <h5>Output:</h5>
+            <pre id="output">Loading...</pre>
+        </div>
+        <script type="module">
+            import FHIR from "../../../../dist/build/fhir-client.mjs"
+            import { createRenderer } from "../app.mjs"
+            const render = createRenderer("output")
+            const client = FHIR.client("https://r3.smarthealthit.org");
+            client.request("/Patient", { pageLimit: 2 }).then(render, render);
+        </script>
+    </body>
+</html>

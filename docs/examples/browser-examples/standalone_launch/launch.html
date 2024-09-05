@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Standalone Launch- Launch Page</title>
+    </head>
+    <body>
+        <script type="module">
+            import FHIR from "../../../../dist/build/fhir-client.mjs"
+
+            FHIR.oauth2.authorize({
+
+                // The client_id that you should have obtained after registering a client at
+                // the EHR.
+                clientId: "my_web_app",
+
+                // The scopes that you request from the EHR
+                scope: [
+                    "launch",           // Get the launch context in EHR launch mode
+                    "launch/patient",   // Get the current patient in standalone launch mode
+                    "launch/encounter", // Get the current encounter in standalone launch mode
+                    "openid fhirUser",  // Get the current user
+                    "patient/*.read"    // Read patient data
+                 ].join(" "),
+
+                // Having this option means that it makes a standalone launch. This is to make
+                // this demo usable out of the box, but it can still to EHR launch if "iss" and
+                // "launch" url parameters are passed.
+                iss: "https://launch.smarthealthit.org/v/r3/sim/eyJoIjoiMSJ9/fhir",
+
+                // Typically, if your redirectUri points to the root of the current directory
+                // (where the launchUri is), you can omit this option because the default
+                // value is ".". However, some servers do not support directory indexes so "."
+                // and "./" will not automatically map to the "index.html" file in that directory.
+                redirectUri: "index.html"
+            });
+        </script>
+    </body>
+</html>

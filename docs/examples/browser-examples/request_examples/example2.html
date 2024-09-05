@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Request Example</title>
+    </head>
+    <body>
+        <div>
+            <h3>Display the current patient</h3>
+            <p>
+                <b>NOTE:</b> Authenticated clients will have <code>patient.id</code>.
+                This example uses an open FHIR server so we pass a patient to
+                manually specify which the current patient is.
+            </p>
+            <hr/>
+            <h5>Code:</h5>
+            <pre id="user">
+const client = FHIR.client({
+    serverUrl: "https://r3.smarthealthit.org",
+    tokenResponse: {
+        patient: "2e27c71e-30c8-4ceb-8c1c-5641e066c0a4"
+    }
+});
+
+const patient = await client.request(`Patient/${client.patient.id}`);
+            </pre>
+        </div>
+        <div>
+            <h5>Output:</h5>
+            <pre id="output">Loading...</pre>
+        </div>
+        <script type="module">
+            import FHIR from "../../../../dist/build/fhir-client.mjs"
+            import { App, createRenderer } from "../app.mjs"
+            const render = createRenderer("output")
+
+
+            const client = FHIR.client({
+                serverUrl: "https://r3.smarthealthit.org",
+                tokenResponse: {
+                    patient: "2e27c71e-30c8-4ceb-8c1c-5641e066c0a4"
+                }
+            });
+
+            client.request(`Patient/${client.patient.id}`).then(render, render);
+        </script>
+    </body>
+</html>

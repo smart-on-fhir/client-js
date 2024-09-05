@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Medications Example</title>
+        <link rel="stylesheet" href="../style.css">
+    </head>
+    <body>
+        <div class="cell full">
+        <h4>Patient Medications</h4>
+        <pre id="output">Loading...</pre>
+        </div>
+        <script type="module">
+        import FHIR from "../../../../dist/build/fhir-client.mjs"
+        import { App, createRenderer } from "../app.mjs"
+        
+        var render = createRenderer("output");
+
+        function getMedicationName(medCodings) {
+            var coding = medCodings.find(function(c){
+            return c.system == "http://www.nlm.nih.gov/research/umls/rxnorm";
+            });
+            return coding && coding.display || "Unnamed Medication(TM)";
+        }
+
+        try {
+            const client = await FHIR.oauth2.init({
+                // The client_id that you should have obtained after registering a client at the EHR.
+                clientId: "my_web_app",
+
+                // The scopes that you request from the EHR
+                scope: [
+                    "launch/patient",  // request the current patient
+                    "openid fhirUser",  // Get the current user
+                    "online_access",   // request a refresh token
+                    "patient/*.read",  // read patient data
+                ].join(" "),
+
+                redirectUri: "./index.html",
+
+                iss: "https://launch.smarthealthit.org/v/r3/sim/eyJrIjoiMSIsImIiOiJzbWFydC04ODg4ODA0In0/fhir"
+            })
+
+            // Get MedicationRequests for the selected patient
+            const data = await client.request("/MedicationRequest?patient=" + client.patient.id, {
+                resolveReferences: [ "medicationReference" ],
+                graph: true
+            })
+
+            // Reject if no MedicationRequests are found
+            if (!data.entry || !data.entry.length) {
+                throw new Error("No medications found for the selected patient");
+            }
+
+            // Build an array of medication names
+            const medications = data.entry.map(function(item) {
+                return getMedicationName(
+                    client.getPath(item, "resource.medicationCodeableConcept.coding") ||
+                    client.getPath(item, "resource.medicationReference.code.coding")
+                );
+            });
+
+            render(medications)
+        }
+        catch (e) {
+            render(e)
+        }
+
+        </script>
+    </body>
+</html>

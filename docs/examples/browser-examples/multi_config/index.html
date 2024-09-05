@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>MultiConfig Example - Index Page</title>
+        <link rel="stylesheet" href="../style.css">
+    </head>
+    <body>
+        <div class="cell top-left">
+            <h4>Current Patient</h4>
+            <pre id="patient"></pre>
+        </div>
+        <div class="cell top-center">
+            <h4>Current User</h4>
+            <pre id="user"></pre>
+        </div>
+        <div class="cell top-right">
+            <h4>Current Encounter</h4>
+            <pre id="encounter"></pre>
+        </div>
+        <div class="cell bottom">
+            <h4>Main Output</h4>
+            <pre id="output">Loading...</pre>
+        </div>
+        <script type="module">
+            import FHIR from "../../../../dist/build/fhir-client.mjs"
+            import { App, createRenderer } from "../app.mjs"
+            try {
+                const client = await FHIR.oauth2.ready()
+                const app = new App(client);
+                app.setLabel("output", "Conformance Statement");
+                app.renderContext();
+                app.request("metadata");
+            } catch(ex) {
+                createRenderer("output")(ex)
+            }
+        </script>
+    </body>
+</html>

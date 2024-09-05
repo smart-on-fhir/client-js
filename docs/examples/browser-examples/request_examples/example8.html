@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Request Example</title>
+    </head>
+    <body>
+        <div>
+            <h3>Get all pages</h3>
+            <p>
+                To get all available pages use pageLimit: 0
+            </p>
+            <hr/>
+            <h5>Code:</h5>
+            <pre id="user">
+const client = FHIR.client("https://r3.smarthealthit.org");
+client.request("/Claim", { pageLimit: 0 });
+            </pre>
+        </div>
+        <div>
+            <h5>Output:</h5>
+            <pre id="output">Loading...</pre>
+        </div>
+        <script type="module">
+            import FHIR from "../../../../dist/build/fhir-client.mjs"
+            import { createRenderer } from "../app.mjs"
+            const render = createRenderer("output")
+            const client = FHIR.client("https://r3.smarthealthit.org");
+            client.request("/Claim", { pageLimit: 0 }).then(render, render);
+        </script>
+    </body>
+</html>

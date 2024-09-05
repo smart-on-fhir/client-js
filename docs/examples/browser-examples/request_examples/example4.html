@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Request Example</title>
+    </head>
+    <body>
+        <div>
+            <h3>Display patient medications</h3>
+            <hr/>
+            <h5>Code:</h5>
+            <pre id="user">
+const client  = FHIR.client("https://r3.smarthealthit.org");
+const getPath = client.getPath;
+
+function getMedicationName(medCodings = []) {
+    const coding = medCodings.find(c => c.system === "http://www.nlm.nih.gov/research/umls/rxnorm");
+    return coding && coding.display || "Unnamed Medication(TM)";
+}
+
+client.request(`/MedicationRequest?patient=smart-1642068`, {
+    resolveReferences: "medicationReference"
+}).then(data => data.entry.map(item => getMedicationName(
+    getPath(item, "resource.medicationCodeableConcept.coding") ||
+    getPath(item, "resource.medicationReference.code.coding")
+)));
+            </pre>
+        </div>
+        <div>
+            <h5>Output:</h5>
+            <pre id="output">Loading...</pre>
+        </div>
+        <script type="module">
+            import FHIR from "../../../../dist/build/fhir-client.mjs"
+            import { App, createRenderer } from "../app.mjs"
+            
+            const render = createRenderer("output")
+
+            const client  = FHIR.client("https://r3.smarthealthit.org");
+            const getPath = client.getPath;
+
+            function getMedicationName(medCodings = []) {
+                const coding = medCodings.find(c => c.system === "http://www.nlm.nih.gov/research/umls/rxnorm");
+                return coding && coding.display || "Unnamed Medication(TM)";
+            }
+
+            client.request(`/MedicationRequest?patient=smart-1642068`, {
+                resolveReferences: "medicationReference"
+            }).then(data => data.entry.map(item => getMedicationName(
+                getPath(item, "resource.medicationCodeableConcept.coding") ||
+                getPath(item, "resource.medicationReference.code.coding")
+            ))).then(render, render);
+        </script>
+    </body>
+</html>

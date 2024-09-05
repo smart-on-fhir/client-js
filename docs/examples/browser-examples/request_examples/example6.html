@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Request Example</title>
+    </head>
+    <body>
+        <div>
+            <h3>Fetch references to external object</h3>
+            <p>
+                In most cases having the resolved references mounted on the result
+                structure is very convenient. However, sometimes you might want to
+                keep the original response as is, or you may want to have a map of
+                resolved references that can be re-used later. To do so, you can
+                use the same resolveReferences option but combine it with graph: false.
+                Then, the result will contain two properties - data and references.
+            </p>
+            <hr/>
+            <h5>Code:</h5>
+            <pre id="user">
+const client = FHIR.client("https://r3.smarthealthit.org");
+client.request("/Encounter/3d1ae6a9-b8c1-4c12-a8ba-b44d96ddfe24", {
+    resolveReferences: ["serviceProvider", "subject"],
+    graph: false
+});
+            </pre>
+        </div>
+        <div>
+            <h5>Output:</h5>
+            <pre id="output">Loading...</pre>
+        </div>
+        <script type="module">
+            import FHIR from "../../../../dist/build/fhir-client.mjs"
+            import { createRenderer } from "../app.mjs"
+            const render = createRenderer("output")
+            const client = FHIR.client("https://r3.smarthealthit.org");
+            client.request("/Encounter/3d1ae6a9-b8c1-4c12-a8ba-b44d96ddfe24", {
+                resolveReferences: ["serviceProvider", "subject"],
+                graph: false
+            }).then(render, render);
+        </script>
+    </body>
+</html>

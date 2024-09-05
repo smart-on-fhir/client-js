@@ -1,0 +1,92 @@
+* {
+    box-sizing: border-box;
+  }
+  
+  html {
+    height: 100%;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: menlo, monospace;
+    white-space: pre;
+    font-size: 13px;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    min-height: 260px;
+  }
+  
+  pre {
+    border: 1px solid #DDD;
+    position: absolute;
+    top: 14px;
+    bottom: 0px;
+    left: 10px;
+    right: 10px;
+    padding: 4px;
+    overflow: auto;
+    font-size: 12px;
+    white-space: pre-wrap;
+  }
+  
+  .cell {
+    position: absolute;
+    padding: 10px;
+    height: 40%;
+    min-height: 100px;
+  }
+  
+  .full {
+    height: auto;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  
+  .cell > h4 {
+    position: absolute;
+    top: 10px;
+    line-height: 1;
+    margin: 0;
+  }
+  
+  .top-left {
+    top: 0;
+    left: 0;
+    width: 33.3333%;
+  }
+  
+  .top-center {
+    top: 0;
+    left: 33.3333%;
+    width: 33.3333%;
+  }
+  
+  .top-right {
+    top: 0;
+    right: 0;
+    width: 33.3333%;
+  }
+  
+  .bottom {
+    top: 40%;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    height: 60%;
+  }
+  
+  /* Dark theme ----------------------------------------- */
+  body.dark {
+    background: rgb(27, 27, 27);
+    color: #CCC;
+  }
+  
+  body.dark pre {
+    border-color: #444;
+    background: #222;
+    color: #999;
+  }
