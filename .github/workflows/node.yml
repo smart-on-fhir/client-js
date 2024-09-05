@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [ 18.x, 20.x ]
+        node-version: [ 20.x, 22.x ]
 
     steps:
       # Checkout the repository
@@ -40,8 +40,6 @@ jobs:
 
       # Upload coverage to Coveralls
       - name: Coveralls
-        # uses: coverallsapp/github-action@v2
-        uses: coverallsapp/github-action@master
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ./coverage/lcov.info

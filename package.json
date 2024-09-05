@@ -20,12 +20,15 @@
   "scripts": {
     "clean": "rm -rf dist/build && rm -r dist/lib/*",
     "build": "npm run build:library && npm run build:browser",
+    "cover": "npm run cover:unit && npm run cover:e2e && npm run cover:report",
+    "test": "npm run test:unit && npm run test:e2e",
+    "doc": "typedoc",
+    "dev": "nodemon -w src -w test -w rollup.config.mjs -e ts,js -x 'npm run clean && npm run build && npm run cover'",
     "build:watch": "nodemon -w src -w test -w rollup.config.mjs -e ts,js -x 'npm run build'",
     "build:browser": "rollup --config",
     "build:library": "cp src/types.d.ts dist/lib && tsc -d",
     "build:browser:watch": "rollup --config -w",
     "build:library:watch": "tsc -w",
-    "doc": "typedoc",
     "test:unit": "NODE_ENV=test mocha -r ts-node/register --exit",
     "cover:unit": "nyc --silent npm run test:unit",
     "test:unit:watch": "nodemon -w src -w test -e ts -x 'npm run test:unit'",
@@ -33,12 +36,9 @@
     "test:e2e": "nightwatch --headless test/specs/*.js",
     "cover:e2e": "nyc --silent --no-clean npm run test:e2e",
     "test:e2e:watch": "nodemon -w src -w test -e ts,js -x 'npm run test:e2e'",
-    "test": "npm run test:unit && npm run test:e2e",
     "test:watch": "nodemon -w src -w test -e ts -x 'npm run test'",
-    "cover": "npm run cover:unit && npm run cover:e2e && npm run cover:report",
     "cover:integration": "nyc --silent --no-clean npm run test:integration",
-    "cover:report": "nyc report --reporter=lcov --reporter=text",
-    "dev": "nodemon -w src -w test -w rollup.config.mjs -e ts,js -x 'npm run clean && npm run build && npm run cover'"
+    "cover:report": "nyc report --reporter=lcov --reporter=text"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",
