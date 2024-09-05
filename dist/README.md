@@ -38,7 +38,7 @@ Latest development builds from GitHub:
 ## Browser Usage
 
 In the browser you typically have to create two separate pages that correspond to your
-`launch_uri` (Launch Page) and `redirect_uri` (Index Page).
+`launch_uri` (Launch Page) and `redirectUri` (Index Page).
 
 ### As Library
 
@@ -47,7 +47,7 @@ In the browser you typically have to create two separate pages that correspond t
 <script src="./node_module/fhirclient/build/fhir-client.js"></script>
 <script>
 FHIR.oauth2.authorize({
-    "client_id": "my_web_app",
+    "clientId": "my_web_app",
     "scope": "patient/*.read"
 });
 </script>
@@ -68,7 +68,7 @@ import FHIR from "fhirclient"
 
 // Launch Page
 FHIR.oauth2.authorize({
-    "client_id": "my_web_app",
+    "clientId": "my_web_app",
     "scope": "patient/*.read"
 });
 
@@ -88,7 +88,7 @@ const fhirClient = require("fhirclient");
 // This is what the EHR will call
 app.get("/launch", (req, res) => {
     fhirClient(req, res).authorize({
-        "client_id": "my_web_app",
+        "clientId": "my_web_app",
         "scope": "patient/*.read"
     });
 });

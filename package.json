@@ -22,7 +22,7 @@
     "build": "npm run build:library && npm run build:browser",
     "build:watch": "nodemon -w src -w test -w rollup.config.mjs -e ts,js -x 'npm run build'",
     "build:browser": "rollup --config",
-    "build:library": "cp src/types.d.ts dist/lib && tsc",
+    "build:library": "cp src/types.d.ts dist/lib && tsc -d",
     "build:browser:watch": "rollup --config -w",
     "build:library:watch": "tsc -w",
     "doc": "typedoc",
