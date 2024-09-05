@@ -1,21 +1,23 @@
 {
     "compilerOptions": {
 
-        // Generate source maps for the original TS files.
-        "sourceMap": true,
-
-        // We want strict validation
-        "strict"       : true,
-        "noImplicitAny": true,
-        "alwaysStrict" : true,
-
-        // Just transpile TS to modern JS. Babel will take over from there and
-        // compile depending on the target environments.
-        "module"       : "CommonJS",
-        "target"       : "ES2019",
-        "importHelpers": false,
-        "noEmitHelpers": true,
-        "types"        : ["mocha"]
+        // https://parceljs.org/languages/typescript/#isolatedmodules
+        "isolatedModules" : false,
+        "pretty"          : true,
+        "sourceMap"       : false,
+        "strict"          : true,
+        "noImplicitAny"   : true,
+        "alwaysStrict"    : true,
+        "module"          : "CommonJS",
+        "target"          : "ES2019",
+        // "importHelpers"   : false,
+        // "noEmitHelpers"   : true,
+        "types"           : ["mocha"],
+        "newLine"         : "lf",
+        "outDir"          : "dist/lib",
+        "listEmittedFiles": true,
+        "esModuleInterop" : true,
+        "allowJs"         : false
     },
     "include": [
         "src"
