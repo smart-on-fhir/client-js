@@ -38,8 +38,7 @@
     "cover": "npm run cover:unit && npm run cover:e2e && npm run cover:report",
     "cover:integration": "nyc --silent --no-clean npm run test:integration",
     "cover:report": "nyc report --reporter=lcov --reporter=text",
-    "dev": "nodemon -w src -w test -w rollup.config.mjs -e ts,js -x 'npm run clean && npm run build && npm run cover'",
-    "nightwatch": "npm run test:e2e"
+    "dev": "nodemon -w src -w test -w rollup.config.mjs -e ts,js -x 'npm run clean && npm run build && npm run cover'"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",
