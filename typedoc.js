@@ -13,7 +13,7 @@ module.exports = {
     out: "docs/typedoc",
 
     // Define patterns for excluded files when specifying paths.
-    exclude: [ "./src/lib" ],
+    exclude: [ "./src/next" ],
 
     // Define patterns for files that should be considered being external.
     // externalPattern: "node_modules",

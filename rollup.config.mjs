@@ -94,5 +94,31 @@ export default [
                 }
             })
         ]
+    },
+
+    // =========================================================================
+    // EXPERIMENTAL NEXT VERSION
+    // =========================================================================
+    {
+        input: "src/next/browser_entry.ts",
+        watch: {
+            include: 'src/**'
+        },
+        output: {
+            file     : "dist/build/fhir-client.next.mjs",
+            format   : "es",
+            sourcemap: false,
+            // banner   : "/** @typedef {import('../lib/types').fhirclient.FetchOptions} FetchOptions */"
+        },
+        plugins: [
+            resolve(),
+            typescript({
+                compilerOptions: {
+                    module          : "esnext",
+                    listEmittedFiles: false,
+                    sourceMap       : false
+                }
+            })
+        ]
     }
 ]
