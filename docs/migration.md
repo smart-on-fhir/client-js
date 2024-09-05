@@ -4,12 +4,10 @@ This document describes the most important changes that might be required
 in order to update an old SMART app to support new versions of the `fhirclient`
 library.
 
-## Migrating to v2+
+## Migrating to v3
 
 There are lots of changes in v2, compared to the older versions. It might be a
 good idea to start by reading [this document](v2.md).
-
-> This only covers browser-related changes, since versions below 2 were not server-compatible.
 
 
 ### Load the correct version
@@ -27,7 +25,7 @@ you probably  have something like:
 ```js
 FHIR.oauth2.authorize({
     client: {
-        client_id: "...",
+        clientId: "...",
         scope: "..."
         },
         server: "https://my-launch-url"
@@ -36,7 +34,7 @@ FHIR.oauth2.authorize({
 For v2 you need to change that to:
 ```js
 FHIR.oauth2.authorize({
-    client_id: "...",
+    clientId: "...",
     scope: "...",
     iss: "https://my-launch-url"
 })
@@ -75,14 +73,6 @@ made by this library before v2 was sent through `fhir.js`. Since v2,
 we recommend switching to the built-in `request` function which comes
 with some benefits. See [fhir.js integration](README.md#fhirjs-integration)
 
-> If you want to continue using fhir.js, you will have to include it in the
-    page. Since we provide a `fetch` polyfill, the native fhir.js build can be used.
-    We have tested our fhir.js integration with native build of fhir.js version
-    0.0.20 (available [here](https://raw.githubusercontent.com/smart-on-fhir/client-js/master/lib/nativeFhir.js)).
-    This can still bring in some incompatibilities, so another option would be
-    to try our fork of fhir.js that was included in older versions of the
-    `fhirclient` library. You can grab it from [here](https://github.com/smart-on-fhir/client-js/blob/9e77b7b26b5d7dff7e65f25625441e0905f84811/lib/jqFhir.js),
-    but note that it will also require jQuery to be included in the page.
 
 #### patient.read()
 Most of the apps are using information about the

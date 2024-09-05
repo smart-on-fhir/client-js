@@ -14,7 +14,7 @@ declare namespace fhirclient {
         options: BrowserFHIRSettings;
 
         /**
-         * This should be called on your `redirect_uri`. Returns a Promise that
+         * This should be called on your `redirectUri`. Returns a Promise that
          * will eventually be resolved with a Client instance that you can use
          * to query the fhir server.
          */
@@ -40,7 +40,7 @@ declare namespace fhirclient {
          * This function can be used when you want to handle everything in one
          * page (no launch endpoint needed).
          *
-         * 1. It will only work if your `launch_uri` is the same as your `redirect_uri`.
+         * 1. It will only work if your `launch_uri` is the same as your `redirectUri`.
          *    While this should be valid, we can't promise that every EHR will allow you
          *    to register client with such settings.
          * 2. Internally, init() will be called twice. First it will redirect to the EHR,
@@ -67,43 +67,6 @@ declare namespace fhirclient {
     }
 
     interface BrowserFHIRSettings extends Record<string, any> {
-
-        /**
-         * Replaces the browser's current URL using
-         * `window.history.replaceState` API.
-         *
-         * ONLY RELEVANT IN BROWSERS!
-         */
-        replaceBrowserHistory?: boolean;
-
-        /**
-         * When set to true, this variable will fully utilize HTML5
-         * sessionStorage API. This variable can be overridden to false by
-         * setting `FHIR.oauth2.settings.fullSessionStorageSupport = false`.
-         * When set to false, the sessionStorage will be keyed by a state
-         * variable. This is to allow the embedded IE browser instances
-         * instantiated on a single thread to continue to function without
-         * having sessionStorage data shared across the embedded IE instances.
-         */
-        fullSessionStorageSupport?: boolean;
-
-        /**
-         * Do we want to send cookies while making a request to the token
-         * endpoint in order to obtain new access token using existing
-         * refresh token. In rare cases the auth server might require the
-         * client to send cookies along with those requests. In this case
-         * developers will have to change this before initializing the app
-         * like so:
-         * `FHIR.oauth2.settings.refreshTokenWithCredentials = "include";`
-         * or
-         * `FHIR.oauth2.settings.refreshTokenWithCredentials = "same-origin";`
-         * Can be one of:
-         * "include"     - always send cookies
-         * "same-origin" - only send cookies if we are on the same domain (default)
-         * "omit"        - do not send cookies
-         */
-        refreshTokenWithCredentials?: "omit" | "include" | "same-origin";
-
         // storage?: Storage | ((options?: JsonObject) => Storage);
     }
 
@@ -348,7 +311,7 @@ declare namespace fhirclient {
         serverUrl: string;
 
         /**
-         * The client_id that you should have obtained while registering your
+         * The clientId that you should have obtained while registering your
          * app with the auth server or EHR (as set in the configuration options)
          */
         clientId?: string;
@@ -449,6 +412,17 @@ declare namespace fhirclient {
           * without padding, which is NOT the same as regular base64 encoding.
           */
         codeVerifier?: string;
+
+        /**
+         * Do we want to send cookies while making a request to the token
+         * endpoint in order to obtain new access token using existing refresh
+         * token. In rare cases the auth server might require the client to send
+         * cookies along with those requests. Can be one of:
+         * - "include"     - always send cookies
+         * - "same-origin" - only send cookies if we are on the same domain (default)
+         * - "omit"        - do not send cookies
+         */
+        refreshTokenWithCredentials?: RequestCredentials;
     }
 
     /**
@@ -488,22 +462,14 @@ declare namespace fhirclient {
          * option, except that it is designed to bypass the authentication. If
          * `fhirServiceUrl` is passed, the `authorize` function will NOT actually
          * attempt to authorize. It will skip that and redirect you to your
-         * `redirect_uri`.
+         * `redirectUri`.
          */
         fhirServiceUrl?: string;
 
         /**
          * Defaults to the current directory (it's index file)
-         * @alias redirect_uri
          */
         redirectUri?: string;
-
-        /**
-         * Same as redirectUri
-         * @alias redirectUri
-         * @deprecated
-         */
-        redirect_uri?: string;
 
         /**
          * 
@@ -511,23 +477,11 @@ declare namespace fhirclient {
         noRedirect?: boolean;
 
         /**
-         * The client_id that you have obtained while registering your app in the
+         * The clientId that you have obtained while registering your app in the
          * EHR. This is not required if you only intend to communicate with open
-         * FHIR servers. Note: For backwards compatibility reasons we also accept
-         * `client_id` instead of `clientId`!
-         * @alias client_id
+         * FHIR servers.
          */
         clientId?: string;
-
-        /**
-         * The client_id that you have obtained while registering your app in the
-         * EHR. This is not required if you only intend to communicate with open
-         * FHIR servers. Note: For backwards compatibility reasons we accept
-         * `client_id` as an alias of `clientId`!
-         * @alias clientId
-         * @deprecated
-         */
-        client_id?: string;
 
         /**
          * One or more space-separated scopes that you would like to request from
@@ -628,6 +582,17 @@ declare namespace fhirclient {
          *    this setting
          */
         pkceMode?: PkceMode;
+
+        /**
+         * Do we want to send cookies while making a request to the token
+         * endpoint in order to obtain new access token using existing refresh
+         * token. In rare cases the auth server might require the client to send
+         * cookies along with those requests. Can be one of:
+         * - "include"     - always send cookies
+         * - "same-origin" - only send cookies if we are on the same domain (default)
+         * - "omit"        - do not send cookies
+         */
+        refreshTokenWithCredentials?: RequestCredentials;
     }
 
     interface ReadyOptions {

@@ -27,32 +27,32 @@ const smart = require("fhirclient");
 
 // inside your launch_uri route handler
 smart(request, response).authorize({
-    "client_id": "my_web_app",
-    "scope"    : "launch patient/*.read openid fhirUser"
+    "clientId": "my_web_app",
+    "scope"   : "launch patient/*.read openid fhirUser"
 });
 ```
 
 ### ready()
-Call this in your redirect_uri route handler to complete the authorization flow
+Call this in your redirectUri route handler to complete the authorization flow
 and obtain a FhirClient instance:
 ```js
 const smart = require("fhirclient");
 
-// inside your redirect_uri route handler
+// inside your redirectUri route handler
 smart(request, response).ready(client => client.request("Patient"));
 ```
 
 ### init(options)
 Alternatively, you can use `init` to handle everything in single route (only if
-your launch_uri is the same as your redirect_uri). This method is not available
+your launch_uri is the same as your redirectUri). This method is not available
 with HAPI!
 ```js
 const smart = require("fhirclient");
 
 // inside your route handler
 smart(request, response).init({
-    "client_id": "my_web_app",
-    "scope"    : "launch patient/*.read openid fhirUser"
+    "clientId": "my_web_app",
+    "scope"   : "launch patient/*.read openid fhirUser"
 }).then(client => client.request("Patient"));
 ```
 
@@ -121,7 +121,7 @@ To use another adapter load it like so:
 const smart = require("fhirclient/lib/entry/hapi");
 
 
-// inside your redirect_uri route handler
+// inside your redirectUri route handler
 smart(request, h).ready(client => client.request("Patient"));
 ```
 Note how in the above example the signature of the `smart` function has changed
@@ -129,20 +129,4 @@ to `smart(request, h)` which makes more sense in HAPI. This is also defined by t
 
 See the complete [HAPI Example](https://codesandbox.io/s/fhir-client-hapi-myq5q)
 
-## Fhir.js Integration
-If you want to use fhir.js along with this library, you will have to install it
-and then "connect" it using the dedicated `connect` method of the client:
-```js
-const smart  = require("fhirclient");
-const fhirJs = require("fhir.js");
-
-// Inside a route handler
-app.get("/", async (req, res) => {
-    const client = await smart(req, res).ready();
-    client.connect(fhirJs);
-    client.api.search({ type: "Patient" }).then(res.json).catch(res.json);
-});
-```
-
-Complete example is available [here](https://codesandbox.io/s/fhir-client-express-and-fhirjs-4t1mp)
 

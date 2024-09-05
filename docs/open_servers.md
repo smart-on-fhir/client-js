@@ -30,7 +30,7 @@ Ideally, an app should be capable of working with both protected and open server
 Developers often design their apps as SMART apps, but also want to be able to launch them against open servers for testing purposes. There are several ways to achieve that:
 
 ### 1. Using multiple launch files
-If the app is designed for EHR launch, the typical approach is to have separate locations for your launch_uri and redirect_uri. For example, you may have a `launch.html` file where you call `FHIR.oauth2.authorize({...});` and an `index.html` file where uou call `FHIR.oauth2.ready();` and initialize your app. To support multiple environments you can have multiple launch files. For example:
+If the app is designed for EHR launch, the typical approach is to have separate locations for your launch_uri and redirectUri. For example, you may have a `launch.html` file where you call `FHIR.oauth2.authorize({...});` and an `index.html` file where uou call `FHIR.oauth2.ready();` and initialize your app. To support multiple environments you can have multiple launch files. For example:
 
 *launch_cerner.html*
 ```html

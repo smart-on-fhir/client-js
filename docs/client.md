@@ -165,10 +165,6 @@ Checks if access token and refresh token are present. If they are, and if
 the access token is expired or is about to expire in the next 10 seconds,
 calls `client.refresh()` to obtain new access token.
 
-### client.api `Object`
-
-Only accessible if fhir.js is available. Read more about the fhir.js integration [here](README.md#fhirjs-integration).
-
 ### client.patient.id `String|null`
 
 The selected patient ID or `null` if patient is not available. If no patient is selected, it will generate useful debug messages about the possible reasons. See [debugging](README.md#debugging).
@@ -182,10 +178,6 @@ Wrapper for `client.request` that will automatically add a search parameter to t
 client.patient.request("Observation"); // -> /Observation?patient=patient-id
 client.patient.request("Group");       // -> /Group?member=patient-id
 ```
-
-### client.patient.api `Object`
-
-Only accessible if fhir.js is available. Read more about the fhir.js integration [here](README.md#fhirjs-integration).
 
 ### client.encounter.id `string|null`
 

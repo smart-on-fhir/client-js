@@ -200,7 +200,7 @@ describe("Browser tests", () => {
             });
 
             // Now we have been redirected to `redirect` and then back to our
-            // redirect_uri. It is time to complete the authorization.
+            // redirectUri. It is time to complete the authorization.
             const redirect = env.getUrl();
 
             // Get the state parameter from the URL
@@ -320,7 +320,7 @@ describe("Browser tests", () => {
             });
 
             // Now we have been redirected to `redirect` and then back to our
-            // redirect_uri. It is time to complete the authorization.
+            // redirectUri. It is time to complete the authorization.
 
             // Get the state parameter from the URL
             const redirect = env.getUrl(); // console.log(redirect, storage);
@@ -377,7 +377,7 @@ describe("Browser tests", () => {
                 });
 
                 // Now we have been redirected to `redirect` and then back to our
-                // redirect_uri. It is time to complete the authorization.
+                // redirectUri. It is time to complete the authorization.
                 expect(redirect.searchParams.has('code_challenge')).to.be.true;
                 expect(redirect.searchParams.has('code_challenge_method')).to.be.true;
                 expect(redirect.searchParams.get('code_challenge_method')).to.equal(mockCodeChallengeMethods[0]);
@@ -415,7 +415,7 @@ describe("Browser tests", () => {
                 });
 
                 // Now we have been redirected to `redirect` and then back to our
-                // redirect_uri. It is time to complete the authorization.
+                // redirectUri. It is time to complete the authorization.
                 expect(redirect.searchParams.has('code_challenge')).to.be.true;
                 expect(redirect.searchParams.has('code_challenge_method')).to.be.true;
                 expect(redirect.searchParams.get('code_challenge_method')).to.equal(mockCodeChallengeMethods[0]);
@@ -437,7 +437,7 @@ describe("Browser tests", () => {
                 });
 
                 // Now we have been redirected to `redirect` and then back to our
-                // redirect_uri. It is time to complete the authorization.
+                // redirectUri. It is time to complete the authorization.
                 expect(redirect.searchParams.has('code_challenge')).to.be.false;
                 expect(redirect.searchParams.has('code_challenge_method')).to.be.false;
             });
@@ -458,7 +458,7 @@ describe("Browser tests", () => {
                 });
 
                 // Now we have been redirected to `redirect` and then back to our
-                // redirect_uri. It is time to complete the authorization.
+                // redirectUri. It is time to complete the authorization.
                 expect(redirect.searchParams.has('code_challenge')).to.be.false;
                 expect(redirect.searchParams.has('code_challenge_method')).to.be.false;
             });
@@ -479,7 +479,7 @@ describe("Browser tests", () => {
                 });
 
                 // Now we have been redirected to `redirect` and then back to our
-                // redirect_uri. It is time to complete the authorization.
+                // redirectUri. It is time to complete the authorization.
                 expect(redirect.searchParams.has('code_challenge')).to.be.false;
                 expect(redirect.searchParams.has('code_challenge_method')).to.be.false;
             });
@@ -1157,7 +1157,7 @@ describe("Browser tests", () => {
             // await locationChangeListener2;
 
             // Now we have been redirected to `redirect` and then back to our
-            // redirect_uri. It is time to complete the authorization. All that
+            // redirectUri. It is time to complete the authorization. All that
             // should have happened in the targetWindow.
             const redirect = new URL(targetWindow.location.href);
 

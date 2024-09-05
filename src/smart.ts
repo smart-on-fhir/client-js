@@ -160,9 +160,7 @@ export async function authorize(
         height,
         pkceMode,
         clientPublicKeySetUrl,
-        // Two deprecated values to use as fall-back values later
-        redirect_uri,
-        client_id,
+        refreshTokenWithCredentials
     } = params;
 
     let {
@@ -186,14 +184,6 @@ export async function authorize(
     launch         = url.searchParams.get("launch")         || launch;
     patientId      = url.searchParams.get("patientId")      || patientId;
     clientId       = url.searchParams.get("clientId")       || clientId;
-
-    // If there's still no clientId or redirectUri, check deprecated params 
-    if (!clientId) {
-        clientId = client_id;
-    }
-    if (!redirectUri) {
-        redirectUri = redirect_uri;
-    }
 
     if (!redirectUri) {
         redirectUri = env.relative(".");
@@ -261,16 +251,11 @@ export async function authorize(
         tokenResponse: {},
         key: stateKey,
         completeInTarget,
-        clientPublicKeySetUrl
+        clientPublicKeySetUrl,
+        refreshTokenWithCredentials
     };
 
-    const fullSessionStorageSupport = isBrowser() ?
-        getPath(env, "options.fullSessionStorageSupport") :
-        true;
-
-    if (fullSessionStorageSupport) {
-        await storage.set(SMART_KEY, stateKey);
-    }
+    await storage.set(SMART_KEY, stateKey);
 
     // fakeTokenResponse to override stuff (useful in development)
     if (fakeTokenResponse) {
@@ -481,10 +466,6 @@ export async function ready(env: fhirclient.Adapter, options: fhirclient.ReadyOp
     // Check if we have a previous state
     let state = (await Storage.get(key)) as fhirclient.ClientState;
 
-    const fullSessionStorageSupport = isBrowser() ?
-        getPath(env, "options.fullSessionStorageSupport") :
-        true;
-
     // If we are in a popup window or an iframe and the authorization is
     // complete, send the location back to our opener and exit.
     if (isBrowser() && state && !state.completeInTarget) {
@@ -518,7 +499,7 @@ export async function ready(env: fhirclient.Adapter, options: fhirclient.ReadyOp
     // Do we have to remove the `code` and `state` params from the URL?
     const hasState = params.has("state");
 
-    if (isBrowser() && getPath(env, "options.replaceBrowserHistory") && (code || hasState)) {
+    if (isBrowser() && (code || hasState)) {
         // `code` is the flag that tell us to request an access token.
         // We have to remove it, otherwise the page will authorize on
         // every load!
@@ -527,26 +508,16 @@ export async function ready(env: fhirclient.Adapter, options: fhirclient.ReadyOp
             debug("Removed code parameter from the url.");
         }
 
-        // If we have `fullSessionStorageSupport` it means we no longer
-        // need the `state` key. It will be stored to a well know
-        // location - sessionStorage[SMART_KEY]. However, no
-        // fullSessionStorageSupport means that this "well know location"
-        // might be shared between windows and tabs. In this case we
-        // MUST keep the `state` url parameter.
-        if (hasState && fullSessionStorageSupport) {
+        // We no longer need the `state` key. It will be stored to a well know
+        // location - sessionStorage[SMART_KEY]
+        if (hasState) {
             params.delete("state");
             debug("Removed state parameter from the url.");
         }
 
-        // If the browser does not support the replaceState method for the
-        // History Web API, the "code" parameter cannot be removed. As a
-        // consequence, the page will (re)authorize on every load. The
-        // workaround is to reload the page to new location without those
-        // parameters. If that is not acceptable replaceBrowserHistory
-        // should be set to false.
-        if (window.history.replaceState) {
-            window.history.replaceState({}, "", url.href);
-        }
+        // The "code" parameter must be removed, otherwise the page will
+        // (re)authorize on every load
+        window.history.replaceState({}, "", url.href);
     }
 
     // If the state does not exist, it means the page has been loaded directly.
@@ -594,9 +565,7 @@ export async function ready(env: fhirclient.Adapter, options: fhirclient.ReadyOp
         );
     }
 
-    if (fullSessionStorageSupport) {
-        await Storage.set(SMART_KEY, key);
-    }
+    await Storage.set(SMART_KEY, key);
 
     const client = new Client(env, state);
     debug("Created client instance: %O", client);
@@ -662,7 +631,7 @@ export async function buildTokenRequest(
     // from a known, https protected endpoint specified and enforced by the
     // redirect uri.) For confidential apps, an Authorization header using HTTP
     // Basic authentication is required, where the username is the app’s
-    // client_id and the password is the app’s client_secret (see example).
+    // clientId and the password is the app’s clientSecret (see example).
     if (clientSecret) {
         requestOptions.headers.authorization = "Basic " + env.base64encode(
             clientId + ":" + clientSecret

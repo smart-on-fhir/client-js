@@ -29,11 +29,11 @@ Here is the full list of options:
 
 |Name        |Type      |Description
 |------------|----------|-----------
-|clientId    |`String`  | The `client_id` that you have obtained while registering your app in the EHR. This is not required if you only intend to communicate with open FHIR servers. **Note:** For backwards compatibility reasons we also accept `client_id` instead of `clientId`!
+|clientId    |`String`  | The client ID that you have obtained while registering your app in the EHR. This is not required if you only intend to communicate with open FHIR servers.
 |scope       |`String`  | One or more space-separated scopes that you would like to request from the EHR. [Learn more](http://hl7.org/fhir/smart-app-launch/scopes-and-launch-context/index.html)
 |clientSecret|`String`  | If you have registered a confidential client, you should pass your `clientSecret` here. **Note: ONLY use this on the server**, as the browsers are considered incapable of keeping a secret. 
 |iss         |`String`  | This is the URL of the service you are connecting to. For [EHR Launch](http://hl7.org/fhir/smart-app-launch/#ehr-launch-sequence) you **MUST NOT** provide this option. It will be passed by the EHR as url parameter instead. Using `iss` as an option will "lock" your app to that service provider. In other words, passing an `iss` option is how you do [Standalone Launch](http://hl7.org/fhir/smart-app-launch/#standalone-launch-sequence).
-|redirectUri |`String`  | Where to redirect to after successful authorization. Defaults to the root (the index) of the current directory. The `redirectUri` should point to a location on the same domain, thus relative paths should be used and they will internally be converted to absolute. In rare cases you might want to to redirect to the site root. That would add a slash to your origin (eg.: `http://localhost/`). If you don't want the trailing slash to be added you can use an absolute URL instead. **Note:** For backwards compatibility reasons we also accept `redirect_uri` instead of `redirectUri`!
+|redirectUri |`String`  | Where to redirect to after successful authorization. Defaults to the root (the index) of the current directory. The `redirectUri` should point to a location on the same domain, thus relative paths should be used and they will internally be converted to absolute. In rare cases you might want to to redirect to the site root. That would add a slash to your origin (eg.: `http://localhost/`). If you don't want the trailing slash to be added you can use an absolute URL instead.
 |pkceMode    |`String`  | Client expectations for PKCE (Proof Key for Code Exchange). Can be one of:
 ||| `"ifSupported"` - Use if a matching code challenge method is available (**default**)
 ||| `"required"` - Do not attempt authorization to servers without support
@@ -47,7 +47,7 @@ These should **ONLY** be used in development.
 
 |Name             |Type      | Description
 |-----------------|----------|-----------
-|fhirServiceUrl   |`String`  | The base URL of the FHIR server to use. This is just like the `iss` option, except that it is designed to bypass the authentication. If `fhirServiceUrl` is passed, the `authorize` function will not actually attempt to authorize. It will skip that and redirect you to your `redirect_uri`.
+|fhirServiceUrl   |`String`  | The base URL of the FHIR server to use. This is just like the `iss` option, except that it is designed to bypass the authentication. If `fhirServiceUrl` is passed, the `authorize` function will not actually attempt to authorize. It will skip that and redirect you to your `redirectUri`.
 |noRedirect       |`Boolean` | If set to `true` the `authorize` function will return a string containing the redirect URL instead of actually redirecting. This can be useful during testing or when additional actions must be taken before redirection.
 |patientId        |`String`  | The ID of the selected patient. If you are launching against an open FHIR server, there is no way to obtain the launch context that would include the selected patient ID. This way you can "inject" that ID and make the client behave as if this is the currently active patient.
 |encounterId      |`String`  | The ID of the selected encounter. If you are launching against an open FHIR server, there is no way to obtain the launch context that would (in some EHRs) include the selected encounter ID. This way you can "inject" that ID and make the client behave as if this is the currently active encounter.
@@ -70,7 +70,7 @@ These should **ONLY** be used in development.
 
 
 ### ready(options = {}): `Promise<Client>`
-This should be called on your `redirect_uri`. Returns a Promise that will eventually be resolved with a Client instance that you can use to query the fhir server.
+This should be called on your `redirectUri`. Returns a Promise that will eventually be resolved with a Client instance that you can use to query the fhir server.
 
 > Before version 2.5 `ready` was accepting optional `onSuccess` and `onError` callback functions. Since `v2.5` you will have to use the promise chain (`then` or `catch`) for that functionality.
 
@@ -97,12 +97,12 @@ authorize(options).then(() => ready(readyOptions))
 Example:
 ```js
 FHIR.oauth2.init({
-    client_id: "my_web_app",
-    scope    : "patient/*.read"
+    clientId: "my_web_app",
+    scope   : "patient/*.read"
 }).then(client => /* initialize my app */);
 ```
 **Be careful with `init()`!** There are some details you need to be aware of:
-1. It will only work if your `launch_uri` is the same as your `redirect_uri`.
+1. It will only work if your `launch_uri` is the same as your `redirectUri`.
    While this should be valid, we can't promise that every EHR will allow you
    to register client with such settings.
 2. Internally, init() will be called twice. First it will redirect to the EHR,

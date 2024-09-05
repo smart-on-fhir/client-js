@@ -51,10 +51,7 @@ export default class Window extends EventEmitter
         this.FHIR = {
             // client: (...args) => new Client(env, ...args),
             oauth2: {
-                settings: {
-                    replaceBrowserHistory: true,
-                    fullSessionStorageSupport: true
-                },
+                settings: {},
                 // ready: (...args) => smart.ready(env, ...args),
                 // authorize: (...args) => smart.authorize(env, ...args)
             }

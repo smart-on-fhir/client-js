@@ -17,9 +17,6 @@ export default class BrowserEnvironment extends EventEmitter implements fhirclie
     {
         super();
         this.options = {
-            replaceBrowserHistory: true,
-            fullSessionStorageSupport: true,
-            refreshTokenWithCredentials: "same-origin",
             window: globalThis.window,
             ...options
         };

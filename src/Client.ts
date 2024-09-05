@@ -333,8 +333,7 @@ export default class Client
     private _refreshTask: Promise<any> | null;
 
     /**
-     * Validates the parameters, creates an instance and tries to connect it to
-     * FhirJS, if one is available globally.
+     * Validates the parameters and creates an instance
      */
     constructor(environment: fhirclient.Adapter, state: fhirclient.ClientState | string)
     {
@@ -980,7 +979,7 @@ export default class Client
         if (!this._refreshTask) {
 
             const refreshRequestOptions = {
-                credentials: this.environment.options.refreshTokenWithCredentials || "same-origin",
+                credentials: this.state.refreshTokenWithCredentials || "same-origin",
                 ...requestOptions,
                 method : "POST",
                 mode   : "cors" as RequestMode,

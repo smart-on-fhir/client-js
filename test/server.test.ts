@@ -89,7 +89,7 @@ describe("Complete authorization [SERVER]", () => {
         expect(url.searchParams.get("state")).to.exist;
 
         // Now we have been redirected to `redirect` and then back to our
-        // redirect_uri. It is time to complete the authorization.
+        // redirectUri. It is time to complete the authorization.
         const code   = url.searchParams.get("state");
         const req2   = new HttpRequest("http://localhost/index?code=123&state=" + code);
         req2.session = req1.session; // inherit the session

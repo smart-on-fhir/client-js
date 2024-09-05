@@ -80,7 +80,7 @@ popup window (or any other valid window target). Here are some examples:
 
 This will open the authorization screens in a centered popup window. If the
 authorization is successful, the popup will eventually close itself and your
-main window will load your `redirect_uri`.
+main window will load your `redirectUri`.
 ```js
 FHIR.oauth2.authorize({
     target: "popup",

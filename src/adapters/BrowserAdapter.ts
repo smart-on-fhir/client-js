@@ -32,39 +32,7 @@ export default class BrowserAdapter implements fhirclient.Adapter
      */
     constructor(options: fhirclient.BrowserFHIRSettings = {})
     {
-        this.options = {
-            // Replaces the browser's current URL
-            // using window.history.replaceState API or by reloading.
-            replaceBrowserHistory: true,
-
-            // When set to true, this variable will fully utilize
-            // HTML5 sessionStorage API.
-            // This variable can be overridden to false by setting
-            // FHIR.oauth2.settings.fullSessionStorageSupport = false.
-            // When set to false, the sessionStorage will be keyed
-            // by a state variable. This is to allow the embedded IE browser
-            // instances instantiated on a single thread to continue to
-            // function without having sessionStorage data shared
-            // across the embedded IE instances.
-            fullSessionStorageSupport: true,
-
-            // Do we want to send cookies while making a request to the token
-            // endpoint in order to obtain new access token using existing
-            // refresh token. In rare cases the auth server might require the
-            // client to send cookies along with those requests. In this case
-            // developers will have to change this before initializing the app
-            // like so:
-            // `FHIR.oauth2.settings.refreshTokenWithCredentials = "include";`
-            // or
-            // `FHIR.oauth2.settings.refreshTokenWithCredentials = "same-origin";`
-            // Can be one of:
-            // "include"     - always send cookies
-            // "same-origin" - only send cookies if we are on the same domain (default)
-            // "omit"        - do not send cookies
-            refreshTokenWithCredentials: "same-origin",
-
-            ...options
-        };
+        this.options = { ...options };
     }
 
     /**
@@ -73,17 +41,6 @@ export default class BrowserAdapter implements fhirclient.Adapter
     relative(path: string): string
     {
         return new URL(path, this.getUrl().href).href;
-    }
-
-    /**
-     * In browsers we need to be able to (dynamically) check if fhir.js is
-     * included in the page. If it is, it should have created a "fhir" variable
-     * in the global scope.
-     */
-    get fhir()
-    {
-        // @ts-ignore
-        return typeof fhir === "function" ? fhir : null;
     }
 
     /**
@@ -161,7 +118,11 @@ export default class BrowserAdapter implements fhirclient.Adapter
             client   : (state: string | fhirclient.ClientState) => new Client(this, state),
             options  : this.options,
             utils: {
-                security
+                security,
+                base64urldecode,
+                base64urlencode,
+                base64decode: window.atob.bind(window),
+                base64encode: window.btoa.bind(window)
             }
         };
     }
