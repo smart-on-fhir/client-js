@@ -17,7 +17,6 @@ class History
     }
 }
 
-// tslint:disable-next-line:max-classes-per-file
 export default class Window extends EventEmitter
 {
     FHIR: any;

@@ -41,9 +41,14 @@
             Promise.resolve()
 
             .then(function() {
-                console.info("Inspecting window.FHIR")
-                console.log(FHIR)
+                console.info("Inspecting window.FHIR and global crypto")
+                console.log(FHIR, crypto)
             })
+
+            .then(function() {
+                console.info("Testing window.isSecureContext")
+                return window.isSecureContext
+            }).then(console.log, console.error)
     
             .then(function() {
                 console.info("Testing window.FHIR.utils.security.generatePKCEChallenge")
@@ -51,35 +56,49 @@
             }).then(console.log, console.error)
 
             .then(function() {
-                console.info("Testing window.FHIR.utils.security.importKey with RS384")
-                return FHIR.utils.security.importKey(JWK_RS384)
+                console.info("Testing window.FHIR.utils.security.importJWK with RS384")
+                return FHIR.utils.security.importJWK(JWK_RS384)
             }).then(console.log, console.error)
 
             .then(function() {
-                console.info("Testing window.FHIR.utils.security.importKey with ES384")
-                return FHIR.utils.security.importKey(JWK_ES384)
+                console.info("Testing window.FHIR.utils.security.importJWK with ES384")
+                return FHIR.utils.security.importJWK(JWK_ES384)
             }).then(console.log, console.error)
         
             .then(function() {
-                console.info("Testing window.FHIR.utils.security.generateKey with RS384")
-                return FHIR.utils.security.generateKey("RS384")
+                console.info("Testing window.FHIR.utils.security.randomBytes")
+                return FHIR.utils.security.randomBytes(10)
             }).then(console.log, console.error)
 
             .then(function() {
-                console.info("Testing window.FHIR.utils.security.generateKey with ES384")
-                return FHIR.utils.security.generateKey("ES384")
+                console.info("Testing window.FHIR.utils.security.digestSha256")
+                return FHIR.utils.security.digestSha256("whatever")
             }).then(console.log, console.error)
 
             .then(function() {
                 console.info("Testing window.FHIR.utils.security.signCompactJws with RS384")
-                return FHIR.utils.security.generateKey('RS384')
-                .then(function(key) { return FHIR.utils.security.signCompactJws(key.privateKey, {'jwku': 'sure'}, {iss: "issuer"}) })
+                return FHIR.utils.security.importJWK(JWK_RS384)
+                .then(function(key) {
+                    return FHIR.utils.security.signCompactJws(
+                        "RS384",
+                        key,
+                        { jwku: 'sure' },
+                        { iss: "issuer" }
+                    )
+                })
             }).then(console.log, console.error)
 
             .then(function() {
                 console.info("Testing window.FHIR.utils.security.signCompactJws with ES384")
-                return FHIR.utils.security.generateKey('ES384')
-                .then(function(key) { return FHIR.utils.security.signCompactJws(key.privateKey, {'jwku': 'sure'}, {iss: "issuer"}) })
+                return FHIR.utils.security.importJWK(JWK_ES384)
+                .then(function(key) {
+                    return FHIR.utils.security.signCompactJws(
+                        "ES384",
+                        key,
+                        { jwku: 'sure' },
+                        { iss: "issuer" }
+                    )
+                })
             }).then(console.log, console.error)
         })();
         </script>

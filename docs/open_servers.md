@@ -23,20 +23,6 @@ Unlike a SMART launched app, this one has no concept of "current" patient, user 
 - `client.encounter.id` will be `null`
 - `client.encounter.read()` will reject with a "Encounter is not available" error.
 
-If the app is designed for open servers, it should simply avoid using that API. However, if the app needs to work both against open and protected servers, using different API depending on what server we are connected to is not a good practice. A better option might be to manually set the context variables like so:
-
-```js
-const client = FHIR.client({
-    serverUrl: "http://hapi.fhir.org/baseDstu4", // open server
-    patientId: "123", // include if you want to emulate selected patient ID
-    encounterId: "234", // include if you want to emulate selected encounter ID
-    launch: "whatever", // include to signal that we are doing an EHR launch
-    fakeTokenResponse: { // include if you want to emulate current user
-        // We are only parsing the JWT body so tokens can be faked like so
-        id_token: `fakeToken.${btoa('{"profile":"Practitioner/345"}')}.`
-    }
-});
-```
 
 ## Working with both open and protected servers
 Ideally, an app should be capable of working with both protected and open servers. This may not always be possible out of the box. For example, if the app relies on EHR launch and uses context APIs like `client.patient...` or `client.user...`, then the developer assumes that the launch context must be available.
@@ -158,7 +144,7 @@ A few notes about using multiple configurations:
 2. As shown in the example, `issMatch` can be a string, RegExp or a function
 3. At least one configuration should match (otherwise you will get an error)
 4. If there are multiple matches the first one is used
-5. This is very convinient in development but if the app is deployed to real EHR, you should
+5. This is very convenient in development but if the app is deployed to real EHR, you should
    consider switching back to single dedicated configuration (the same would also apply to the 
    multiple launch files example above).
 6. Depending on how your environment is set up, injecting environment variables might also be 

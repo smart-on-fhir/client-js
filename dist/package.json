@@ -1,11 +1,12 @@
 {
   "name": "fhirclient",
-  "version": "2.5.2",
+  "version": "2.5.5",
   "description": "JavaScript client for Fast Healthcare Interoperability Resources",
   "author": "SMART Health IT <support@smarthealthit.org> (https://smarthealthit.org/)",
   "contributors": [
     "Josh Mandel <joshua.mandel@childrens.harvard.edu>",
-    "Vladimir Ignatov <vlad.ignatov@gmail.com>"
+    "Vladimir Ignatov <vlad.ignatov@gmail.com>",
+    "Dylan Phelan <dtphelan1@gmail.com>"
   ],
   "keywords": [
     "SMART",
@@ -23,15 +24,15 @@
     "cross-fetch": "^3.0.5",
     "debug": "^4.1.1",
     "isomorphic-webcrypto": "^2.3.8",
-    "jose": "^4.6.0",
+    "jose": "^4.15.5",
     "js-base64": "^3.7.2"
   },
   "peerDependencies": {
     "@types/hapi": ">=18",
-    "@types/node": ">=14"
+    "@types/node": ">=18"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=18"
   },
   "browserslist": [
     "last 2 Chrome versions",

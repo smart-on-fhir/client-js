@@ -31,7 +31,7 @@ module.exports = {
                         version: 3
                     },
                     targets: [
-                        "node 14"
+                        "node 18"
                     ]
                 }]
             ]

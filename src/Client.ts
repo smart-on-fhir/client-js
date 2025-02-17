@@ -66,7 +66,7 @@ async function contextualize(
  * @param refId
  * @param cache A map to store the resolved refs
  * @param client The client instance
- * @param [signal] The `AbortSignal` if any
+ * @param requestOptions Only signal and headers are currently used if provided
  * @returns The resolved reference
  * @private
  */
@@ -74,15 +74,18 @@ function getRef(
     refId: string,
     cache: Record<string, any>,
     client: Client,
-    signal?: AbortSignal
+    requestOptions: RequestInit
 ): Promise<fhirclient.JsonObject> {
     if (!cache[refId]) {
+
+        const { signal, headers } = requestOptions;
 
         // Note that we set cache[refId] immediately! When the promise is
         // settled it will be updated. This is to avoid a ref being fetched
         // twice because some of these requests are executed in parallel.
         cache[refId] = client.request({
             url: refId,
+            headers,
             signal
         }).then(res => {
             cache[refId] = res;
@@ -106,7 +109,7 @@ function resolveRef(
     graph: boolean,
     cache: fhirclient.JsonObject,
     client: Client,
-    signal?: AbortSignal
+    requestOptions: fhirclient.RequestOptions
 ) {
     const node = getPath(obj, path);
     if (node) {
@@ -114,7 +117,7 @@ function resolveRef(
         return Promise.all(makeArray(node).filter(Boolean).map((item, i) => {
             const ref = item.reference;
             if (ref) {
-                return getRef(ref, cache, client, signal).then(sub => {
+                return getRef(ref, cache, client, requestOptions).then(sub => {
                     if (graph) {
                         if (isArray) {
                             if (path.indexOf("..") > -1) {
@@ -150,7 +153,7 @@ function resolveRefs(
     fhirOptions: fhirclient.FhirOptions,
     cache: fhirclient.JsonObject,
     client: Client,
-    signal?: AbortSignal
+    requestOptions: fhirclient.RequestOptions
 ) {
 
     // 1. Sanitize paths, remove any invalid ones
@@ -191,7 +194,7 @@ function resolveRefs(
     Object.keys(groups).sort().forEach(len => {
         const group = groups[len];
         task = task.then(() => Promise.all(group.map((path: string) => {
-            return resolveRef(obj, path, !!fhirOptions.graph, cache, client, signal);
+            return resolveRef(obj, path, !!fhirOptions.graph, cache, client, requestOptions);
         })));
     });
     return task;
@@ -877,14 +880,18 @@ export default class Client
 
                 // At this point we don't know what `data` actually is!
 
-                // We might gen an empty or falsy result. If so return it as is
-                if (!data)
+                // We might get an empty or falsy result. If so return it as is
+                // Also handle raw responses
+                if (!data || typeof data == "string" || data instanceof Response) {
+                    if ((requestOptions as fhirclient.FetchOptions).includeResponse) {
+                        return {
+                            body: data,
+                            response
+                        }
+                    }
                     return data;
+                }
                 
-                // Handle raw responses
-                if (typeof data == "string" || data instanceof Response)
-                    return data;
-
                 // Resolve References ------------------------------------------
                 return (async (_data: fhirclient.FHIR.Resource) => {
 
@@ -894,7 +901,7 @@ export default class Client
                             options,
                             _resolvedRefs,
                             this,
-                            signal
+                            requestOptions as fhirclient.RequestOptions
                         )));
                     }
                     else {
@@ -903,7 +910,7 @@ export default class Client
                             options,
                             _resolvedRefs,
                             this,
-                            signal
+                            requestOptions as fhirclient.RequestOptions
                         );
                     }
 
@@ -1039,7 +1046,10 @@ export default class Client
         // requests in parallel which may result in multiple refresh calls.
         // To avoid that, we keep a reference to the current refresh task (if any).
         if (!this._refreshTask) {
-
+            let body = `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`;
+            if (this.environment.options.refreshTokenWithClientId) {
+                body += `&client_id=${this.state.clientId}`;
+            }
             const refreshRequestOptions = {
                 credentials: this.environment.options.refreshTokenWithCredentials || "same-origin",
                 ...requestOptions,
@@ -1049,7 +1059,7 @@ export default class Client
                     ...(requestOptions.headers || {}),
                     "content-type": "application/x-www-form-urlencoded"
                 },
-                body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`
+                body: body
             };
 
             // custom authorization header can be passed on manual calls

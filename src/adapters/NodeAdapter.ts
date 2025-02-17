@@ -69,7 +69,7 @@ export default class NodeAdapter implements fhirclient.Adapter
         let host = req.headers.host;
         if (req.headers["x-forwarded-host"]) {
             host = req.headers["x-forwarded-host"] as string;
-            if (req.headers["x-forwarded-port"]) {
+            if (req.headers["x-forwarded-port"] && host.indexOf(":") === -1) {
                 host += ":" + req.headers["x-forwarded-port"];
             }
         }

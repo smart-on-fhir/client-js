@@ -153,22 +153,23 @@ export async function authorize(
 
     // Obtain input
     const {
-        redirect_uri,
         clientSecret,
         fakeTokenResponse,
-        patientId,
         encounterId,
-        client_id,
         target,
         width,
         height,
         pkceMode,
         clientPublicKeySetUrl,
+        // Two deprecated values to use as fall-back values later
+        redirect_uri,
+        client_id,
     } = params;
-
+    
     let {
         iss,
         launch,
+        patientId,
         fhirServiceUrl,
         redirectUri,
         noRedirect,
@@ -181,15 +182,17 @@ export async function authorize(
 
     const storage = env.getStorage();
 
-    // For these three an url param takes precedence over inline option
+    // For these, a url param takes precedence over inline option
     iss            = url.searchParams.get("iss")            || iss;
     fhirServiceUrl = url.searchParams.get("fhirServiceUrl") || fhirServiceUrl;
     launch         = url.searchParams.get("launch")         || launch;
+    patientId      = url.searchParams.get("patientId")      || patientId;
+    clientId       = url.searchParams.get("clientId")       || clientId;
 
+    // If there's still no clientId or redirectUri, check deprecated params 
     if (!clientId) {
         clientId = client_id;
     }
-
     if (!redirectUri) {
         redirectUri = redirect_uri;
     }
@@ -386,7 +389,7 @@ function shouldIncludeChallenge(S256supported: boolean, pkceMode?: string) {
     }
     if (pkceMode === "required") {
         if (!S256supported) {
-            throw new Error("Required PKCE code challenge method (`S256`) was not found.");
+            throw new Error("Required PKCE code challenge method (`S256`) was not found in the server's codeChallengeMethods declaration.");
         }
         return true;
     }

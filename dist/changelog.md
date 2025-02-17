@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.5.4
+- Fixed double port issue preventing this library from working with NextJs - #186
+- The `includeResponse` now works for update requests with empty response - #162
+- Fixed some CVEs - #185
+- Upgraded most dev dependencies to their latest usable version
+- Detect if the app is running without a secure context and throw an error to complain about it - #183
+- Custom headers are now propagated to sub-requests for resolving references - #184
+
+## v2.5.3
+- [non-functional] Created bug and feature issue templates in #177
+- Added logic for using patientId & clientId URL parameters in calls to `smart.authorize` in #178
+- [non-functional] Made documentation changes fixing small typos and removing unnecessary text in `docs/open_servers.md` in #178
+- [non-functional] Added an .nvmrc file suggesting node v14.21.3, lts/fermium, in #178
+
 ## v2.5.2
 - Fix base64url encoding for PKCE #158
 - Simplified the code and removed IE support for new SMART V2 features like PKCE and asymmetric authentication.

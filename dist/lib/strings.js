@@ -2,8 +2,8 @@
 
 Object.defineProperty(exports, "__esModule", {
   value: true
-}); // This map contains reusable debug messages (only those used in multiple places)
-
+});
+// This map contains reusable debug messages (only those used in multiple places)
 exports.default = {
   expired: "Session expired! Please re-launch the app",
   noScopeForId: "Trying to get the ID of the selected %s. Please add 'launch' or 'launch/%s' to the requested scopes and try again.",

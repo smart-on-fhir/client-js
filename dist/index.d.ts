@@ -8,7 +8,6 @@ export = smart;
 
 type storageFactory = (options?: fhirclient.JsonObject) => fhirclient.Storage;
 
-// tslint:disable-next-line: no-namespace
 declare namespace smart {
     export const oauth2: fhirclient.SMART;
     export function client(stateOrURI: fhirclient.ClientState | string): Client;

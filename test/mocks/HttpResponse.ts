@@ -14,6 +14,5 @@ export default class HttpResponse
         Object.assign(this.headers, headers);
     }
 
-    // tslint:disable-next-line:no-empty
     end(): void {}
 }

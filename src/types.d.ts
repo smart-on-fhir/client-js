@@ -4,7 +4,6 @@ import Client from "./Client";
 import { getPath, byCodes, byCode } from "./lib";
 import { IncomingMessage } from "http";
 
-// tslint:disable-next-line: no-namespace
 declare namespace fhirclient {
 
     interface RequestWithSession extends IncomingMessage {
@@ -104,6 +103,15 @@ declare namespace fhirclient {
          * "omit"        - do not send cookies
          */
         refreshTokenWithCredentials?: "omit" | "include" | "same-origin";
+
+        /**
+         * Some OAuth implementations require the client_id to be sent
+         * when using a refresh token.
+         * Setting `FHIR.oauth2.settings.refreshTokenWithClientId = true`
+         * enables this behaviour, sending the "client_id" parameter in
+         * the refresh request body.
+         */
+        refreshTokenWithClientId?: boolean;
 
         // storage?: Storage | ((options?: JsonObject) => Storage);
     }
@@ -339,7 +347,7 @@ declare namespace fhirclient {
         /**
          * Supported PKCE Code challenge methods
          */
-         codeChallengeMethods: string[];
+        codeChallengeMethods: string[];
     }
 
     /**

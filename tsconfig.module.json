@@ -7,7 +7,8 @@
         "importHelpers": false,
         "outDir": "dist/lib",
         "listEmittedFiles": false,
-        "declaration": true
+        "declaration": true,
+        "typeRoots": []
     },
     "include": [
         "src"

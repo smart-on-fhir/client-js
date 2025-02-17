@@ -3,6 +3,7 @@ import { expect }     from "@hapi/code";
 import * as Lab       from "@hapi/lab";
 import * as FS        from "fs";
 import * as jwt       from "jsonwebtoken"
+import { Response }   from "cross-fetch";
 import mockDebug      from "./mocks/mockDebug";
 import mockServer     from "./mocks/mockServer";
 import ServerEnv      from "./mocks/ServerEnvironment";
@@ -69,7 +70,6 @@ function crossPlatformTest(callback: (env: Adapter) => void) {
         "works on the server" : new ServerEnv({ session: {} })
     };
 
-    // tslint:disable-next-line:forin
     for (const name in tests) {
         it (name, () => callback(tests[name]));
     }
@@ -1026,7 +1026,6 @@ describe("FHIR.client", () => {
                 "works on the server" : new ServerEnv()
             };
 
-            // tslint:disable-next-line:forin
             for (const name in tests) {
                 it (name, async () => {
                     const client = new Client(tests[name], { serverUrl: mockUrl });
@@ -1048,7 +1047,6 @@ describe("FHIR.client", () => {
                 "works on the server" : new ServerEnv()
             };
 
-            // tslint:disable-next-line:forin
             for (const name in tests) {
                 it (name, async () => {
                     const client = new Client(tests[name], { serverUrl: mockUrl });
@@ -1070,7 +1068,6 @@ describe("FHIR.client", () => {
                 "works on the server" : new ServerEnv()
             };
 
-            // tslint:disable-next-line:forin
             for (const name in tests) {
                 it (name, async () => {
                     const client = new Client(tests[name], { serverUrl: mockUrl });
@@ -1091,7 +1088,7 @@ describe("FHIR.client", () => {
                 "works in the browser": new BrowserEnv(),
                 "works on the server" : new ServerEnv()
             };
-            // tslint:disable-next-line:forin
+
             for (const name in tests) {
                 it (name, async () => {
                     const client = new Client(tests[name], { serverUrl: mockUrl });
@@ -1113,7 +1110,6 @@ describe("FHIR.client", () => {
                 "works on the server" : new ServerEnv()
             };
 
-            // tslint:disable-next-line:forin
             for (const name in tests) {
                 it (name, async () => {
                     const client = new Client(tests[name], { serverUrl: mockUrl });
@@ -1655,9 +1651,7 @@ describe("FHIR.client", () => {
 
         describe ("can resolve nested refs", () => {
             crossPlatformTest(async (env) => {
-                const client = new Client(env, {
-                    serverUrl: mockUrl
-                });
+                const client = new Client(env, { serverUrl: mockUrl });
 
                 // This is how the user had defined the list, If it works properly,
                 // the request function should resolve them in different order:
@@ -1669,49 +1663,57 @@ describe("FHIR.client", () => {
                     "encounter"
                 ];
 
+                function createHandler(json) {
+                    return function handler(req, res, next) {
+                        try {
+                            expect(req.headers['x-custom-header'], "Custom headers not sent on ref requests").to.equal('someCustomKey');
+                            res.json(json)
+                        } catch (ex) {
+                            next(ex)
+                        }
+                    }
+                }
+
                 // 1. Observation
                 // this request should be sent first!
                 mockServer.mock({
-                    headers: { "content-type": "application/json" },
-                    status: 200,
-                    body: {
+                    handler: createHandler({
                         resourceType: "Observation",
                         encounter: { reference: "encounter/1" },
                         subject: { reference: "subject/1" }
-                    }
+                    })
                 });
 
                 // 2. Patient (Observation.subject)
                 // this request should be sent second (even though it might
                 // reply after #3)
                 mockServer.mock({
-                    headers: { "content-type": "application/json" },
-                    status: 200,
-                    body: { resourceType: "Patient" }
+                    handler: createHandler({ resourceType: "Patient" })
                 });
 
                 // 3. Encounter
                 // this request should be sent third (even though it might
                 // reply before #2)
                 mockServer.mock({
-                    headers: { "content-type": "application/json" },
-                    status: 200,
-                    body: {
+                    handler: createHandler({
                         resourceType: "Encounter",
                         serviceProvider: { reference: "Organization/1" }
-                    }
+                    })
                 });
 
                 // 4. Organization (Encounter.serviceProvider)
                 // this request should be sent AFTER we have handled the response
                 // from #3!
                 mockServer.mock({
-                    headers: { "content-type": "application/json" },
-                    status: 200,
-                    body: { resourceType: "Organization" }
+                    handler: createHandler({ resourceType: "Organization" })
                 });
 
-                const result = await client.request("Observation/id", {
+                const result = await client.request({
+                    url: "Observation/id",
+                    headers: {
+                        'X-Custom-Header': 'someCustomKey',
+                    }
+                }, {
                     resolveReferences: refsToResolve
                 });
 
@@ -2768,7 +2770,6 @@ describe("FHIR.client", () => {
                 "works on the server" : new ServerEnv()
             };
 
-            // tslint:disable-next-line:forin
             for (const name in tests) {
                 it (name, async () => {
                     const client = new Client(tests[name], { serverUrl: mockUrl });
@@ -2922,7 +2923,6 @@ describe("FHIR.client", () => {
                 "works on the server" : new ServerEnv()
             };
 
-            // tslint:disable-next-line:forin
             for (const name in tests) {
                 it (name, async () => {
                     const client = new Client(tests[name], { serverUrl: mockUrl });
@@ -2931,6 +2931,7 @@ describe("FHIR.client", () => {
                         url: "/Patient/patient-id",
                         includeResponse: true
                     });
+                    // @ts-ignore
                     expect(result.body).to.include({ id: "patient-id" });
                     expect(result.response.status).to.equal(200);
                 });
@@ -3051,7 +3052,7 @@ describe("FHIR.client", () => {
 
                 expect(result.response.status).to.equal(200);
                 expect(result.response.headers.get("x-custom")).to.equal("test");
-                expect(result.body).to.equal([
+                expect(result.body as any).to.equal([
                     {
                         resourceType: "Bundle",
                         pageId: 1,
@@ -3948,6 +3949,88 @@ describe("FHIR.client", () => {
                 }
             });
         });
+
+        it ("update with text body and includeResponse = true", async () => {
+            const env    = new BrowserEnv()
+            const client = new Client(env, mockUrl);
+
+            mockServer.mock({
+                status: 200,
+                body: "text",
+                headers: { "content-type": "text/plain" }
+            });
+
+            let result: any = await client.update({}, { includeResponse: true });
+
+            expect(result.body).to.equal("text");
+            expect(result.response).to.exist();
+            expect(result.response.status).to.equal(200);
+        })
+
+        it ("update with text body and includeResponse = false", async () => {
+            const env    = new BrowserEnv()
+            const client = new Client(env, mockUrl);
+
+            mockServer.mock({
+                status: 200,
+                body: "text",
+                headers: { "content-type": "text/plain" }
+            });
+            
+            let result: any = await client.update({});
+            expect(result).to.equal("text");
+        })
+
+        it ("update with empty body and includeResponse = true", async () => {
+            const env    = new BrowserEnv()
+            const client = new Client(env, mockUrl);
+            
+            mockServer.mock({
+                status: 200,
+                body  : "",
+                headers: { "content-type": "application/json" }
+            });
+            
+            let result: any = await client.update({}, { includeResponse: true });
+
+            expect(result.body).to.equal("");
+            expect(result.response).to.exist();
+            expect(result.response.status).to.equal(200);
+        })
+
+        it ("update with falsy body and includeResponse = true", async () => {
+            const env    = new BrowserEnv()
+            const client = new Client(env, mockUrl);
+            
+            mockServer.mock({
+                status: 200,
+                body  : "null",
+                headers: { "content-type": "application/json" }
+            });
+            
+            let result: any = await client.update({}, { includeResponse: true });
+
+            expect(result.body).to.equal(null);
+            expect(result.response).to.exist();
+            expect(result.response.status).to.equal(200);
+        })
+
+        it ("update with Response body and includeResponse = true", async () => {
+            const env    = new BrowserEnv()
+            const client = new Client(env, mockUrl);
+            
+            mockServer.mock({
+                status: 200,
+                body  : new Response(),
+                headers: { "content-type": "application/json" }
+            });
+            
+            let result: any = await client.update({}, { includeResponse: true });
+
+            expect(result.body).to.exist();
+            expect(result.response).to.exist();
+            expect(result.response.status).to.equal(200);
+        })
     });
 
     describe("delete", () => {
