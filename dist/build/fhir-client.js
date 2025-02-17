@@ -952,13 +952,13 @@ function contextualize(_x, _x2) {
  * @private
  */
 function _contextualize() {
-  _contextualize = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(requestOptions, client) {
+  _contextualize = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee9(requestOptions, client) {
     var base, contextualURL, _contextualURL;
     return _regenerator.default.wrap(function _callee9$(_context9) {
       while (1) switch (_context9.prev = _context9.next) {
         case 0:
           _contextualURL = function _contextualURL3() {
-            _contextualURL = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(_url) {
+            _contextualURL = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee8(_url) {
               var resourceType, conformance, searchParam;
               return _regenerator.default.wrap(function _callee8$(_context8) {
                 while (1) switch (_context8.prev = _context8.next) {
@@ -1161,7 +1161,7 @@ var Client = /*#__PURE__*/function () {
       request: function request(requestOptions) {
         var fhirOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
         if (_this.patient.id) {
-          return (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+          return (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee() {
             var options;
             return _regenerator.default.wrap(function _callee$(_context) {
               while (1) switch (_context.prev = _context.next) {
@@ -1422,7 +1422,7 @@ var Client = /*#__PURE__*/function () {
   }, {
     key: "_clearState",
     value: (function () {
-      var _clearState2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+      var _clearState2 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee2() {
         var storage, key;
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
@@ -1537,7 +1537,7 @@ var Client = /*#__PURE__*/function () {
   }, {
     key: "patch",
     value: (function () {
-      var _patch2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(url, _patch) {
+      var _patch2 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee3(url, _patch) {
         var requestOptions,
           _args3 = arguments;
         return _regenerator.default.wrap(function _callee3$(_context3) {
@@ -1576,7 +1576,7 @@ var Client = /*#__PURE__*/function () {
   }, {
     key: "request",
     value: (function () {
-      var _request = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(requestOptions) {
+      var _request = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee7(requestOptions) {
         var _this2 = this;
         var fhirOptions,
           _resolvedRefs,
@@ -1642,8 +1642,8 @@ var Client = /*#__PURE__*/function () {
                 });
               })
               // Handle 401 ------------------------------------------------------
-              .catch( /*#__PURE__*/function () {
-                var _ref3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(error) {
+              .catch(/*#__PURE__*/function () {
+                var _ref3 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee4(error) {
                   return _regenerator.default.wrap(function _callee4$(_context4) {
                     while (1) switch (_context4.prev = _context4.next) {
                       case 0:
@@ -1713,7 +1713,7 @@ var Client = /*#__PURE__*/function () {
                 }
                 // Resolve References ------------------------------------------
                 return function () {
-                  var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(_data) {
+                  var _ref4 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee5(_data) {
                     return _regenerator.default.wrap(function _callee5$(_context5) {
                       while (1) switch (_context5.prev = _context5.next) {
                         case 0:
@@ -1744,8 +1744,8 @@ var Client = /*#__PURE__*/function () {
                   };
                 }()(data)
                 // Pagination ----------------------------------------------
-                .then( /*#__PURE__*/function () {
-                  var _ref5 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(_data) {
+                .then(/*#__PURE__*/function () {
+                  var _ref5 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee6(_data) {
                     var links, next, nextPage;
                     return _regenerator.default.wrap(function _callee6$(_context6) {
                       while (1) switch (_context6.prev = _context6.next) {
@@ -1904,6 +1904,10 @@ var Client = /*#__PURE__*/function () {
       // requests in parallel which may result in multiple refresh calls.
       // To avoid that, we keep a reference to the current refresh task (if any).
       if (!this._refreshTask) {
+        var body = "grant_type=refresh_token&refresh_token=".concat(encodeURIComponent(refreshToken));
+        if (this.environment.options.refreshTokenWithClientId) {
+          body += "&client_id=".concat(this.state.clientId);
+        }
         var refreshRequestOptions = _objectSpread(_objectSpread({
           credentials: this.environment.options.refreshTokenWithCredentials || "same-origin"
         }, requestOptions), {}, {
@@ -1912,7 +1916,7 @@ var Client = /*#__PURE__*/function () {
           headers: _objectSpread(_objectSpread({}, requestOptions.headers || {}), {}, {
             "content-type": "application/x-www-form-urlencoded"
           }),
-          body: "grant_type=refresh_token&refresh_token=".concat(encodeURIComponent(refreshToken))
+          body: body
         });
         // custom authorization header can be passed on manual calls
         if (!("authorization" in refreshRequestOptions.headers)) {
@@ -2106,7 +2110,7 @@ var HttpError = /*#__PURE__*/function (_Error) {
   return (0, _createClass2.default)(HttpError, [{
     key: "parse",
     value: function () {
-      var _parse = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+      var _parse = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee() {
         var type, body, _body;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
@@ -2178,7 +2182,7 @@ var HttpError = /*#__PURE__*/function (_Error) {
       };
     }
   }]);
-}( /*#__PURE__*/(0, _wrapNativeSuper2.default)(Error));
+}(/*#__PURE__*/(0, _wrapNativeSuper2.default)(Error));
 exports["default"] = HttpError;
 
 /***/ }),
@@ -2565,7 +2569,7 @@ function checkResponse(_x) {
   return _checkResponse.apply(this, arguments);
 }
 function _checkResponse() {
-  _checkResponse = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(resp) {
+  _checkResponse = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee(resp) {
     var error;
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
@@ -2987,7 +2991,7 @@ function getTargetWindow(_x2) {
   return _getTargetWindow.apply(this, arguments);
 }
 function _getTargetWindow() {
-  _getTargetWindow = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(target) {
+  _getTargetWindow = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee2(target) {
     var width,
       height,
       error,
@@ -3235,7 +3239,7 @@ function digestSha256(_x) {
   return _digestSha.apply(this, arguments);
 }
 function _digestSha() {
-  _digestSha = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(payload) {
+  _digestSha = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee2(payload) {
     var prepared, hash;
     return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
@@ -3256,7 +3260,7 @@ function _digestSha() {
 }
 exports.digestSha256 = digestSha256;
 var generatePKCEChallenge = /*#__PURE__*/function () {
-  var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+  var _ref = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee() {
     var entropy,
       inputBytes,
       codeVerifier,
@@ -3293,7 +3297,7 @@ function importJWK(_x2) {
   return _importJWK.apply(this, arguments);
 }
 function _importJWK() {
-  _importJWK = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(jwk) {
+  _importJWK = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee3(jwk) {
     return _regenerator.default.wrap(function _callee3$(_context3) {
       while (1) switch (_context3.prev = _context3.next) {
         case 0:
@@ -3340,7 +3344,7 @@ function signCompactJws(_x3, _x4, _x5, _x6) {
   return _signCompactJws.apply(this, arguments);
 }
 function _signCompactJws() {
-  _signCompactJws = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(alg, privateKey, header, payload) {
+  _signCompactJws = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee4(alg, privateKey, header, payload) {
     var jwtHeader, jwtPayload, jwtAuthenticatedContent, signature;
     return _regenerator.default.wrap(function _callee4$(_context4) {
       while (1) switch (_context4.prev = _context4.next) {
@@ -3575,7 +3579,7 @@ function authorize(_x) {
   return _authorize.apply(this, arguments);
 }
 function _authorize() {
-  _authorize = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(env) {
+  _authorize = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee(env) {
     var params,
       url,
       urlISS,
@@ -3601,12 +3605,12 @@ function _authorize() {
       clientId,
       completeInTarget,
       clientPrivateJwk,
+      stateKey,
       storage,
       serverUrl,
       inFrame,
       inPopUp,
       oldKey,
-      stateKey,
       state,
       fullSessionStorageSupport,
       redirectUrl,
@@ -3655,7 +3659,7 @@ function _authorize() {
           // ------------------------------------------------------------------------
           // Obtain input
           clientSecret = params.clientSecret, fakeTokenResponse = params.fakeTokenResponse, encounterId = params.encounterId, target = params.target, width = params.width, height = params.height, pkceMode = params.pkceMode, clientPublicKeySetUrl = params.clientPublicKeySetUrl, redirect_uri = params.redirect_uri, client_id = params.client_id;
-          iss = params.iss, launch = params.launch, patientId = params.patientId, fhirServiceUrl = params.fhirServiceUrl, redirectUri = params.redirectUri, noRedirect = params.noRedirect, _params$scope = params.scope, scope = _params$scope === void 0 ? "" : _params$scope, clientId = params.clientId, completeInTarget = params.completeInTarget, clientPrivateJwk = params.clientPrivateJwk;
+          iss = params.iss, launch = params.launch, patientId = params.patientId, fhirServiceUrl = params.fhirServiceUrl, redirectUri = params.redirectUri, noRedirect = params.noRedirect, _params$scope = params.scope, scope = _params$scope === void 0 ? "" : _params$scope, clientId = params.clientId, completeInTarget = params.completeInTarget, clientPrivateJwk = params.clientPrivateJwk, stateKey = params.stateKey;
           storage = env.getStorage(); // For these, a url param takes precedence over inline option
           iss = url.searchParams.get("iss") || iss;
           fhirServiceUrl = url.searchParams.get("fhirServiceUrl") || fhirServiceUrl;
@@ -3711,8 +3715,8 @@ function _authorize() {
           _context.next = 33;
           return storage.unset(oldKey);
         case 33:
-          // create initial state
-          stateKey = (0, lib_1.randomString)(16);
+          stateKey = stateKey !== null && stateKey !== void 0 ? stateKey : (0, lib_1.randomString)(16);
+          // Create initial state
           state = {
             clientId: clientId,
             scope: scope,
@@ -3930,7 +3934,7 @@ function ready(_x2) {
   return _ready.apply(this, arguments);
 }
 function _ready() {
-  _ready = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(env) {
+  _ready = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee2(env) {
     var options,
       _a,
       _b,
@@ -4126,7 +4130,7 @@ function buildTokenRequest(_x3, _x4) {
   return _buildTokenRequest.apply(this, arguments);
 }
 function _buildTokenRequest() {
-  _buildTokenRequest = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(env, _ref) {
+  _buildTokenRequest = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee3(env, _ref) {
     var code, state, clientPublicKeySetUrl, privateKey, redirectUri, clientSecret, tokenUri, clientId, codeVerifier, requestOptions, pk, jwtHeaders, jwtClaims, clientAssertion;
     return _regenerator.default.wrap(function _callee3$(_context3) {
       while (1) switch (_context3.prev = _context3.next) {
@@ -4250,7 +4254,7 @@ function init(_x5, _x6, _x7) {
   return _init.apply(this, arguments);
 }
 function _init() {
-  _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(env, authorizeOptions, readyOptions) {
+  _init = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee4(env, authorizeOptions, readyOptions) {
     var url, code, state, storage, key, cached;
     return _regenerator.default.wrap(function _callee4$(_context4) {
       while (1) switch (_context4.prev = _context4.next) {
@@ -4341,7 +4345,7 @@ var Storage = /*#__PURE__*/function () {
      * with that value (or undefined for missing keys).
      */
     function () {
-      var _get = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(key) {
+      var _get = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee(key) {
         var value;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
@@ -4373,7 +4377,7 @@ var Storage = /*#__PURE__*/function () {
   }, {
     key: "set",
     value: (function () {
-      var _set = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(key, value) {
+      var _set = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee2(key, value) {
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
@@ -4399,7 +4403,7 @@ var Storage = /*#__PURE__*/function () {
   }, {
     key: "unset",
     value: (function () {
-      var _unset = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(key) {
+      var _unset = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee3(key) {
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:

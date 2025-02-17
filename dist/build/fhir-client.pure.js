@@ -761,6 +761,10 @@ class Client {
     // requests in parallel which may result in multiple refresh calls.
     // To avoid that, we keep a reference to the current refresh task (if any).
     if (!this._refreshTask) {
+      let body = `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`;
+      if (this.environment.options.refreshTokenWithClientId) {
+        body += `&client_id=${this.state.clientId}`;
+      }
       const refreshRequestOptions = {
         credentials: this.environment.options.refreshTokenWithCredentials || "same-origin",
         ...requestOptions,
@@ -770,7 +774,7 @@ class Client {
           ...(requestOptions.headers || {}),
           "content-type": "application/x-www-form-urlencoded"
         },
-        body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`
+        body: body
       };
       // custom authorization header can be passed on manual calls
       if (!("authorization" in refreshRequestOptions.headers)) {
@@ -2037,7 +2041,8 @@ async function authorize(env, params = {}) {
     scope = "",
     clientId,
     completeInTarget,
-    clientPrivateJwk
+    clientPrivateJwk,
+    stateKey
   } = params;
   const storage = env.getStorage();
   // For these, a url param takes precedence over inline option
@@ -2088,8 +2093,8 @@ async function authorize(env, params = {}) {
   // this is a re-authorize)
   const oldKey = await storage.get(settings_1.SMART_KEY);
   await storage.unset(oldKey);
-  // create initial state
-  const stateKey = (0, lib_1.randomString)(16);
+  stateKey = stateKey !== null && stateKey !== void 0 ? stateKey : (0, lib_1.randomString)(16);
+  // Create initial state
   const state = {
     clientId,
     scope,

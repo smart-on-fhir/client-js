@@ -737,6 +737,10 @@ class Client {
     // requests in parallel which may result in multiple refresh calls.
     // To avoid that, we keep a reference to the current refresh task (if any).
     if (!this._refreshTask) {
+      let body = `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`;
+      if (this.environment.options.refreshTokenWithClientId) {
+        body += `&client_id=${this.state.clientId}`;
+      }
       const refreshRequestOptions = Object.assign(Object.assign({
         credentials: this.environment.options.refreshTokenWithCredentials || "same-origin"
       }, requestOptions), {
@@ -745,7 +749,7 @@ class Client {
         headers: Object.assign(Object.assign({}, requestOptions.headers || {}), {
           "content-type": "application/x-www-form-urlencoded"
         }),
-        body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`
+        body: body
       });
       // custom authorization header can be passed on manual calls
       if (!("authorization" in refreshRequestOptions.headers)) {

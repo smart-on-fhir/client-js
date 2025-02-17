@@ -148,7 +148,8 @@ async function authorize(env, params = {}) {
     scope = "",
     clientId,
     completeInTarget,
-    clientPrivateJwk
+    clientPrivateJwk,
+    stateKey
   } = params;
   const storage = env.getStorage();
   // For these, a url param takes precedence over inline option
@@ -199,8 +200,8 @@ async function authorize(env, params = {}) {
   // this is a re-authorize)
   const oldKey = await storage.get(settings_1.SMART_KEY);
   await storage.unset(oldKey);
-  // create initial state
-  const stateKey = (0, lib_1.randomString)(16);
+  stateKey = stateKey !== null && stateKey !== void 0 ? stateKey : (0, lib_1.randomString)(16);
+  // Create initial state
   const state = {
     clientId,
     scope,
