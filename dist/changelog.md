@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.5.5
+- Updated dependencies, browserlist db, CVEs...
+- Updated docs and links to examples
+- Add the ability to supply user-defined state key. #168
+- Add refreshTokenWithClientId option, to send client_id when using a refresh token #175
+
 ## v2.5.4
 - Fixed double port issue preventing this library from working with NextJs - #186
 - The `includeResponse` now works for update requests with empty response - #162
