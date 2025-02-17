@@ -1,6 +1,6 @@
 {
   "name": "fhirclient",
-  "version": "2.5.4",
+  "version": "2.5.5",
   "description": "JavaScript client for Fast Healthcare Interoperability Resources",
   "author": "SMART Health IT <support@smarthealthit.org> (https://smarthealthit.org/)",
   "contributors": [
