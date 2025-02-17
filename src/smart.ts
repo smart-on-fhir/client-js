@@ -176,7 +176,8 @@ export async function authorize(
         scope = "",
         clientId,
         completeInTarget,
-        clientPrivateJwk
+        clientPrivateJwk,
+        stateKey
     } = params;
 
     const storage = env.getStorage();
@@ -250,8 +251,9 @@ export async function authorize(
     const oldKey = await storage.get(SMART_KEY);
     await storage.unset(oldKey);
 
-    // create initial state
-    const stateKey = randomString(16);
+    stateKey = stateKey ?? randomString(16);
+
+    // Create initial state
     const state: fhirclient.ClientState = {
         clientId,
         scope,
