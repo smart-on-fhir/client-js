@@ -33,21 +33,15 @@ It works both in browsers (IE 10+) and on the server (Node 18+).
 - [Connecting to open servers and/or multiple servers](open_servers.md)
 - [Contributing and Development](#contributing-and-development)
 - [Debugging](#debugging)
-- Browser Examples
-    - [Basic Examples](https://35u09.codesandbox.io/) - [Code](https://codesandbox.io/s/fhir-client-browser-examples-35u09) - Basic examples with no additional libraries or frameworks
-    - [React / TypeScript SPA](https://4e7rl.codesandbox.io/test.html) - [Code](https://codesandbox.io/s/fhir-client-typescript-react-spa-4e7rl) - Example with React and TypeScript on a single page
-    - [Advanced React Example](https://0q3n8.codesandbox.io) - [Code](https://codesandbox.io/s/fhir-client-react-react-router-context-0q3n8) - React with React Router, storing a FHIR client instance in React context
-    - [Popups and frames](https://fmv99.csb.app/) - [Code](https://codesandbox.io/s/blissful-leavitt-fmv99)
-    - [Using multiple launch configurations (code)](https://codesandbox.io/s/fhir-client-browser-examples-35u09?file=/browser/multi_config/launch.html)
+- [Browser Examples](https://docs.smarthealthit.org/client-js-examples/)
+- [Request examples](http://docs.smarthealthit.org/client-js/request.html)
+- [Example fhir.js methods and analog request calls](fhirjs-equivalents.md)
 - Server Examples
-    - [Express Example](https://c0che.sse.codesandbox.io/) - [Code](https://codesandbox.io/s/jovial-dew-c0che)
-    - [Native Example](https://q4mhq.sse.codesandbox.io/) - [Code](https://codesandbox.io/s/brave-wildflower-q4mhq)
-    - [HAPI Example](https://myq5q.sse.codesandbox.io/) - [Code](https://codesandbox.io/s/fhir-client-hapi-myq5q)
-    - [Express + fhir.js Example](https://4t1mp.sse.codesandbox.io/) - [Code](https://codesandbox.io/s/fhir-client-express-and-fhirjs-4t1mp)
-- Other Examples
-    - [Request examples](http://docs.smarthealthit.org/client-js/request.html)
-    - [Example fhir.js methods and analog request calls](fhirjs-equivalents.md)
-    - [Running an app against multiple servers](https://github.com/Unite-Genomics/react-fhir-sample-app)
+    - [Express Example](https://github.com/smart-on-fhir/client-js-examples/blob/master/server/express/index.js)
+    - [Native Example](https://github.com/smart-on-fhir/client-js-examples/tree/master/server/native)
+    - [HAPI Example](https://github.com/smart-on-fhir/client-js-examples/blob/master/server/hapi/index.js)
+    - [Express + fhir.js Example](https://github.com/smart-on-fhir/client-js-examples/blob/master/server/express_and_fhirjs/index.js)
+    
 
 <br/><br/>
 
@@ -70,10 +64,6 @@ From NPM (latest version):
 From NPM (specific version):
 - https://cdn.jsdelivr.net/npm/fhirclient@2.0.7/build/fhir-client.js
 - https://cdn.jsdelivr.net/npm/fhirclient@2.0.7/build/fhir-client.min.js
-
-Latest development builds from GitHub:
-- https://combinatronics.com/smart-on-fhir/client-js/master/dist/build/fhir-client.js
-- https://combinatronics.com/smart-on-fhir/client-js/master/dist/build/fhir-client.min.js
 
 
 ## Browser Usage
