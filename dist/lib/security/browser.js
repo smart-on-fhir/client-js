@@ -5,7 +5,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.signCompactJws = exports.importJWK = exports.generatePKCEChallenge = exports.digestSha256 = exports.randomBytes = void 0;
 const js_base64_1 = require("js-base64");
-const crypto = typeof globalThis === "object" && globalThis.crypto ? globalThis.crypto : require("isomorphic-webcrypto").default;
+const crypto = typeof globalThis === "object" && globalThis.crypto ? globalThis.crypto : (() => {
+  throw new Error("No window.crypto available, please polyfill it using an appropriate library");
+})();
 const subtle = () => {
   if (!crypto.subtle) {
     if (!globalThis.isSecureContext) {

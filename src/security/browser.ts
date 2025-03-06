@@ -2,9 +2,12 @@ import { encodeURL, fromUint8Array } from "js-base64"
 import { fhirclient }                from "../types"
 
 
-const crypto: Crypto = typeof globalThis === "object" && globalThis.crypto ?
-    globalThis.crypto :
-    require("isomorphic-webcrypto").default;
+const crypto: Crypto =
+  typeof globalThis === "object" && globalThis.crypto
+    ? globalThis.crypto
+    : (() => {
+        throw new Error("No window.crypto available, please polyfill it using an appropriate library");
+      })();
 
 const subtle = () => {
     if (!crypto.subtle) {
