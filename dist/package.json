@@ -31,6 +31,11 @@
     "@types/hapi": ">=18",
     "@types/node": ">=18"
   },
+  "peerDependenciesMeta": {
+    "@types/hapi": {
+      "optional": true
+    }
+  },
   "engines": {
     "node": ">=18"
   },
