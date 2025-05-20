@@ -9,38 +9,36 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    
+  e2e:
     runs-on: ubuntu-24.04
-
     steps:
-      
       - uses: actions/checkout@v3
-    
-      - name: Setup Node.js 18.x
+
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
-          cache: npm
+          node-version: 18
 
-      # 1️⃣ Detect Chrome’s major version
+      - name: Install project dependencies
+        run: npm ci --legacy-peer-deps
+
       - name: Detect Chrome major version
         id: chrome
         run: |
           CHROME_VER=$(google-chrome --version | sed -E 's/.* ([0-9]+)\..*/\1/')
           echo "Detected Chrome v$CHROME_VER"
-          echo "::set-output name=major::$CHROME_VER"
+          echo "major=$CHROME_VER" >> $GITHUB_OUTPUT
 
-      # 2️⃣ Install chromedriver matching that major version
-      - name: Install matching Chromedriver
+      - name: Override Chromedriver to match Chrome
         run: npm install --no-save chromedriver@${{ steps.chrome.outputs.major }}
 
       - name: Verify Chromedriver
         run: npx chromedriver --version
 
-      - run: npm ci --legacy-peer-deps
+      - name: Build (if needed)
+        run: npm run build --if-present
 
-      - run: npm run build --if-present
+      - name: Run Nightwatch
+        run: npm run nightwatch
 
-      - run: npm run nightwatch
 
