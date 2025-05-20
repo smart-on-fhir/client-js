@@ -23,6 +23,21 @@ jobs:
           node-version: 18.x
           cache: npm
 
+      # 1️⃣ Detect Chrome’s major version
+      - name: Detect Chrome major version
+        id: chrome
+        run: |
+          CHROME_VER=$(google-chrome --version | sed -E 's/.* ([0-9]+)\..*/\1/')
+          echo "Detected Chrome v$CHROME_VER"
+          echo "::set-output name=major::$CHROME_VER"
+
+      # 2️⃣ Install chromedriver matching that major version
+      - name: Install matching Chromedriver
+        run: npm install --no-save chromedriver@${{ steps.chrome.outputs.major }}
+
+      - name: Verify Chromedriver
+        run: npx chromedriver --version
+
       - run: npm ci --legacy-peer-deps
 
       - run: npm run build --if-present
