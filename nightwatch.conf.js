@@ -1,3 +1,5 @@
+const chromedriver = require('chromedriver');
+
 // Refer to the online docs for more details:
 // https://nightwatchjs.org/gettingstarted/configuration/
 //
@@ -31,7 +33,12 @@ module.exports = {
   // See https://nightwatchjs.org/guide/concepts/test-globals.html
   globals_path: '',
 
-  webdriver: {},
+  webdriver: {
+    start_process: true,
+    server_path: chromedriver.path,
+    port: 9515,
+    cli_args: ['--verbose']
+  },
 
   test_settings: {
     default: {
