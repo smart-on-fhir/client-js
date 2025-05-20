@@ -2263,8 +2263,8 @@ async function ready(env, options = {}) {
   const url = env.getUrl();
   const Storage = env.getStorage();
   const params = url.searchParams;
-  let key = params.get("state");
-  const code = params.get("code");
+  let key = params.get("state") || options.stateKey;
+  const code = params.get("code") || options.code;
   const authError = params.get("error");
   const authErrorDescription = params.get("error_description");
   if (!key) {
@@ -2323,7 +2323,7 @@ async function ready(env, options = {}) {
   }
   url.searchParams.delete("complete");
   // Do we have to remove the `code` and `state` params from the URL?
-  const hasState = params.has("state");
+  const hasState = params.has("state") || options.stateKey ? true : false;
   if (isBrowser() && (0, lib_1.getPath)(env, "options.replaceBrowserHistory") && (code || hasState)) {
     // `code` is the flag that tell us to request an access token.
     // We have to remove it, otherwise the page will authorize on

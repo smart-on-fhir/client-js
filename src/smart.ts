@@ -452,8 +452,8 @@ export async function ready(env: fhirclient.Adapter, options: fhirclient.ReadyOp
     const Storage = env.getStorage();
     const params = url.searchParams;
 
-    let key                    = params.get("state");
-    const code                 = params.get("code");
+    let key                    = params.get("state") || options.stateKey;
+    const code                 = params.get("code")  || options.code;
     const authError            = params.get("error");
     const authErrorDescription = params.get("error_description");
 
@@ -520,7 +520,7 @@ export async function ready(env: fhirclient.Adapter, options: fhirclient.ReadyOp
     url.searchParams.delete("complete");
 
     // Do we have to remove the `code` and `state` params from the URL?
-    const hasState = params.has("state");
+    const hasState = params.has("state") || options.stateKey ? true : false;
 
     if (isBrowser() && getPath(env, "options.replaceBrowserHistory") && (code || hasState)) {
         // `code` is the flag that tell us to request an access token.

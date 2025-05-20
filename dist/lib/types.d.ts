@@ -670,6 +670,8 @@ declare namespace fhirclient {
             kid: string
         };
         clientPublicKeySetUrl?: string; // for jku
+        code?: string;  // Optional authorization code to use vs. from URL in ready()
+        stateKey?: string; // Optional state value to use vs. from URL in ready()
         // [key: string]: any; // Other options TBD
     }
 

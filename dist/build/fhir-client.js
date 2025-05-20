@@ -3964,8 +3964,8 @@ function _ready() {
           url = env.getUrl();
           Storage = env.getStorage();
           params = url.searchParams;
-          key = params.get("state");
-          code = params.get("code");
+          key = params.get("state") || options.stateKey;
+          code = params.get("code") || options.code;
           authError = params.get("error");
           authErrorDescription = params.get("error_description");
           if (key) {
@@ -4027,7 +4027,7 @@ function _ready() {
         case 29:
           url.searchParams.delete("complete");
           // Do we have to remove the `code` and `state` params from the URL?
-          hasState = params.has("state");
+          hasState = params.has("state") || options.stateKey ? true : false;
           if (isBrowser() && (0, lib_1.getPath)(env, "options.replaceBrowserHistory") && (code || hasState)) {
             // `code` is the flag that tell us to request an access token.
             // We have to remove it, otherwise the page will authorize on
