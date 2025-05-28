@@ -22,9 +22,9 @@ const client = new FHIR.FhirClient("https://open-fhir-server.org");
 Creating an instance is simple. The constructor only accepts a single required argument - the base URL of the FHIR server:
 
 ```ts
-import { FhirClient } from "fhirclient";
+import FHIR from "fhirclient";
 
-const client = new FhirClient("https://r4.smarthealthit.org");
+const client = new FHIR.FhirClient("https://r4.smarthealthit.org");
 
 const patient = await client.fhirRequest("Patient/123");
 const observation = await client.fhirRequest("Observation/123");
@@ -168,9 +168,9 @@ interface RequestOptions extends RequestInit {
 You can extend this class to provide additional functionality. Here is a simple example that would add an access token to every request:
 
 ```ts
-import { FhirClient } from "fhirclient";
+import FHIR from "fhirclient";
 
-class AuthenticatedFhirClient extends FhirClient {
+class AuthenticatedFhirClient extends FHIR.FhirClient {
     async fhirRequest<T>(uri, options = {}) {
         options.headers = {
             ...options.headers,
