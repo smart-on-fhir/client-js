@@ -15,6 +15,7 @@ import Client         from "../src/Client";
 import { KEY }        from "../src/smart";
 import Adapter        from "../src/adapters/BrowserAdapter";
 import { fhirclient } from "../src/types";
+import FhirClient     from "../src/FhirClient";
 
 export const lab = Lab.script();
 const { it, describe, before, after, afterEach } = lab;
@@ -572,7 +573,6 @@ describe("FHIR.client", () => {
                     }
                 });
 
-                // Mock the conformance statement
                 mockServer.mock({
                     headers: { "content-type": "application/json" },
                     status: 200,
@@ -1614,38 +1614,6 @@ describe("FHIR.client", () => {
                 expect(result).to.equal({
                     patient: { reference: null }
                 });
-            });
-        });
-
-        describe ("warns about duplicate ref paths", () => {
-            crossPlatformTest(async (env) => {
-                const client = new Client(env, {
-                    serverUrl: mockUrl
-                });
-
-                mockServer.mock({
-                    headers: { "content-type": "application/json" },
-                    status: 200,
-                    body: {
-                        patient: { reference: "ref/1" }
-                    }
-                });
-
-                mockServer.mock({
-                    headers: { "content-type": "application/json" },
-                    status: 200,
-                    body: { resourceType: "Patient" }
-                });
-
-                const result = await client.request("Observation/id", {
-                    resolveReferences: ["patient", "patient"]
-                });
-
-                expect(result).to.equal({
-                    patient: { resourceType: "Patient" }
-                });
-
-                expect(clientDebug._calls.find((o: any) => o[0] === "Duplicated reference path \"%s\"")).to.exist();
             });
         });
 
@@ -3823,59 +3791,65 @@ describe("FHIR.client", () => {
             expect(result.body).to.equal(resource);
             expect(result.response.status).to.equal(200);
 
-            client.request = async (options: any) => options;
+            const orig = FhirClient.prototype.fhirRequest
 
-            // Standard usage
-            result = await client.create(resource);
-            expect(result).to.equal({
-                url    : "Patient",
-                method : "POST",
-                body   : JSON.stringify(resource),
-                headers: {
-                    "content-type": "application/json"
-                }
-            });
-
-            // Passing options
-            result = await client.create(resource, {
-                url   : "a",
-                method: "b",
-                body  : "c",
+            try {
                 // @ts-ignore
-                signal: "whatever",
-                headers: {
-                    "x-custom": "value",
-                    "content-type": "application/fhir+json"
-                }
-            });
-            expect(result).to.equal({
-                url    : "Patient",
-                method : "POST",
-                body   : JSON.stringify(resource),
-                signal : "whatever",
-                headers: {
-                    "x-custom": "value",
-                    "content-type": "application/fhir+json"
-                }
-            });
+                FhirClient.prototype.fhirRequest = async (...args: any[]) => args;
 
-            // Passing options but no headers
-            result = await client.create(resource, {
-                url   : "a",
-                method: "b",
-                body  : "c",
-                // @ts-ignore
-                signal: "whatever"
-            });
-            expect(result).to.equal({
-                url    : "Patient",
-                method : "POST",
-                body   : JSON.stringify(resource),
-                signal : "whatever",
-                headers: {
-                    "content-type": "application/json"
-                }
-            });
+                // Standard usage
+                result = await client.create(resource);
+                expect(result).to.equal(["Patient", {
+                    method : "POST",
+                    body   : JSON.stringify(resource),
+                    headers: {
+                        "content-type": "application/json"
+                    }
+                }]);
+
+                // Passing options
+                result = await client.create(resource, {
+                    url   : "a",
+                    method: "b",
+                    body  : "c",
+                    // @ts-ignore
+                    signal: "whatever",
+                    headers: {
+                        "x-custom": "value",
+                        "content-type": "application/fhir+json"
+                    }
+                });
+                expect(result).to.equal(["Patient", {
+                    url    : "a",
+                    method : "POST",
+                    body   : JSON.stringify(resource),
+                    signal : "whatever",
+                    headers: {
+                        "x-custom": "value",
+                        "content-type": "application/fhir+json"
+                    }
+                }]);
+
+                // Passing options but no headers
+                result = await client.create(resource, {
+                    url   : "a",
+                    method: "b",
+                    body  : "c",
+                    // @ts-ignore
+                    signal: "whatever"
+                });
+                expect(result).to.equal(["Patient", {
+                    url    : "a",
+                    method : "POST",
+                    body   : JSON.stringify(resource),
+                    signal : "whatever",
+                    headers: {
+                        "content-type": "application/json"
+                    }
+                }]);
+            } finally {
+                FhirClient.prototype.fhirRequest = orig
+            }
         });
     });
 
@@ -3895,59 +3869,64 @@ describe("FHIR.client", () => {
             expect(result.body).to.equal(resource);
             expect(result.response.status).to.equal(200);
 
-            client.request = async (options: any) => options;
-
-            // Standard usage
-            result = await client.update(resource);
-            expect(result).to.equal({
-                url    : "Patient/2",
-                method : "PUT",
-                body   : JSON.stringify(resource),
-                headers: {
-                    "content-type": "application/json"
-                }
-            });
-
-            // Passing options
-            result = await client.update(resource, {
-                url   : "a",
-                method: "b",
-                body  : "c",
+            const orig = FhirClient.prototype.fhirRequest
+            try {
                 // @ts-ignore
-                signal: "whatever",
-                headers: {
-                    "x-custom": "value",
-                    "content-type": "application/fhir+json"
-                }
-            });
-            expect(result).to.equal({
-                url    : "Patient/2",
-                method : "PUT",
-                body   : JSON.stringify(resource),
-                signal: "whatever",
-                headers: {
-                    "x-custom": "value",
-                    "content-type": "application/fhir+json"
-                }
-            });
+                FhirClient.prototype.fhirRequest = async (...args: any[]) => args;
 
-            // Passing options but no headers
-            result = await client.update(resource, {
-                url   : "a",
-                method: "b",
-                body  : "c",
-                // @ts-ignore
-                signal: "whatever"
-            });
-            expect(result).to.equal({
-                url    : "Patient/2",
-                method : "PUT",
-                body   : JSON.stringify(resource),
-                signal: "whatever",
-                headers: {
-                    "content-type": "application/json"
-                }
-            });
+                // Standard usage
+                result = await client.update(resource);
+                expect(result).to.equal(["Patient/2", {
+                    method : "PUT",
+                    body   : JSON.stringify(resource),
+                    headers: {
+                        "content-type": "application/json"
+                    }
+                }]);
+
+                // Passing options
+                result = await client.update(resource, {
+                    url   : "a",
+                    method: "b",
+                    body  : "c",
+                    // @ts-ignore
+                    signal: "whatever",
+                    headers: {
+                        "x-custom": "value",
+                        "content-type": "application/fhir+json"
+                    }
+                });
+                expect(result).to.equal(["Patient/2", {
+                    url    : "a",
+                    method : "PUT",
+                    body   : JSON.stringify(resource),
+                    signal: "whatever",
+                    headers: {
+                        "x-custom": "value",
+                        "content-type": "application/fhir+json"
+                    }
+                }]);
+
+                // Passing options but no headers
+                result = await client.update(resource, {
+                    url   : "a",
+                    method: "b",
+                    body  : "c",
+                    // @ts-ignore
+                    signal: "whatever"
+                });
+                expect(result).to.equal(["Patient/2", {
+                    url    : "a",
+                    method : "PUT",
+                    body   : JSON.stringify(resource),
+                    signal: "whatever",
+                    headers: {
+                        "content-type": "application/json"
+                    }
+                }]);
+            } finally {
+                FhirClient.prototype.fhirRequest = orig
+            }
         });
 
         it ("update with text body and includeResponse = true", async () => {
@@ -4050,38 +4029,41 @@ describe("FHIR.client", () => {
             expect(result.body).to.equal({ result: "success" });
             expect(result.response.status).to.equal(200);
 
-            client.request = async (options: any) => options;
+            const orig = FhirClient.prototype.fhirRequest
 
-            // Standard usage
-            result = await client.delete("Patient/2");
-            expect(result).to.equal({
-                url   : "Patient/2",
-                method: "DELETE"
-            });
-
-            // Verify that method and url cannot be overridden
-            result = await client.delete("Patient/2", {
+            try {
                 // @ts-ignore
-                url   : "x",
-                method: "y",
-                other : 3
-            });
-            expect(result).to.equal({
-                url   : "Patient/2",
-                method: "DELETE",
-                other : 3
-            });
+                FhirClient.prototype.fhirRequest = async (...args: any[]) => args;
 
-            // Verify that abort signal is passed through
-            result = await client.delete("Patient/2", {
-                // @ts-ignore
-                signal: "whatever"
-            });
-            expect(result).to.equal({
-                url   : "Patient/2",
-                method: "DELETE",
-                signal: "whatever"
-            });
+                // Standard usage
+                result = await client.delete("Patient/2");
+                expect(result).to.equal(["Patient/2", { method: "DELETE" }]);
+
+                // Verify that method and url cannot be overridden
+                result = await client.delete("Patient/2", {
+                    // @ts-ignore
+                    url   : "x",
+                    method: "y",
+                    other : 3
+                });
+                expect(result).to.equal(["Patient/2", {
+                    url   : "x",
+                    method: "DELETE",
+                    other : 3
+                }]);
+
+                // Verify that abort signal is passed through
+                result = await client.delete("Patient/2", {
+                    // @ts-ignore
+                    signal: "whatever"
+                });
+                expect(result).to.equal(["Patient/2", {
+                    method: "DELETE",
+                    signal: "whatever"
+                }]);
+            } finally {
+                FhirClient.prototype.fhirRequest = orig
+            }
         });
     });
 
@@ -4102,105 +4084,112 @@ describe("FHIR.client", () => {
             expect(result.body).to.equal({ result: "success" });
             expect(result.response.status).to.equal(200);
 
-            // Modify the request method to return the request options
-            client.request = async (options: any) => options;
+            const orig = FhirClient.prototype.fhirRequest
 
-            // Standard usage
-            result = await client.patch("Patient/2", [{ op: "remove", path: "/x" }]);
-            expect(result).to.equal({
-                url   : "Patient/2",
-                method: "PATCH",
-                body: '[{"op":"remove","path":"/x"}]',
-                headers: {
-                    "prefer": "return=presentation",
-                    "content-type": "application/json-patch+json; charset=UTF-8"
-                }
-            });
+            try {
 
-            // Test what can be overridden
-            result = await client.patch("Patient/2", [{ op: "remove", path: "/x" }], {
+                // Modify the request method to return the request options
                 // @ts-ignore
-                url   : "x",
-                method: "y",
-                other : 3,
-                headers: {
-                    prefer: "test",
-                    z: "22"
-                }
-            });
-            expect(result).to.equal({
-                url   : "Patient/2",
-                method: "PATCH",
-                body: '[{"op":"remove","path":"/x"}]',
-                other: 3,
-                headers: {
-                    "prefer": "test",
-                    "content-type": "application/json-patch+json; charset=UTF-8",
-                    "z": "22"
-                }
-            });
+                FhirClient.prototype.fhirRequest = async (...args: any) => args;
 
-            // Verify that abort signal is passed through
-            result = await client.patch("Patient/2", [{ op: "remove", path: "/x" }], {
+                // Standard usage
+                result = await client.patch("Patient/2", [{ op: "remove", path: "/x" }]);
+                expect(result).to.equal(["Patient/2", {
+                    method: "PATCH",
+                    body: '[{"op":"remove","path":"/x"}]',
+                    headers: {
+                        "prefer": "return=presentation",
+                        "content-type": "application/json-patch+json; charset=UTF-8"
+                    }
+                }]);
+
+                // Test what can be overridden
+                result = await client.patch("Patient/2", [{ op: "remove", path: "/x" }], {
+                    // @ts-ignore
+                    url   : "x",
+                    method: "y",
+                    other : 3,
+                    headers: {
+                        prefer: "test",
+                        z: "22"
+                    }
+                });
+                expect(result).to.equal(["Patient/2", {
+                    url   : "x",
+                    method: "PATCH",
+                    body: '[{"op":"remove","path":"/x"}]',
+                    other: 3,
+                    headers: {
+                        "prefer": "test",
+                        "content-type": "application/json-patch+json; charset=UTF-8",
+                        "z": "22"
+                    }
+                }]);
+
+                // Verify that abort signal is passed through
+                result = await client.patch("Patient/2", [{ op: "remove", path: "/x" }], {
+                    // @ts-ignore
+                    signal: "whatever"
+                });
+                expect(result[1]).to.include({ signal: "whatever" });
+
+                // Validations ----------------------------------------------------
+
                 // @ts-ignore
-                signal: "whatever"
-            });
-            expect(result).to.include({ signal: "whatever" });
-
-            // Validations ----------------------------------------------------
-
-            // @ts-ignore
-            expect(client.patch("x", null)).to.reject("The JSON patch must be an array");
-            
-            expect(client.patch("x", [])).to.reject("The JSON patch array should not be empty");
-            
-            // @ts-ignore
-            expect(client.patch("x", [{}])).to.reject(/Each patch operation must have an "op" property/);
-
-            expect(client.patch("x", [
+                expect(client.patch("x", null)).to.reject("The JSON patch must be an array");
+                
+                expect(client.patch("x", [])).to.reject("The JSON patch array should not be empty");
+                
                 // @ts-ignore
-                { op: "x" }
-            ])).to.reject(/Each patch operation must have an "op" property/);
+                expect(client.patch("x", [{}])).to.reject(/Each patch operation must have an "op" property/);
 
-            expect(client.patch("x", [
-                // @ts-ignore
-                { op: "add" }
-            ])).to.reject(/Missing "path" property/);
+                expect(client.patch("x", [
+                    // @ts-ignore
+                    { op: "x" }
+                ])).to.reject(/Each patch operation must have an "op" property/);
 
-            expect(client.patch("x", [
-                // @ts-ignore
-                { op: "add", path: "/x" }
-            ])).to.reject(/Missing "value" property/);
+                expect(client.patch("x", [
+                    // @ts-ignore
+                    { op: "add" }
+                ])).to.reject(/Missing "path" property/);
 
-            expect(client.patch("x", [
-                // @ts-ignore
-                { op: "replace", path: "/x" }
-            ])).to.reject(/Missing "value" property/);
+                expect(client.patch("x", [
+                    // @ts-ignore
+                    { op: "add", path: "/x" }
+                ])).to.reject(/Missing "value" property/);
 
-            expect(client.patch("x", [
-                // @ts-ignore
-                { op: "test", path: "/x", value: 4, custom: true }
-            ])).to.reject(/Contains unknown properties/);
+                expect(client.patch("x", [
+                    // @ts-ignore
+                    { op: "replace", path: "/x" }
+                ])).to.reject(/Missing "value" property/);
 
-            expect(client.patch("x", [
-                // @ts-ignore
-                { op: "move", path: "/x" }
-            ])).to.reject(/Requires a string "from" property/);
+                expect(client.patch("x", [
+                    // @ts-ignore
+                    { op: "test", path: "/x", value: 4, custom: true }
+                ])).to.reject(/Contains unknown properties/);
 
-            expect(client.patch("x", [
-                // @ts-ignore
-                { op: "copy", path: "/x" }
-            ])).to.reject(/Requires a string "from" property/);
+                expect(client.patch("x", [
+                    // @ts-ignore
+                    { op: "move", path: "/x" }
+                ])).to.reject(/Requires a string "from" property/);
 
-            expect(client.patch("x", [
-                // @ts-ignore
-                { op: "move", path: "/x", from: "/y", custom: true }
-            ])).to.reject(/Contains unknown properties/);
+                expect(client.patch("x", [
+                    // @ts-ignore
+                    { op: "copy", path: "/x" }
+                ])).to.reject(/Requires a string "from" property/);
 
-            expect(client.patch("x", [
-                // @ts-ignore
-                { op: "remove", path: "/x", custom: true }
-            ])).to.reject(/Contains unknown properties/);
+                expect(client.patch("x", [
+                    // @ts-ignore
+                    { op: "move", path: "/x", from: "/y", custom: true }
+                ])).to.reject(/Contains unknown properties/);
+
+                expect(client.patch("x", [
+                    // @ts-ignore
+                    { op: "remove", path: "/x", custom: true }
+                ])).to.reject(/Contains unknown properties/);
+            } finally {
+                FhirClient.prototype.fhirRequest = orig
+            }
         });
     });
 

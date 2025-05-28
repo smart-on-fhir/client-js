@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.6.0
+- Mark @types/hapi peer dependency as optional #193
+- Auto-detect Chrome driver version in GitHub CI
+- Changes to support code and stateKey as ReadyOptions in auth flow #191
+- Added new `FhirClient` base class to simplify usage with open servers. This can work without requiring request end response objects in Node.
+- npm audit fix - to fix some of the latest dependency issues
+
 ## v2.5.5
 - Updated dependencies, browserlist db, CVEs...
 - Updated docs and links to examples

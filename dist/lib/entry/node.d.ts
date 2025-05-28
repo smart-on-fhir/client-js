@@ -8,5 +8,6 @@ declare namespace smart {
         new (): AbortController;
         prototype: AbortController;
     };
+    var FhirClient: typeof import("../FhirClient").default;
 }
 export = smart;

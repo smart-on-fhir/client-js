@@ -1,4 +1,5 @@
 import { fhirclient } from "./types";
+import FhirClient from "./FhirClient";
 /**
  * This is a FHIR client that is returned to you from the `ready()` call of the
  * **SMART API**. You can also create it yourself if needed:
@@ -11,7 +12,7 @@ import { fhirclient } from "./types";
  * const client = smart(req, res).client("https://r4.smarthealthit.org");
  * ```
  */
-export default class Client {
+export default class Client extends FhirClient {
     /**
      * The state of the client instance is an object with various properties.
      * It contains some details about how the client has been authorized and
@@ -185,54 +186,6 @@ export default class Client {
      */
     private _clearState;
     /**
-     * Creates a new resource in a server-assigned location
-     * @see http://hl7.org/fhir/http.html#create
-     * @param resource A FHIR resource to be created
-     * @param [requestOptions] Any options to be passed to the fetch call.
-     * Note that `method` and `body` will be ignored.
-     * @category Request
-     */
-    create<R = fhirclient.FHIR.Resource, O extends fhirclient.FetchOptions = {}>(resource: fhirclient.FHIR.Resource, requestOptions?: O): Promise<O["includeResponse"] extends true ? fhirclient.CombinedFetchResult<R> : R>;
-    /**
-     * Creates a new current version for an existing resource or creates an
-     * initial version if no resource already exists for the given id.
-     * @see http://hl7.org/fhir/http.html#update
-     * @param resource A FHIR resource to be updated
-     * @param requestOptions Any options to be passed to the fetch call.
-     * Note that `method` and `body` will be ignored.
-     * @category Request
-     */
-    update<R = fhirclient.FHIR.Resource, O extends fhirclient.FetchOptions = {}>(resource: fhirclient.FHIR.Resource, requestOptions?: O): Promise<O["includeResponse"] extends true ? fhirclient.CombinedFetchResult<R> : R>;
-    /**
-     * Removes an existing resource.
-     * @see http://hl7.org/fhir/http.html#delete
-     * @param url Relative URI of the FHIR resource to be deleted
-     * (format: `resourceType/id`)
-     * @param requestOptions Any options (except `method` which will be fixed
-     * to `DELETE`) to be passed to the fetch call.
-     * @category Request
-     */
-    delete<R = unknown>(url: string, requestOptions?: fhirclient.FetchOptions): Promise<R>;
-    /**
-     * Makes a JSON Patch to the given resource
-     * @see http://hl7.org/fhir/http.html#patch
-     * @param url Relative URI of the FHIR resource to be patched
-     * (format: `resourceType/id`)
-     * @param patch A JSON Patch array to send to the server, For details
-     * see https://datatracker.ietf.org/doc/html/rfc6902
-     * @param requestOptions Any options to be passed to the fetch call,
-     * except for `method`, `url` and `body` which cannot be overridden.
-     * @since 2.4.0
-     * @category Request
-     * @typeParam ResolveType This method would typically resolve with the
-     * patched resource or reject with an OperationOutcome. However, this may
-     * depend on the server implementation or even on the request headers.
-     * For that reason, if the default resolve type (which is
-     * [[fhirclient.FHIR.Resource]]) does not work for you, you can pass
-     * in your own resolve type parameter.
-     */
-    patch<ResolveType = fhirclient.FHIR.Resource>(url: string, patch: fhirclient.JsonPatch, requestOptions?: fhirclient.FetchOptions): Promise<ResolveType>;
-    /**
      * @param requestOptions Can be a string URL (relative to the serviceUrl),
      * or an object which will be passed to fetch()
      * @param fhirOptions Additional options to control the behavior
@@ -334,17 +287,4 @@ export default class Client {
      * @returns {*} Whatever is found in the path or undefined
      */
     getState(path?: string): any;
-    /**
-     * Returns a promise that will be resolved with the fhir version as defined
-     * in the CapabilityStatement.
-     */
-    getFhirVersion(): Promise<string>;
-    /**
-     * Returns a promise that will be resolved with the numeric fhir version
-     * - 2 for DSTU2
-     * - 3 for STU3
-     * - 4 for R4
-     * - 0 if the version is not known
-     */
-    getFhirRelease(): Promise<number>;
 }

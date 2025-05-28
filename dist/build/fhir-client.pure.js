@@ -16,6 +16,7 @@ Object.defineProperty(exports, "__esModule", ({
 const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 const strings_1 = __webpack_require__(/*! ./strings */ "./src/strings.ts");
 const settings_1 = __webpack_require__(/*! ./settings */ "./src/settings.ts");
+const FhirClient_1 = __webpack_require__(/*! ./FhirClient */ "./src/FhirClient.ts");
 // $lab:coverage:off$
 // @ts-ignore
 const {
@@ -50,117 +51,6 @@ async function contextualize(requestOptions, client) {
   return requestOptions;
 }
 /**
- * Gets single reference by id. Caches the result.
- * @param refId
- * @param cache A map to store the resolved refs
- * @param client The client instance
- * @param requestOptions Only signal and headers are currently used if provided
- * @returns The resolved reference
- * @private
- */
-function getRef(refId, cache, client, requestOptions) {
-  if (!cache[refId]) {
-    const {
-      signal,
-      headers
-    } = requestOptions;
-    // Note that we set cache[refId] immediately! When the promise is
-    // settled it will be updated. This is to avoid a ref being fetched
-    // twice because some of these requests are executed in parallel.
-    cache[refId] = client.request({
-      url: refId,
-      headers,
-      signal
-    }).then(res => {
-      cache[refId] = res;
-      return res;
-    }, error => {
-      delete cache[refId];
-      throw error;
-    });
-  }
-  return Promise.resolve(cache[refId]);
-}
-/**
- * Resolves a reference in the given resource.
- * @param obj FHIR Resource
- */
-function resolveRef(obj, path, graph, cache, client, requestOptions) {
-  const node = (0, lib_1.getPath)(obj, path);
-  if (node) {
-    const isArray = Array.isArray(node);
-    return Promise.all((0, lib_1.makeArray)(node).filter(Boolean).map((item, i) => {
-      const ref = item.reference;
-      if (ref) {
-        return getRef(ref, cache, client, requestOptions).then(sub => {
-          if (graph) {
-            if (isArray) {
-              if (path.indexOf("..") > -1) {
-                (0, lib_1.setPath)(obj, `${path.replace("..", `.${i}.`)}`, sub);
-              } else {
-                (0, lib_1.setPath)(obj, `${path}.${i}`, sub);
-              }
-            } else {
-              (0, lib_1.setPath)(obj, path, sub);
-            }
-          }
-        }).catch(ex => {
-          /* ignore missing references */
-          if (ex.status !== 404) {
-            throw ex;
-          }
-        });
-      }
-    }));
-  }
-}
-/**
- * Given a resource and a list of ref paths - resolves them all
- * @param obj FHIR Resource
- * @param fhirOptions The fhir options of the initiating request call
- * @param cache A map to store fetched refs
- * @param client The client instance
- * @private
- */
-function resolveRefs(obj, fhirOptions, cache, client, requestOptions) {
-  // 1. Sanitize paths, remove any invalid ones
-  let paths = (0, lib_1.makeArray)(fhirOptions.resolveReferences).filter(Boolean) // No false, 0, null, undefined or ""
-  .map(path => String(path).trim()).filter(Boolean); // No space-only strings
-  // 2. Remove duplicates
-  paths = paths.filter((p, i) => {
-    const index = paths.indexOf(p, i + 1);
-    if (index > -1) {
-      debug("Duplicated reference path \"%s\"", p);
-      return false;
-    }
-    return true;
-  });
-  // 3. Early exit if no valid paths are found
-  if (!paths.length) {
-    return Promise.resolve();
-  }
-  // 4. Group the paths by depth so that child refs are looked up
-  // after their parents!
-  const groups = {};
-  paths.forEach(path => {
-    const len = path.split(".").length;
-    if (!groups[len]) {
-      groups[len] = [];
-    }
-    groups[len].push(path);
-  });
-  // 5. Execute groups sequentially! Paths within same group are
-  // fetched in parallel!
-  let task = Promise.resolve();
-  Object.keys(groups).sort().forEach(len => {
-    const group = groups[len];
-    task = task.then(() => Promise.all(group.map(path => {
-      return resolveRef(obj, path, !!fhirOptions.graph, cache, client, requestOptions);
-    })));
-  });
-  return task;
-}
-/**
  * This is a FHIR client that is returned to you from the `ready()` call of the
  * **SMART API**. You can also create it yourself if needed:
  *
@@ -172,21 +62,22 @@ function resolveRefs(obj, fhirOptions, cache, client, requestOptions) {
  * const client = smart(req, res).client("https://r4.smarthealthit.org");
  * ```
  */
-class Client {
+class Client extends FhirClient_1.default {
   /**
    * Validates the parameters, creates an instance and tries to connect it to
    * FhirJS, if one is available globally.
    */
   constructor(environment, state) {
-    /**
-     * @category Utility
-     */
-    this.units = lib_1.units;
     const _state = typeof state == "string" ? {
       serverUrl: state
     } : state;
     // Valid serverUrl is required!
     (0, lib_1.assert)(_state.serverUrl && _state.serverUrl.match(/https?:\/\/.+/), "A \"serverUrl\" option is required and must begin with \"http(s)\"");
+    super(_state.serverUrl);
+    /**
+     * @category Utility
+     */
+    this.units = lib_1.units;
     this.state = _state;
     this.environment = environment;
     this._refreshTask = null;
@@ -450,97 +341,6 @@ class Client {
     this.state.tokenResponse = {};
   }
   /**
-   * Creates a new resource in a server-assigned location
-   * @see http://hl7.org/fhir/http.html#create
-   * @param resource A FHIR resource to be created
-   * @param [requestOptions] Any options to be passed to the fetch call.
-   * Note that `method` and `body` will be ignored.
-   * @category Request
-   */
-  create(resource, requestOptions) {
-    return this.request({
-      ...requestOptions,
-      url: `${resource.resourceType}`,
-      method: "POST",
-      body: JSON.stringify(resource),
-      headers: {
-        // TODO: Do we need to alternate with "application/json+fhir"?
-        "content-type": "application/json",
-        ...(requestOptions || {}).headers
-      }
-    });
-  }
-  /**
-   * Creates a new current version for an existing resource or creates an
-   * initial version if no resource already exists for the given id.
-   * @see http://hl7.org/fhir/http.html#update
-   * @param resource A FHIR resource to be updated
-   * @param requestOptions Any options to be passed to the fetch call.
-   * Note that `method` and `body` will be ignored.
-   * @category Request
-   */
-  update(resource, requestOptions) {
-    return this.request({
-      ...requestOptions,
-      url: `${resource.resourceType}/${resource.id}`,
-      method: "PUT",
-      body: JSON.stringify(resource),
-      headers: {
-        // TODO: Do we need to alternate with "application/json+fhir"?
-        "content-type": "application/json",
-        ...(requestOptions || {}).headers
-      }
-    });
-  }
-  /**
-   * Removes an existing resource.
-   * @see http://hl7.org/fhir/http.html#delete
-   * @param url Relative URI of the FHIR resource to be deleted
-   * (format: `resourceType/id`)
-   * @param requestOptions Any options (except `method` which will be fixed
-   * to `DELETE`) to be passed to the fetch call.
-   * @category Request
-   */
-  delete(url, requestOptions = {}) {
-    return this.request({
-      ...requestOptions,
-      url,
-      method: "DELETE"
-    });
-  }
-  /**
-   * Makes a JSON Patch to the given resource
-   * @see http://hl7.org/fhir/http.html#patch
-   * @param url Relative URI of the FHIR resource to be patched
-   * (format: `resourceType/id`)
-   * @param patch A JSON Patch array to send to the server, For details
-   * see https://datatracker.ietf.org/doc/html/rfc6902
-   * @param requestOptions Any options to be passed to the fetch call,
-   * except for `method`, `url` and `body` which cannot be overridden.
-   * @since 2.4.0
-   * @category Request
-   * @typeParam ResolveType This method would typically resolve with the
-   * patched resource or reject with an OperationOutcome. However, this may
-   * depend on the server implementation or even on the request headers.
-   * For that reason, if the default resolve type (which is
-   * [[fhirclient.FHIR.Resource]]) does not work for you, you can pass
-   * in your own resolve type parameter.
-   */
-  async patch(url, patch, requestOptions = {}) {
-    (0, lib_1.assertJsonPatch)(patch);
-    return this.request({
-      ...requestOptions,
-      url,
-      method: "PATCH",
-      body: JSON.stringify(patch),
-      headers: {
-        "prefer": "return=presentation",
-        "content-type": "application/json-patch+json; charset=UTF-8",
-        ...requestOptions.headers
-      }
-    });
-  }
-  /**
    * @param requestOptions Can be a string URL (relative to the serviceUrl),
    * or an object which will be passed to fetch()
    * @param fhirOptions Additional options to control the behavior
@@ -564,41 +364,36 @@ class Client {
       graph: fhirOptions.graph !== false,
       flat: !!fhirOptions.flat,
       pageLimit: (_a = fhirOptions.pageLimit) !== null && _a !== void 0 ? _a : 1,
-      resolveReferences: fhirOptions.resolveReferences || [],
+      resolveReferences: (0, lib_1.makeArray)(fhirOptions.resolveReferences || []),
       useRefreshToken: fhirOptions.useRefreshToken !== false,
       onPage: typeof fhirOptions.onPage == "function" ? fhirOptions.onPage : undefined
     };
     const signal = requestOptions.signal || undefined;
     // Refresh the access token if needed
-    const job = options.useRefreshToken ? this.refreshIfNeeded({
-      signal
-    }).then(() => requestOptions) : Promise.resolve(requestOptions);
-    let response;
-    return job
+    if (options.useRefreshToken) {
+      await this.refreshIfNeeded({
+        signal
+      });
+    }
     // Add the Authorization header now, after the access token might
     // have been updated
-    .then(requestOptions => {
-      const authHeader = this.getAuthorizationHeader();
-      if (authHeader) {
-        requestOptions.headers = {
-          ...requestOptions.headers,
-          authorization: authHeader
-        };
+    const authHeader = this.getAuthorizationHeader();
+    if (authHeader) {
+      requestOptions.headers = {
+        ...requestOptions.headers,
+        authorization: authHeader
+      };
+    }
+    debugRequest("%s, options: %O, fhirOptions: %O", url, requestOptions, options);
+    let response;
+    return super.fhirRequest(url, requestOptions).then(result => {
+      if (requestOptions.includeResponse) {
+        response = result.response;
+        return result.body;
       }
-      return requestOptions;
+      return result;
     })
-    // Make the request
-    .then(requestOptions => {
-      debugRequest("%s, options: %O, fhirOptions: %O", url, requestOptions, options);
-      return (0, lib_1.request)(url, requestOptions).then(result => {
-        if (requestOptions.includeResponse) {
-          response = result.response;
-          return result.body;
-        }
-        return result;
-      });
-    })
-    // Handle 401 ------------------------------------------------------
+    // Handle 401 ----------------------------------------------------------
     .catch(async error => {
       if (error.status == 401) {
         // !accessToken -> not authorized -> No session. Need to launch.
@@ -626,13 +421,13 @@ class Client {
       }
       throw error;
     })
-    // Handle 403 ------------------------------------------------------
+    // Handle 403 ----------------------------------------------------------
     .catch(error => {
       if (error.status == 403) {
         debugRequest("Permission denied! Please make sure that you have requested the proper scopes.");
       }
       throw error;
-    }).then(data => {
+    }).then(async data => {
       // At this point we don't know what `data` actually is!
       // We might get an empty or falsy result. If so return it as is
       // Also handle raw responses
@@ -645,16 +440,10 @@ class Client {
         }
         return data;
       }
-      // Resolve References ------------------------------------------
-      return (async _data => {
-        if (_data.resourceType == "Bundle") {
-          await Promise.all((_data.entry || []).map(item => resolveRefs(item.resource, options, _resolvedRefs, this, requestOptions)));
-        } else {
-          await resolveRefs(_data, options, _resolvedRefs, this, requestOptions);
-        }
-        return _data;
-      })(data)
-      // Pagination ----------------------------------------------
+      // Resolve References ----------------------------------------------
+      await this.fetchReferences(data, options.resolveReferences, options.graph, _resolvedRefs, requestOptions);
+      return Promise.resolve(data)
+      // Pagination ------------------------------------------------------
       .then(async _data => {
         if (_data && _data.resourceType == "Bundle") {
           const links = _data.link || [];
@@ -691,7 +480,7 @@ class Client {
         }
         return _data;
       })
-      // Finalize ------------------------------------------------
+      // Finalize --------------------------------------------------------
       .then(_data => {
         if (options.graph) {
           _resolvedRefs = {};
@@ -888,12 +677,298 @@ class Client {
       ...this.state
     }, path);
   }
+}
+exports["default"] = Client;
+
+/***/ }),
+
+/***/ "./src/FhirClient.ts":
+/*!***************************!*\
+  !*** ./src/FhirClient.ts ***!
+  \***************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+const settings_1 = __webpack_require__(/*! ./settings */ "./src/settings.ts");
+const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
+const debug = lib_1.debug.extend("FhirClient");
+/**
+ * This is a basic FHIR client for making basic FHIR API calls
+ */
+class FhirClient {
+  /**
+   * Validates the parameters, creates an instance and tries to connect it to
+   * FhirJS, if one is available globally.
+   */
+  constructor(fhirBaseUrl) {
+    (0, lib_1.assert)(fhirBaseUrl && typeof fhirBaseUrl === "string" && fhirBaseUrl.match(/https?:\/\/.+/), "A \"fhirBaseUrl\" string parameter is required and must begin with \"http(s)\"");
+    this.fhirBaseUrl = fhirBaseUrl;
+  }
+  /**
+   * Creates a new resource in a server-assigned location
+   * @see http://hl7.org/fhir/http.html#create
+   * @param resource A FHIR resource to be created
+   * @param [requestOptions] Any options to be passed to the fetch call.
+   * Note that `method` and `body` will be ignored.
+   * @category Request
+   */
+  async create(resource, requestOptions) {
+    return this.fhirRequest(resource.resourceType, {
+      ...requestOptions,
+      method: "POST",
+      body: JSON.stringify(resource),
+      headers: {
+        "content-type": "application/json",
+        ...(requestOptions || {}).headers
+      }
+    });
+  }
+  /**
+   * Creates a new current version for an existing resource or creates an
+   * initial version if no resource already exists for the given id.
+   * @see http://hl7.org/fhir/http.html#update
+   * @param resource A FHIR resource to be updated
+   * @param requestOptions Any options to be passed to the fetch call.
+   * Note that `method` and `body` will be ignored.
+   * @category Request
+   */
+  async update(resource, requestOptions) {
+    return this.fhirRequest(`${resource.resourceType}/${resource.id}`, {
+      ...requestOptions,
+      method: "PUT",
+      body: JSON.stringify(resource),
+      headers: {
+        "content-type": "application/json",
+        ...(requestOptions || {}).headers
+      }
+    });
+  }
+  /**
+   * Removes an existing resource.
+   * @see http://hl7.org/fhir/http.html#delete
+   * @param url Relative URI of the FHIR resource to be deleted
+   * (format: `resourceType/id`)
+   * @param requestOptions Any options (except `method` which will be fixed
+   * to `DELETE`) to be passed to the fetch call.
+   * @category Request
+   */
+  async delete(url, requestOptions = {}) {
+    return this.fhirRequest(url, {
+      ...requestOptions,
+      method: "DELETE"
+    });
+  }
+  /**
+   * Makes a JSON Patch to the given resource
+   * @see http://hl7.org/fhir/http.html#patch
+   * @param url Relative URI of the FHIR resource to be patched
+   * (format: `resourceType/id`)
+   * @param patch A JSON Patch array to send to the server, For details
+   * see https://datatracker.ietf.org/doc/html/rfc6902
+   * @param requestOptions Any options to be passed to the fetch call,
+   * except for `method`, `url` and `body` which cannot be overridden.
+   * @since 2.4.0
+   * @category Request
+   * @typeParam ResolveType This method would typically resolve with the
+   * patched resource or reject with an OperationOutcome. However, this may
+   * depend on the server implementation or even on the request headers.
+   * For that reason, if the default resolve type (which is
+   * [[fhirclient.FHIR.Resource]]) does not work for you, you can pass
+   * in your own resolve type parameter.
+   */
+  async patch(url, patch, requestOptions = {}) {
+    (0, lib_1.assertJsonPatch)(patch);
+    return this.fhirRequest(url, {
+      ...requestOptions,
+      method: "PATCH",
+      body: JSON.stringify(patch),
+      headers: {
+        "prefer": "return=presentation",
+        "content-type": "application/json-patch+json; charset=UTF-8",
+        ...requestOptions.headers
+      }
+    });
+  }
+  async resolveRef(obj, path, graph, cache, requestOptions = {}) {
+    const node = (0, lib_1.getPath)(obj, path);
+    if (node) {
+      const isArray = Array.isArray(node);
+      return Promise.all((0, lib_1.makeArray)(node).filter(Boolean).map((item, i) => {
+        const ref = item.reference;
+        if (ref) {
+          return this.fhirRequest(ref, {
+            ...requestOptions,
+            includeResponse: false,
+            cacheMap: cache
+          }).then(sub => {
+            if (graph) {
+              if (isArray) {
+                if (path.indexOf("..") > -1) {
+                  (0, lib_1.setPath)(obj, `${path.replace("..", `.${i}.`)}`, sub);
+                } else {
+                  (0, lib_1.setPath)(obj, `${path}.${i}`, sub);
+                }
+              } else {
+                (0, lib_1.setPath)(obj, path, sub);
+              }
+            }
+          }).catch(ex => {
+            if ((ex === null || ex === void 0 ? void 0 : ex.status) === 404) {
+              console.warn(`Missing reference ${ref}. ${ex}`);
+            } else {
+              throw ex;
+            }
+          });
+        }
+      }));
+    }
+  }
+  /**
+   * Fetches all references in the given resource, ignoring duplicates, and
+   * then modifies the resource by "mounting" the resolved references in place
+   */
+  async resolveReferences(resource, references, requestOptions = {}) {
+    await this.fetchReferences(resource, references, true, {}, requestOptions);
+  }
+  async fetchReferences(resource, references, graph, cache = {}, requestOptions = {}) {
+    if (resource.resourceType == "Bundle") {
+      for (const item of resource.entry || []) {
+        if (item.resource) {
+          await this.fetchReferences(item.resource, references, graph, cache, requestOptions);
+        }
+      }
+      return cache;
+    }
+    // 1. Sanitize paths, remove any invalid ones
+    let paths = references.map(path => String(path).trim()).filter(Boolean);
+    // 2. Remove duplicates
+    paths = paths.reduce((prev, cur) => {
+      if (prev.includes(cur)) {
+        debug("Duplicated reference path \"%s\"", cur);
+      } else {
+        prev.push(cur);
+      }
+      return prev;
+    }, []);
+    // 3. Early exit if no valid paths are found
+    if (!paths.length) {
+      return Promise.resolve(cache);
+    }
+    // 4. Group the paths by depth so that child refs are looked up
+    // after their parents!
+    const groups = {};
+    paths.forEach(path => {
+      const len = path.split(".").length;
+      if (!groups[len]) {
+        groups[len] = [];
+      }
+      groups[len].push(path);
+    });
+    // 5. Execute groups sequentially! Paths within same group are
+    // fetched in parallel!
+    let task = Promise.resolve();
+    Object.keys(groups).sort().forEach(len => {
+      const group = groups[len];
+      task = task.then(() => Promise.all(group.map(path => {
+        return this.resolveRef(resource, path, graph, cache, requestOptions);
+      })));
+    });
+    await task;
+    return cache;
+  }
+  /**
+   * Fetches all references in the given resource, ignoring duplicates
+   */
+  async getReferences(resource, references, requestOptions = {}) {
+    const refs = await this.fetchReferences(resource, references, false, {}, requestOptions);
+    const out = {};
+    for (const key in refs) {
+      out[key] = await refs[key];
+    }
+    return out;
+  }
+  /**
+   * Given a FHIR Bundle or a URL pointing to a bundle, iterates over all
+   * entry resources. Note that this will also automatically crawl through
+   * further pages (if any)
+   */
+  async *resources(bundleOrUrl, options) {
+    let count = 0;
+    for await (const page of this.pages(bundleOrUrl, options)) {
+      for (const entry of page.entry || []) {
+        if ((options === null || options === void 0 ? void 0 : options.limit) && ++count > options.limit) {
+          return;
+        }
+        yield entry.resource;
+      }
+    }
+  }
+  /**
+   * Given a FHIR Bundle or a URL pointing to a bundle, iterates over all
+   * pages. Note that this will automatically crawl through
+   * further pages (if any) but it will not detect previous pages. It is
+   * designed to be called on the first page and fetch any followup pages.
+   */
+  async *pages(bundleOrUrl, requestOptions) {
+    var _a, _b;
+    const {
+      limit,
+      ...options
+    } = requestOptions || {};
+    const fetchPage = url => this.fhirRequest(url, options);
+    let page = typeof bundleOrUrl === "string" || bundleOrUrl instanceof URL ? await fetchPage(bundleOrUrl) : bundleOrUrl;
+    let count = 0;
+    while (page && page.resourceType === "Bundle" && (!limit || ++count <= limit)) {
+      // Yield the current page
+      yield page;
+      // If caller aborted, stop crawling
+      if ((_a = options === null || options === void 0 ? void 0 : options.signal) === null || _a === void 0 ? void 0 : _a.aborted) {
+        break;
+      }
+      // Find the "next" link
+      const nextLink = ((_b = page.link) !== null && _b !== void 0 ? _b : []).find(l => l.relation === 'next' && typeof l.url === 'string');
+      if (!nextLink) {
+        break; // no more pages
+      }
+      // Fetch the next page
+      page = await fetchPage(nextLink.url);
+    }
+  }
+  /**
+   * The method responsible for making all http requests
+   */
+  async fhirRequest(uri, options = {}) {
+    (0, lib_1.assert)(options, "fhirRequest requires a uri as first argument");
+    const path = uri + "";
+    const url = (0, lib_1.absolute)(path, this.fhirBaseUrl);
+    const {
+      cacheMap
+    } = options;
+    if (cacheMap) {
+      if (!(path in cacheMap)) {
+        cacheMap[path] = (0, lib_1.request)(url, options).then(res => {
+          cacheMap[path] = res;
+          return res;
+        }).catch(error => {
+          delete cacheMap[path];
+          throw error;
+        });
+      }
+      return cacheMap[path];
+    }
+    return (0, lib_1.request)(url, options);
+  }
   /**
    * Returns a promise that will be resolved with the fhir version as defined
    * in the CapabilityStatement.
    */
-  getFhirVersion() {
-    return (0, lib_1.fetchConformanceStatement)(this.state.serverUrl).then(metadata => metadata.fhirVersion);
+  async getFhirVersion() {
+    return (0, lib_1.fetchConformanceStatement)(this.fhirBaseUrl).then(metadata => metadata.fhirVersion);
   }
   /**
    * Returns a promise that will be resolved with the numeric fhir version
@@ -902,14 +977,14 @@ class Client {
    * - 4 for R4
    * - 0 if the version is not known
    */
-  getFhirRelease() {
+  async getFhirRelease() {
     return this.getFhirVersion().then(v => {
       var _a;
       return (_a = settings_1.fhirVersions[v]) !== null && _a !== void 0 ? _a : 0;
     });
   }
 }
-exports["default"] = Client;
+exports["default"] = FhirClient;
 
 /***/ }),
 
@@ -1145,6 +1220,7 @@ exports["default"] = BrowserAdapter;
 // In Browsers we create an adapter, get the SMART api from it and build the
 // global FHIR object
 const BrowserAdapter_1 = __webpack_require__(/*! ../adapters/BrowserAdapter */ "./src/adapters/BrowserAdapter.ts");
+const FhirClient_1 = __webpack_require__(/*! ../FhirClient */ "./src/FhirClient.ts");
 const adapter = new BrowserAdapter_1.default();
 const {
   ready,
@@ -1165,6 +1241,11 @@ if (false) {}
 const FHIR = {
   AbortController: window.AbortController,
   client,
+  /**
+   * Using this class if you are connecting to open server that does not
+   * require authorization.
+   */
+  FhirClient: FhirClient_1.default,
   utils,
   oauth2: {
     settings: options,

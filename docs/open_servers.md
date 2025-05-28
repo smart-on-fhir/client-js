@@ -167,3 +167,8 @@ In this case the auth flow will be skipped and `authorize` will redirect immedia
 - If `fhirServiceUrl` is an open server, it should work regardless
 
 The `fhirServiceUrl` can also be passed as URL parameter. An `iss` option or URL parameter will take precedence over `fhirServiceUrl`. This means that you can use the `fhirServiceUrl` option to specify which server you want to connect to if your launch endpoint is visited directly (with no `iss` parameter). If the same is called by an EHR or other launcher, it will have an `iss` parameter and your default server (from fhirServiceUrl) will be ignored. 
+
+## Using Pure FhirClient
+Since version `2.6.0` we have split the FHIR request logic in two pieces by introducing a `FhirClient` base class. This class handles everything that does not require authorization or SMART-specific logic. I is now the base class for the Client instance returned after SMART authorization.
+
+If you deal with an open FHIR server this library might feel like an overkill. It would be so much easier to just use the `FhirClient` class in this case. More info on how to use it [here](fhir_client.md).
