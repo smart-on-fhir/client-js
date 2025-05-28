@@ -220,7 +220,7 @@ export default class FhirClient
         graph: boolean,
         cache: Record<string, any> = {},
         requestOptions: Omit<fhirclient.RequestOptions, "url"> = {}
-    ): Promise<typeof cache> {
+    ): Promise<Record<string, any>> {
 
         if (resource.resourceType == "Bundle") {
             for (const item of ((resource as Bundle).entry || [])) {

@@ -3,6 +3,7 @@
 // In Browsers we create an adapter, get the SMART api from it and build the
 // global FHIR object
 const BrowserAdapter_1 = require("../adapters/BrowserAdapter");
+const FhirClient_1 = require("../FhirClient");
 const adapter = new BrowserAdapter_1.default();
 const {
   ready,
@@ -32,6 +33,11 @@ if (typeof FHIRCLIENT_PURE == "undefined") {
 const FHIR = {
   AbortController: window.AbortController,
   client,
+  /**
+   * Using this class if you are connecting to open server that does not
+   * require authorization.
+   */
+  FhirClient: FhirClient_1.default,
   utils,
   oauth2: {
     settings: options,
