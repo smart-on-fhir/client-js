@@ -1,4 +1,5 @@
 import HapiAdapter from "../adapters/HapiAdapter";
+import FhirClient from "../FhirClient";
 import { fhirclient } from "../types";
 import { AbortController } from "abortcontroller-polyfill/dist/cjs-ponyfill";
 import { ResponseToolkit, Request } from "hapi";
@@ -18,5 +19,6 @@ function smart(
 }
 
 smart.AbortController = AbortController;
+smart.FhirClient = FhirClient;
 
 export = smart;

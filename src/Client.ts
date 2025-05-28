@@ -2,7 +2,6 @@ import {
     absolute,
     debug as _debug,
     getPath,
-    setPath,
     jwtDecode,
     makeArray,
     request,
@@ -12,15 +11,15 @@ import {
     getPatientParam,
     fetchConformanceStatement,
     getAccessTokenExpiration,
-    assertJsonPatch,
     assert
 } from "./lib";
 
 import str from "./strings";
-import { SMART_KEY, patientCompartment, fhirVersions } from "./settings";
+import { SMART_KEY, patientCompartment } from "./settings";
 import HttpError from "./HttpError";
 import BrowserAdapter from "./adapters/BrowserAdapter";
 import { fhirclient } from "./types";
+import FhirClient from "./FhirClient";
 
 // $lab:coverage:off$
 // @ts-ignore
@@ -62,145 +61,6 @@ async function contextualize(
 }
 
 /**
- * Gets single reference by id. Caches the result.
- * @param refId
- * @param cache A map to store the resolved refs
- * @param client The client instance
- * @param requestOptions Only signal and headers are currently used if provided
- * @returns The resolved reference
- * @private
- */
-function getRef(
-    refId: string,
-    cache: Record<string, any>,
-    client: Client,
-    requestOptions: RequestInit
-): Promise<fhirclient.JsonObject> {
-    if (!cache[refId]) {
-
-        const { signal, headers } = requestOptions;
-
-        // Note that we set cache[refId] immediately! When the promise is
-        // settled it will be updated. This is to avoid a ref being fetched
-        // twice because some of these requests are executed in parallel.
-        cache[refId] = client.request({
-            url: refId,
-            headers,
-            signal
-        }).then(res => {
-            cache[refId] = res;
-            return res;
-        }, (error: Error) => {
-            delete cache[refId];
-            throw error;
-        });
-    }
-
-    return Promise.resolve(cache[refId]);
-}
-
-/**
- * Resolves a reference in the given resource.
- * @param obj FHIR Resource
- */
-function resolveRef(
-    obj: fhirclient.FHIR.Resource,
-    path: string,
-    graph: boolean,
-    cache: fhirclient.JsonObject,
-    client: Client,
-    requestOptions: fhirclient.RequestOptions
-) {
-    const node = getPath(obj, path);
-    if (node) {
-        const isArray = Array.isArray(node);
-        return Promise.all(makeArray(node).filter(Boolean).map((item, i) => {
-            const ref = item.reference;
-            if (ref) {
-                return getRef(ref, cache, client, requestOptions).then(sub => {
-                    if (graph) {
-                        if (isArray) {
-                            if (path.indexOf("..") > -1) {
-                                setPath(obj, `${path.replace("..", `.${i}.`)}`, sub);    
-                            } else {
-                                setPath(obj, `${path}.${i}`, sub);
-                            }
-                        } else {
-                            setPath(obj, path, sub);
-                        }
-                    }
-                }).catch((ex) => {
-                    /* ignore missing references */
-                    if (ex.status !== 404) {
-                        throw ex;
-                    }
-                });
-            }
-        }));
-    }
-}
-
-/**
- * Given a resource and a list of ref paths - resolves them all
- * @param obj FHIR Resource
- * @param fhirOptions The fhir options of the initiating request call
- * @param cache A map to store fetched refs
- * @param client The client instance
- * @private
- */
-function resolveRefs(
-    obj: fhirclient.FHIR.Resource,
-    fhirOptions: fhirclient.FhirOptions,
-    cache: fhirclient.JsonObject,
-    client: Client,
-    requestOptions: fhirclient.RequestOptions
-) {
-
-    // 1. Sanitize paths, remove any invalid ones
-    let paths = makeArray(fhirOptions.resolveReferences)
-        .filter(Boolean) // No false, 0, null, undefined or ""
-        .map(path => String(path).trim())
-        .filter(Boolean); // No space-only strings
-
-    // 2. Remove duplicates
-    paths = paths.filter((p, i) => {
-        const index = paths.indexOf(p, i + 1);
-        if (index > -1) {
-            debug("Duplicated reference path \"%s\"", p);
-            return false;
-        }
-        return true;
-    });
-
-    // 3. Early exit if no valid paths are found
-    if (!paths.length) {
-        return Promise.resolve();
-    }
-
-    // 4. Group the paths by depth so that child refs are looked up
-    // after their parents!
-    const groups: Record<string, any> = {};
-    paths.forEach(path => {
-        const len = path.split(".").length;
-        if (!groups[len]) {
-            groups[len] = [];
-        }
-        groups[len].push(path);
-    });
-
-    // 5. Execute groups sequentially! Paths within same group are
-    // fetched in parallel!
-    let task: Promise<any> = Promise.resolve();
-    Object.keys(groups).sort().forEach(len => {
-        const group = groups[len];
-        task = task.then(() => Promise.all(group.map((path: string) => {
-            return resolveRef(obj, path, !!fhirOptions.graph, cache, client, requestOptions);
-        })));
-    });
-    return task;
-}
-
-/**
  * This is a FHIR client that is returned to you from the `ready()` call of the
  * **SMART API**. You can also create it yourself if needed:
  *
@@ -212,7 +72,7 @@ function resolveRefs(
  * const client = smart(req, res).client("https://r4.smarthealthit.org");
  * ```
  */
-export default class Client
+export default class Client extends FhirClient
 {
     /**
      * The state of the client instance is an object with various properties.
@@ -360,12 +220,14 @@ export default class Client
     constructor(environment: fhirclient.Adapter, state: fhirclient.ClientState | string)
     {
         const _state = typeof state == "string" ? { serverUrl: state } : state;
-
+        
         // Valid serverUrl is required!
         assert(
             _state.serverUrl && _state.serverUrl.match(/https?:\/\/.+/),
             "A \"serverUrl\" option is required and must begin with \"http(s)\""
         );
+        
+        super(_state.serverUrl)
 
         this.state = _state;
         this.environment = environment;
@@ -649,111 +511,6 @@ export default class Client
     }
 
     /**
-     * Creates a new resource in a server-assigned location
-     * @see http://hl7.org/fhir/http.html#create
-     * @param resource A FHIR resource to be created
-     * @param [requestOptions] Any options to be passed to the fetch call.
-     * Note that `method` and `body` will be ignored.
-     * @category Request
-     */
-    create<R = fhirclient.FHIR.Resource, O extends fhirclient.FetchOptions = {}>(
-        resource: fhirclient.FHIR.Resource,
-        requestOptions?: O
-    ): Promise<O["includeResponse"] extends true ? fhirclient.CombinedFetchResult<R> : R>
-    {
-        return this.request({
-            ...requestOptions,
-            url: `${resource.resourceType}`,
-            method: "POST",
-            body: JSON.stringify(resource),
-            headers: {
-                // TODO: Do we need to alternate with "application/json+fhir"?
-                "content-type": "application/json",
-                ...(requestOptions || {}).headers
-            }
-        });
-    }
-
-    /**
-     * Creates a new current version for an existing resource or creates an
-     * initial version if no resource already exists for the given id.
-     * @see http://hl7.org/fhir/http.html#update
-     * @param resource A FHIR resource to be updated
-     * @param requestOptions Any options to be passed to the fetch call.
-     * Note that `method` and `body` will be ignored.
-     * @category Request
-     */
-    update<R = fhirclient.FHIR.Resource, O extends fhirclient.FetchOptions = {}>(
-        resource: fhirclient.FHIR.Resource,
-        requestOptions?: O
-    ): Promise<O["includeResponse"] extends true ? fhirclient.CombinedFetchResult<R> : R>
-    {
-        return this.request({
-            ...requestOptions,
-            url: `${resource.resourceType}/${resource.id}`,
-            method: "PUT",
-            body: JSON.stringify(resource),
-            headers: {
-                // TODO: Do we need to alternate with "application/json+fhir"?
-                "content-type": "application/json",
-                ...(requestOptions || {}).headers
-            }
-        });
-    }
-
-    /**
-     * Removes an existing resource.
-     * @see http://hl7.org/fhir/http.html#delete
-     * @param url Relative URI of the FHIR resource to be deleted
-     * (format: `resourceType/id`)
-     * @param requestOptions Any options (except `method` which will be fixed
-     * to `DELETE`) to be passed to the fetch call.
-     * @category Request
-     */
-    delete<R = unknown>(url: string, requestOptions: fhirclient.FetchOptions = {}): Promise<R>
-    {
-        return this.request<R>({
-            ...requestOptions,
-            url,
-            method: "DELETE"
-        });
-    }
-
-    /**
-     * Makes a JSON Patch to the given resource
-     * @see http://hl7.org/fhir/http.html#patch
-     * @param url Relative URI of the FHIR resource to be patched
-     * (format: `resourceType/id`)
-     * @param patch A JSON Patch array to send to the server, For details
-     * see https://datatracker.ietf.org/doc/html/rfc6902
-     * @param requestOptions Any options to be passed to the fetch call,
-     * except for `method`, `url` and `body` which cannot be overridden.
-     * @since 2.4.0
-     * @category Request
-     * @typeParam ResolveType This method would typically resolve with the
-     * patched resource or reject with an OperationOutcome. However, this may
-     * depend on the server implementation or even on the request headers.
-     * For that reason, if the default resolve type (which is
-     * [[fhirclient.FHIR.Resource]]) does not work for you, you can pass
-     * in your own resolve type parameter.
-     */
-    async patch<ResolveType=fhirclient.FHIR.Resource>(url: string, patch: fhirclient.JsonPatch, requestOptions: fhirclient.FetchOptions = {}): Promise<ResolveType>
-    {
-        assertJsonPatch(patch);
-        return this.request<ResolveType>({
-            ...requestOptions,
-            url,
-            method: "PATCH",
-            body: JSON.stringify(patch),
-            headers: {
-                "prefer": "return=presentation",
-                "content-type": "application/json-patch+json; charset=UTF-8",
-                ...requestOptions.headers,
-            }
-        });
-    }
-
-    /**
      * @param requestOptions Can be a string URL (relative to the serviceUrl),
      * or an object which will be passed to fetch()
      * @param fhirOptions Additional options to control the behavior
@@ -785,7 +542,7 @@ export default class Client
             graph: fhirOptions.graph !== false,
             flat : !!fhirOptions.flat,
             pageLimit: fhirOptions.pageLimit ?? 1,
-            resolveReferences: (fhirOptions.resolveReferences || []) as string[],
+            resolveReferences: makeArray(fhirOptions.resolveReferences || []) as string[],
             useRefreshToken: fhirOptions.useRefreshToken !== false,
             onPage: typeof fhirOptions.onPage == "function" ?
                 fhirOptions.onPage as (
@@ -797,197 +554,170 @@ export default class Client
         const signal = (requestOptions as RequestInit).signal || undefined;
 
         // Refresh the access token if needed
-        const job = options.useRefreshToken ?
-            this.refreshIfNeeded({ signal }).then(() => requestOptions as fhirclient.RequestOptions) :
-            Promise.resolve(requestOptions as fhirclient.RequestOptions);
+        if (options.useRefreshToken) {
+            await this.refreshIfNeeded({ signal })
+        }
+
+        // Add the Authorization header now, after the access token might
+        // have been updated
+        const authHeader = this.getAuthorizationHeader();
+        if (authHeader) {
+            requestOptions.headers = {
+                ...requestOptions.headers,
+                authorization: authHeader
+            };
+        }
+
+        debugRequest("%s, options: %O, fhirOptions: %O", url, requestOptions, options);
 
         let response: Response | undefined;
 
-        return job
+        return super.fhirRequest<fhirclient.FetchResult>(url, requestOptions).then(result => {
+            if (requestOptions.includeResponse) {
+                response = (result as fhirclient.CombinedFetchResult).response;
+                return (result as fhirclient.CombinedFetchResult).body;
+            }
+            return result;
+        })
 
-            // Add the Authorization header now, after the access token might
-            // have been updated
-            .then(requestOptions => {
-                const authHeader = this.getAuthorizationHeader();
-                if (authHeader) {
-                    requestOptions.headers = {
-                        ...requestOptions.headers,
-                        authorization: authHeader
-                    };
+        // Handle 401 ----------------------------------------------------------
+        .catch(async (error: HttpError) => {
+            if (error.status == 401) {
+
+                // !accessToken -> not authorized -> No session. Need to launch.
+                if (!this.getState("tokenResponse.access_token")) {
+                    error.message += "\nThis app cannot be accessed directly. Please launch it as SMART app!";
+                    throw error;
                 }
-                return requestOptions;
-            })
-            
-            // Make the request
-            .then(requestOptions => {
-                debugRequest(
-                    "%s, options: %O, fhirOptions: %O",
-                    url,
-                    requestOptions,
-                    options
-                );
-                return request<fhirclient.FetchResult>(url, requestOptions).then(result => {
-                    if (requestOptions.includeResponse) {
-                        response = (result as fhirclient.CombinedFetchResult).response;
-                        return (result as fhirclient.CombinedFetchResult).body;
-                    }
-                    return result;
-                });
-            })
 
-            // Handle 401 ------------------------------------------------------
-            .catch(async (error: HttpError) => {
-                if (error.status == 401) {
-
-                    // !accessToken -> not authorized -> No session. Need to launch.
-                    if (!this.getState("tokenResponse.access_token")) {
-                        error.message += "\nThis app cannot be accessed directly. Please launch it as SMART app!";
-                        throw error;
-                    }
-
-                    // auto-refresh not enabled and Session expired.
-                    // Need to re-launch. Clear state to start over!
-                    if (!options.useRefreshToken) {
-                        debugRequest("Your session has expired and the useRefreshToken option is set to false. Please re-launch the app.");
-                        await this._clearState();
-                        error.message += "\n" + str.expired;
-                        throw error;
-                    }
-
-                    // In rare cases we may have a valid access token and a refresh
-                    // token and the request might still fail with 401 just because
-                    // the access token has just been revoked.
-
-                    // otherwise -> auto-refresh failed. Session expired.
-                    // Need to re-launch. Clear state to start over!
-                    debugRequest("Auto-refresh failed! Please re-launch the app.");
+                // auto-refresh not enabled and Session expired.
+                // Need to re-launch. Clear state to start over!
+                if (!options.useRefreshToken) {
+                    debugRequest("Your session has expired and the useRefreshToken option is set to false. Please re-launch the app.");
                     await this._clearState();
                     error.message += "\n" + str.expired;
                     throw error;
                 }
+
+                // In rare cases we may have a valid access token and a refresh
+                // token and the request might still fail with 401 just because
+                // the access token has just been revoked.
+
+                // otherwise -> auto-refresh failed. Session expired.
+                // Need to re-launch. Clear state to start over!
+                debugRequest("Auto-refresh failed! Please re-launch the app.");
+                await this._clearState();
+                error.message += "\n" + str.expired;
                 throw error;
-            })
+            }
+            throw error;
+        })
 
-            // Handle 403 ------------------------------------------------------
-            .catch((error: HttpError) => {
-                if (error.status == 403) {
-                    debugRequest("Permission denied! Please make sure that you have requested the proper scopes.");
-                }
-                throw error;
-            })
+        // Handle 403 ----------------------------------------------------------
+        .catch((error: HttpError) => {
+            if (error.status == 403) {
+                debugRequest("Permission denied! Please make sure that you have requested the proper scopes.");
+            }
+            throw error;
+        })
 
-            .then((data: any) => {
+        .then(async (data: any) => {
 
-                // At this point we don't know what `data` actually is!
-
-                // We might get an empty or falsy result. If so return it as is
-                // Also handle raw responses
-                if (!data || typeof data == "string" || data instanceof Response) {
-                    if ((requestOptions as fhirclient.FetchOptions).includeResponse) {
-                        return {
-                            body: data,
-                            response
-                        }
+            // At this point we don't know what `data` actually is!
+            // We might get an empty or falsy result. If so return it as is
+            // Also handle raw responses
+            if (!data || typeof data == "string" || data instanceof Response) {
+                if ((requestOptions as fhirclient.FetchOptions).includeResponse) {
+                    return {
+                        body: data,
+                        response
                     }
-                    return data;
                 }
-                
-                // Resolve References ------------------------------------------
-                return (async (_data: fhirclient.FHIR.Resource) => {
+                return data;
+            }
+            
+            // Resolve References ----------------------------------------------
+            await this.fetchReferences(
+                data as any,
+                options.resolveReferences,
+                options.graph,
+                _resolvedRefs,
+                requestOptions as fhirclient.RequestOptions
+            );
 
-                    if (_data.resourceType == "Bundle") {
-                        await Promise.all(((_data as fhirclient.FHIR.Bundle).entry || []).map(item => resolveRefs(
-                            item.resource,
-                            options,
-                            _resolvedRefs,
-                            this,
-                            requestOptions as fhirclient.RequestOptions
-                        )));
-                    }
-                    else {
-                        await resolveRefs(
-                            _data,
-                            options,
-                            _resolvedRefs,
-                            this,
-                            requestOptions as fhirclient.RequestOptions
+            return Promise.resolve(data)
+
+            // Pagination ------------------------------------------------------
+            .then(async _data => {
+                if (_data && _data.resourceType == "Bundle") {
+                    const links = (_data.link || []) as fhirclient.FHIR.BundleLink[];
+
+                    if (options.flat) {
+                        _data = (_data.entry || []).map(
+                            (entry: fhirclient.FHIR.BundleEntry) => entry.resource
                         );
                     }
 
-                    return _data;
-                })(data)
+                    if (options.onPage) {
+                        await options.onPage(_data, { ..._resolvedRefs });
+                    }
 
-                    // Pagination ----------------------------------------------
-                    .then(async _data => {
-                        if (_data && _data.resourceType == "Bundle") {
-                            const links = (_data.link || []) as fhirclient.FHIR.BundleLink[];
+                    if (--options.pageLimit) {
+                        const next = links.find(l => l.relation == "next");
+                        _data = makeArray(_data);
+                        if (next && next.url) {
+                            const nextPage = await this.request(
+                                {
+                                    url: next.url,
 
-                            if (options.flat) {
-                                _data = (_data.entry || []).map(
-                                    (entry: fhirclient.FHIR.BundleEntry) => entry.resource
-                                );
-                            }
+                                    // Aborting the main request (even after it is complete)
+                                    // must propagate to any child requests and abort them!
+                                    // To do so, just pass the same AbortSignal if one is
+                                    // provided.
+                                    signal
+                                },
+                                options,
+                                _resolvedRefs
+                            );
 
                             if (options.onPage) {
-                                await options.onPage(_data, { ..._resolvedRefs });
+                                return null;
                             }
 
-                            if (--options.pageLimit) {
-                                const next = links.find(l => l.relation == "next");
-                                _data = makeArray(_data);
-                                if (next && next.url) {
-                                    const nextPage = await this.request(
-                                        {
-                                            url: next.url,
-
-                                            // Aborting the main request (even after it is complete)
-                                            // must propagate to any child requests and abort them!
-                                            // To do so, just pass the same AbortSignal if one is
-                                            // provided.
-                                            signal
-                                        },
-                                        options,
-                                        _resolvedRefs
-                                    );
-
-                                    if (options.onPage) {
-                                        return null;
-                                    }
-
-                                    if (options.resolveReferences.length) {
-                                        Object.assign(_resolvedRefs, nextPage.references);
-                                        return _data.concat(makeArray(nextPage.data || nextPage));
-                                    }
-                                    return _data.concat(makeArray(nextPage));
-                                }
+                            if (options.resolveReferences.length) {
+                                Object.assign(_resolvedRefs, nextPage.references);
+                                return _data.concat(makeArray(nextPage.data || nextPage));
                             }
+                            return _data.concat(makeArray(nextPage));
                         }
-                        return _data;
-                    })
+                    }
+                }
+                return _data;
+            })
 
-                    // Finalize ------------------------------------------------
-                    .then(_data => {
-                        if (options.graph) {
-                            _resolvedRefs = {};
-                        }
-                        else if (!options.onPage && options.resolveReferences.length) {
-                            return {
-                                data: _data,
-                                references: _resolvedRefs
-                            };
-                        }
-                        return _data;
-                    })
-                    .then(_data => {
-                        if ((requestOptions as fhirclient.FetchOptions).includeResponse) {
-                            return {
-                                body: _data,
-                                response
-                            }
-                        }
-                        return _data;
-                    });
+            // Finalize --------------------------------------------------------
+            .then(_data => {
+                if (options.graph) {
+                    _resolvedRefs = {};
+                }
+                else if (!options.onPage && options.resolveReferences.length) {
+                    return {
+                        data: _data,
+                        references: _resolvedRefs
+                    };
+                }
+                return _data;
+            })
+            .then(_data => {
+                if ((requestOptions as fhirclient.FetchOptions).includeResponse) {
+                    return {
+                        body: _data,
+                        response
+                    }
+                }
+                return _data;
             });
+        });
     }
 
     /**
@@ -1191,23 +921,4 @@ export default class Client
         return getPath({ ...this.state }, path);
     }
 
-    /**
-     * Returns a promise that will be resolved with the fhir version as defined
-     * in the CapabilityStatement.
-     */
-    getFhirVersion(): Promise<string> {
-        return fetchConformanceStatement(this.state.serverUrl)
-            .then((metadata) => metadata.fhirVersion);
-    }
-
-    /**
-     * Returns a promise that will be resolved with the numeric fhir version
-     * - 2 for DSTU2
-     * - 3 for STU3
-     * - 4 for R4
-     * - 0 if the version is not known
-     */
-    getFhirRelease(): Promise<number> {
-        return this.getFhirVersion().then(v => (fhirVersions as any)[v] ?? 0);
-    }
 }
