@@ -661,6 +661,16 @@ declare namespace fhirclient {
          * but its purpose may vary depending on the application.
          */
         stateKey?: string;
+
+        /**
+         * Optional request options (headers, etc) to use when calling fetchWellKnownJson.
+         */
+        wellKnownRequestOptions?: RequestInit;
+
+        /**
+         * Optional request options (headers, etc) to use when calling getSecurityExtensionsFromConformanceStatement.
+         */
+        conformanceRequestOptions?: RequestInit;
     }
 
     interface ReadyOptions {

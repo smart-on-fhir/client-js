@@ -99,10 +99,13 @@ function getSecurityExtensionsFromConformanceStatement(baseUrl = "/", requestOpt
  * Arrives first will be used and the other request will be aborted.
  * @param [baseUrl = "/"] Fhir server base URL
  */
-export function getSecurityExtensions(baseUrl = "/"): Promise<fhirclient.OAuthSecurityExtensions>
-{
-    return getSecurityExtensionsFromWellKnownJson(baseUrl)
-        .catch(() => getSecurityExtensionsFromConformanceStatement(baseUrl));
+export function getSecurityExtensions(
+    baseUrl = "/",
+    wellKnownRequestOptions?: RequestInit,
+    conformanceRequestOptions?: RequestInit
+): Promise<fhirclient.OAuthSecurityExtensions> {
+    return getSecurityExtensionsFromWellKnownJson(baseUrl, wellKnownRequestOptions)
+        .catch(() => getSecurityExtensionsFromConformanceStatement(baseUrl, conformanceRequestOptions));
 }
 
 /**
@@ -303,7 +306,11 @@ export async function authorize(
     }
 
     // Get oauth endpoints and add them to the state
-    const extensions = await getSecurityExtensions(serverUrl);
+    const extensions = await getSecurityExtensions(
+        serverUrl,
+        params.wellKnownRequestOptions,
+        params.conformanceRequestOptions
+    );
     Object.assign(state, extensions);
     await storage.set(stateKey, state);
 

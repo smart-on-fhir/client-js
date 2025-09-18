@@ -42,6 +42,7 @@ Here is the full list of options:
 |clientPrivateJwk|`object`|If you have registered a confidential client, you should pass your clientPrivateJwk here. Note: ONLY use this on the server, as the browsers are considered incapable of keeping a secret.
 |clientPublicKeySetUrl|`String`|If you have registered a confidential client and you host your public key online, you can pass your JWKS URL here. Note: ONLY use this on the server, as the browsers are considered incapable of keeping a secret.
 
+
 #### Advanced Options
 These should **ONLY** be used in development.
 
@@ -53,6 +54,8 @@ These should **ONLY** be used in development.
 |encounterId      |`String`  | The ID of the selected encounter. If you are launching against an open FHIR server, there is no way to obtain the launch context that would (in some EHRs) include the selected encounter ID. This way you can "inject" that ID and make the client behave as if this is the currently active encounter.
 |launch           |`String`  | The launch identifier that is typically provided by the launching EHR as `launch` url parameter. In development it is sometimes useful to be able to pass this as an option. For example, this could allow you to simulate launches from you tests.
 |fakeTokenResponse|`Object`  | Useful for testing. This object can contain any properties that are typically contained in an [access token response](http://hl7.org/fhir/smart-app-launch/#step-3-app-exchanges-authorization-code-for-access-token). These properties will be stored into the client state, making it "believe" that it has been authorized.
+|wellKnownRequestOptions|`Object`| Optional [fetch RequestInit options](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request) to use when calling the `.well-known/smart-configuration` endpoint (for example, to add custom headers).
+|conformanceRequestOptions|`Object`| Optional [fetch RequestInit options](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request) to use when calling the FHIR CapabilityStatement/metadata endpoint (for example, to add custom headers).
 |target|`string` or `number` or `function` or `Window`| Where to start the auth flow. This option is only applicable in browsers and is ignored on the server. Can be one of:
 | | | `"_self"`   Authorize in the same window (**default**)
 | | | `"_top"`    Authorize in the topmost window
