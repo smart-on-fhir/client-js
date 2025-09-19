@@ -41,6 +41,7 @@ describe("smart", () => {
 
     describe("buildTokenRequest", () => {
         it("uses state.clientSecret", async () => {
+            // @ts-expect-error: ServerEnv is used as Adapter for testing purposes
             const requestOptions = await smart.buildTokenRequest(defaultEnv, {
                 code: "example-code",
                 state: {
@@ -49,12 +50,13 @@ describe("smart", () => {
                 }
             });
 
-            const authz = requestOptions.headers?.['authorization'] as string;
+            const authz = (requestOptions.headers as Record<string, string> | undefined)?.['authorization'] as string;
             expect(authz).to.exist();
             expect(authz).to.startWith("Basic ")
         });
 
         it("throws without JWK.alg", async () => {
+            // @ts-expect-error: ServerEnv is used as Adapter for testing purposes
             expect(smart.buildTokenRequest(defaultEnv, {
                 code: "example-code",
                 state: defaultStateAsymmetricAuth,
@@ -64,6 +66,7 @@ describe("smart", () => {
         })
 
         it("throws without 'sign' in key_ops", async () => {
+            // @ts-expect-error: ServerEnv is used as Adapter for testing purposes
             expect(smart.buildTokenRequest(defaultEnv, {
                 code: "example-code",
                 state: defaultStateAsymmetricAuth,
@@ -72,6 +75,7 @@ describe("smart", () => {
         })
 
         it("generates an assertion with state.clientPrivateJwk", async () => {
+            // @ts-expect-error: ServerEnv is used as Adapter for testing purposes
             const requestOptions = await smart.buildTokenRequest(defaultEnv, {
                 code: "example-code",
                 state: defaultStateAsymmetricAuth,
@@ -116,6 +120,7 @@ describe("smart", () => {
                     namedCurve: "P-384"
                 }, false, ["sign", "verify"])
 
+                // @ts-expect-error: ServerEnv is used as Adapter for testing purposes
                 const requestOptions = await smart.buildTokenRequest(defaultEnv, {
                     code: "example-code",
                     state: defaultStateAsymmetricAuth,
@@ -165,6 +170,7 @@ describe("smart", () => {
                     }
                 }, false, ["sign", "verify"])
 
+                // @ts-expect-error: ServerEnv is used as Adapter for testing purposes
                 const requestOptions = await smart.buildTokenRequest(defaultEnv, {
                     code: "example-code",
                     state: defaultStateAsymmetricAuth,
@@ -202,6 +208,7 @@ describe("smart", () => {
         }
 
         it("fails with broken state.clientPrivateJwk", async () => {
+            // @ts-expect-error: ServerEnv is used as Adapter for testing purposes
             expect(smart.buildTokenRequest(defaultEnv, {
                 code: "example-code",
                 state: {

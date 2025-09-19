@@ -108,7 +108,7 @@ declare namespace fhirclient {
          * Some OAuth implementations require the client_id to be sent
          * when using a refresh token.
          * Setting `FHIR.oauth2.settings.refreshTokenWithClientId = true`
-         * enables this behaviour, sending the "client_id" parameter in
+         * enables this behavior, sending the "client_id" parameter in
          * the refresh request body.
          */
         refreshTokenWithClientId?: boolean;

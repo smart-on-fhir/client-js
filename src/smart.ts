@@ -29,7 +29,7 @@ function isBrowser() {
  * browser) because it might have to be re-used by the client
  * @param baseUrl The base URL of the FHIR server
  */
-export function fetchWellKnownJson(baseUrl = "/", requestOptions?: RequestInit): Promise<fhirclient.WellKnownSmartConfiguration>
+export async function fetchWellKnownJson(baseUrl = "/", requestOptions?: RequestInit): Promise<fhirclient.WellKnownSmartConfiguration>
 {
     const url = String(baseUrl).replace(/\/*$/, "/") + ".well-known/smart-configuration";
     return getAndCache(url, requestOptions).catch((ex: Error) => {
@@ -40,7 +40,7 @@ export function fetchWellKnownJson(baseUrl = "/", requestOptions?: RequestInit):
 /**
  * Fetch a "WellKnownJson" and extract the SMART endpoints from it
  */
-function getSecurityExtensionsFromWellKnownJson(baseUrl = "/", requestOptions?: RequestInit): Promise<fhirclient.OAuthSecurityExtensions>
+async function getSecurityExtensionsFromWellKnownJson(baseUrl = "/", requestOptions?: RequestInit): Promise<fhirclient.OAuthSecurityExtensions>
 {
     return fetchWellKnownJson(baseUrl, requestOptions).then(meta => {
         if (!meta.authorization_endpoint || !meta.token_endpoint) {
@@ -58,7 +58,7 @@ function getSecurityExtensionsFromWellKnownJson(baseUrl = "/", requestOptions?: 
 /**
  * Fetch a `CapabilityStatement` and extract the SMART endpoints from it
  */
-function getSecurityExtensionsFromConformanceStatement(baseUrl = "/", requestOptions?: RequestInit): Promise<fhirclient.OAuthSecurityExtensions>
+async function getSecurityExtensionsFromConformanceStatement(baseUrl = "/", requestOptions?: RequestInit): Promise<fhirclient.OAuthSecurityExtensions>
 {
     return fetchConformanceStatement(baseUrl, requestOptions).then(meta => {
         const nsUri = "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris";
@@ -91,7 +91,6 @@ function getSecurityExtensionsFromConformanceStatement(baseUrl = "/", requestOpt
     });
 }
 
-
 /**
  * Given a FHIR server, returns an object with it's Oauth security endpoints
  * that we are interested in. This will try to find the info in both the
@@ -99,7 +98,7 @@ function getSecurityExtensionsFromConformanceStatement(baseUrl = "/", requestOpt
  * Arrives first will be used and the other request will be aborted.
  * @param [baseUrl = "/"] Fhir server base URL
  */
-export function getSecurityExtensions(
+export async function getSecurityExtensions(
     baseUrl = "/",
     wellKnownRequestOptions?: RequestInit,
     conformanceRequestOptions?: RequestInit
