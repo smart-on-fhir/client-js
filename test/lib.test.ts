@@ -1,11 +1,9 @@
-import { expect }   from "@hapi/code";
-import * as Lab     from "@hapi/lab";
-import { Response } from "cross-fetch";
-import * as lib     from "../src/lib";
-import HttpError    from "../src/HttpError";
-import mockServer   from "./mocks/mockServer";
-import ServerEnv    from "./mocks/ServerEnvironment";
-import BrowserEnv   from "./mocks/BrowserEnvironment";
+import { expect }     from "@hapi/code";
+import * as Lab       from "@hapi/lab";
+import * as lib       from "../src/lib";
+import mockServer     from "./mocks/mockServer";
+import ServerEnv      from "./mocks/ServerEnvironment";
+import BrowserEnv     from "./mocks/BrowserEnvironment";
 import { fhirclient } from "../src/types";
 
 export const lab = Lab.script();
@@ -51,7 +49,7 @@ describe("Lib", () => {
                 ]
             };
 
-            const map = {
+            const map: Record<string, any> = {
                 "a"           : [ { x: [ { y: 2, z: 3 } ] }, { x: [ { y: 4, z: 5 } ] } ],
                 "a."          : [ { x: [ { y: 2, z: 3 } ] }, { x: [ { y: 4, z: 5 } ] } ],
                 "a.."         : [ { x: [ { y: 2, z: 3 } ] }, { x: [ { y: 4, z: 5 } ] } ],
@@ -302,7 +300,7 @@ describe("Lib", () => {
                     status : 200,
                     body   : { result: "success" }
                 });
-                const response = await lib.request(mockUrl);
+                const response: any = await lib.request(mockUrl);
                 expect(response).to.equal({ result: "success" });
             });
 
@@ -314,8 +312,8 @@ describe("Lib", () => {
                 });
 
                 const result = await lib.request<fhirclient.CombinedFetchResult>(mockUrl, { includeResponse: true });
-                expect(result.body).to.equal({ result: "success" });
-                expect(result.response.headers.get("content-type")).to.startWith("application/json");
+                expect(result.body as any).to.equal({ result: "success" });
+                expect(result.response.headers.get("content-type") ?? "").to.startWith("application/json");
             });
         });
     });

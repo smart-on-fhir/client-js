@@ -112,7 +112,7 @@ export function loweCaseKeys<T=Record<string, any> | any[] | undefined>(obj: T):
  * - If the response is text return the result text
  * - Otherwise return the response object on which we call stuff like `.blob()`
  */
-export function request<T = fhirclient.FetchResult>(
+export async function request<T = fhirclient.FetchResult>(
     url: string | Request,
     requestOptions: fhirclient.FetchOptions = {}
 ): Promise<T>
@@ -145,23 +145,25 @@ export function request<T = fhirclient.FetchResult>(
         if (!body && res.status == 201) {
             const location = res.headers.get("location");
             if (location) {
-                return request(location, { ...options, method: "GET", body: null, includeResponse });
+                // The recursive call will have the same generic type T
+                return request<T>(location, { ...options, method: "GET", body: null, includeResponse });
             }
         }
 
         if (includeResponse) {
-            return { body, response: res };
+            // This cast is safe because when includeResponse is true, the return type is CombinedFetchResult
+            return { body, response: res } as T;
         }
 
         // For any non-text and non-json response return the Response object.
         // This to let users decide if they want to call text(), blob() or
         // something else on it
         if (body === undefined) {
-            return res;
+            return res as T;
         }
 
         // Otherwise just return the parsed body (can also be "" or null)
-        return body;
+        return body as T;
     });
 }
 

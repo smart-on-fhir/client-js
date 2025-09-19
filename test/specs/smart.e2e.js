@@ -4,7 +4,6 @@ const jose           = require('jose');
 const cors           = require("cors");
 const mockServer     = require("../mocks/mockServer2");
 const chaiAsPromised = require("chai-as-promised");
-// const { default: fetch } = require("cross-fetch");
 const path = require("path");
 
 chai.use(chaiAsPromised);
