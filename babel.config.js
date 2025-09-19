@@ -15,7 +15,7 @@ module.exports = {
                         "last 2 Chrome versions",
                         "last 2 firefox versions",
                         "last 2 Edge versions",
-                        "ie 11"
+                        // "ie 11"
                     ],
                     debug: true,
                     // loose: true, // needed for IE 10

@@ -19,12 +19,6 @@ exports.assertJsonPatch = exports.assert = exports.getTargetWindow = exports.get
 const HttpError_1 = require("./HttpError");
 const settings_1 = require("./settings");
 const debug = require("debug");
-// $lab:coverage:off$
-// @ts-ignore
-const {
-  fetch
-} = typeof FHIRCLIENT_PURE !== "undefined" ? window : require("cross-fetch");
-// $lab:coverage:on$
 const _debug = debug("FHIR");
 exports.debug = _debug;
 /**
@@ -132,7 +126,7 @@ exports.loweCaseKeys = loweCaseKeys;
  * - If the response is text return the result text
  * - Otherwise return the response object on which we call stuff like `.blob()`
  */
-function request(url, requestOptions = {}) {
+async function request(url, requestOptions = {}) {
   const {
       includeResponse
     } = requestOptions,
@@ -170,6 +164,7 @@ function request(url, requestOptions = {}) {
     if (!body && res.status == 201) {
       const location = res.headers.get("location");
       if (location) {
+        // The recursive call will have the same generic type T
         return request(location, Object.assign(Object.assign({}, options), {
           method: "GET",
           body: null,
@@ -178,6 +173,7 @@ function request(url, requestOptions = {}) {
       }
     }
     if (includeResponse) {
+      // This cast is safe because when includeResponse is true, the return type is CombinedFetchResult
       return {
         body,
         response: res

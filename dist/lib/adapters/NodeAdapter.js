@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", {
 const smart_1 = require("../smart");
 const Client_1 = require("../Client");
 const ServerStorage_1 = require("../storage/ServerStorage");
-const cjs_ponyfill_1 = require("abortcontroller-polyfill/dist/cjs-ponyfill");
 const security = require("../security/server");
 const jose_1 = require("jose");
 /**
@@ -110,7 +109,7 @@ class NodeAdapter {
    * AbortController will always be available as global (native or polyfilled)
    */
   getAbortController() {
-    return cjs_ponyfill_1.AbortController;
+    return AbortController;
   }
   /**
    * Creates and returns adapter-aware SMART api. Not that while the shape of

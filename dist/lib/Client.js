@@ -7,12 +7,6 @@ const lib_1 = require("./lib");
 const strings_1 = require("./strings");
 const settings_1 = require("./settings");
 const FhirClient_1 = require("./FhirClient");
-// $lab:coverage:off$
-// @ts-ignore
-const {
-  Response
-} = typeof FHIRCLIENT_PURE !== "undefined" ? window : require("cross-fetch");
-// $lab:coverage:on$
 const debug = lib_1.debug.extend("client");
 /**
  * Adds patient context to requestOptions object to be used with [[Client.request]]

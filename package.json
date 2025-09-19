@@ -19,8 +19,7 @@
   "browserslist": [
     "last 2 Chrome versions",
     "last 2 firefox versions",
-    "last 2 Edge versions",
-    "ie 11"
+    "last 2 Edge versions"
   ],
   "dependencies": {
     "@types/fhir": "^0.0.41",
@@ -67,6 +66,7 @@
     "chai-as-promised": "^7.1.1",
     "chromedriver": "^140.0.3",
     "cors": "^2.8.5",
+    "cross-fetch": "^4.1.0",
     "express": "^4.19.2",
     "jsdom": "^25.0.0",
     "jsonwebtoken": "^9.0.2",
