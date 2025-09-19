@@ -105,13 +105,6 @@ class NodeAdapter {
     return jose_1.base64url.decode(input).toString();
   }
   /**
-   * Returns a reference to the AbortController constructor. In browsers,
-   * AbortController will always be available as global (native or polyfilled)
-   */
-  getAbortController() {
-    return AbortController;
-  }
-  /**
    * Creates and returns adapter-aware SMART api. Not that while the shape of
    * the returned object is well known, the arguments to this function are not.
    * Those who override this method are free to require any environment-specific

@@ -132,7 +132,6 @@ describe("FHIR.client", () => {
                     _delay: 10
                 });
 
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const task = client.patient.read({ signal: abortController.signal });
                 abortController.abort();
@@ -479,7 +478,6 @@ describe("FHIR.client", () => {
                     _delay: 10
                 });
 
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const task = client.patient.request({ url: "Observation", signal: abortController.signal });
                 abortController.abort();
@@ -648,7 +646,6 @@ describe("FHIR.client", () => {
                     _delay: 10
                 });
 
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const task = client.encounter.read({ signal: abortController.signal });
                 abortController.abort();
@@ -743,7 +740,6 @@ describe("FHIR.client", () => {
                     _delay: 10
                 });
 
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const task = client.user.read({ signal: abortController.signal });
                 abortController.abort();
@@ -2741,7 +2737,6 @@ describe("FHIR.client", () => {
                 it (name, async () => {
                     const client = new Client(tests[name], { serverUrl: mockUrl });
                     mockServer.mock(mock);
-                    const AbortController = tests[name].getAbortController();
                     const abortController = new AbortController();
                     const task = client.request({ url: "/Patient/patient-id", signal: abortController.signal });
                     abortController.abort();
@@ -2756,7 +2751,6 @@ describe("FHIR.client", () => {
             crossPlatformTest(async (env) => {
                 const client = new Client(env, { serverUrl: mockUrl });
                 const pages: any[] = [];
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const onPage = (page: any) => {
                     if (pages.push(page) == 2) {
@@ -2827,7 +2821,6 @@ describe("FHIR.client", () => {
         describe ("aborts nested reference requests", () => {
             crossPlatformTest(async (env) => {
                 const client = new Client(env, { serverUrl: mockUrl });
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
 
                 // Page 1

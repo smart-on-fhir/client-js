@@ -2,7 +2,6 @@ import { fhirclient } from "../types";
 import { ready, authorize, init } from "../smart";
 import Client from "../Client";
 import ServerStorage from "../storage/ServerStorage";
-import { AbortController } from "abortcontroller-polyfill/dist/cjs-ponyfill";
 import { IncomingMessage, ServerResponse } from "http";
 import { TLSSocket } from "tls";
 import * as security from "../security/server"
@@ -137,15 +136,6 @@ export default class NodeAdapter implements fhirclient.Adapter
     base64urldecode(input: string)
     {
         return base64url.decode(input).toString();
-    }
-
-    /**
-     * Returns a reference to the AbortController constructor. In browsers,
-     * AbortController will always be available as global (native or polyfilled)
-     */
-    getAbortController()
-    {
-        return AbortController;
     }
 
     /**

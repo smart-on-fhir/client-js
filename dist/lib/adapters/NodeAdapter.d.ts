@@ -58,14 +58,6 @@ export default class NodeAdapter implements fhirclient.Adapter {
     base64urlencode(input: string | Uint8Array): string;
     base64urldecode(input: string): string;
     /**
-     * Returns a reference to the AbortController constructor. In browsers,
-     * AbortController will always be available as global (native or polyfilled)
-     */
-    getAbortController(): {
-        new (): AbortController;
-        prototype: AbortController;
-    };
-    /**
      * Creates and returns adapter-aware SMART api. Not that while the shape of
      * the returned object is well known, the arguments to this function are not.
      * Those who override this method are free to require any environment-specific

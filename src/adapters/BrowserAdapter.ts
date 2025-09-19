@@ -120,15 +120,6 @@ export default class BrowserAdapter implements fhirclient.Adapter
     }
 
     /**
-     * Returns a reference to the AbortController constructor. In browsers,
-     * AbortController will always be available as global (native or polyfilled)
-     */
-    getAbortController()
-    {
-        return AbortController;
-    }
-
-    /**
      * ASCII string to Base64
      */
     atob(str: string): string
