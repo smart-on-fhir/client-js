@@ -1,7 +1,7 @@
 const path = require("path");
 const merge = require("webpack-merge").default;
 const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
-const { DefinePlugin } = require("webpack");
+
 
 const BASE_CONFIG = {
     context: __dirname,
@@ -23,60 +23,6 @@ const BASE_CONFIG = {
         extensions: [".ts", ".js"],
     }
 };
-
-const PURE_DEV_BUILD = merge(BASE_CONFIG, {
-    mode: "development",
-    output: {
-        filename: "fhir-client.pure.js"
-    },
-    module: {
-        rules: [
-            {
-                test: /\.ts$/,
-                exclude: /node_modules/,
-                use: [
-                    "babel-loader?envName=pure",
-                    "ts-loader"
-                ]
-            }
-        ]
-    },
-    plugins: [
-        new DefinePlugin({ "FHIRCLIENT_PURE": true }),
-        new BundleAnalyzerPlugin({
-            analyzerMode  : "static",
-            openAnalyzer  : false,
-            reportFilename: "bundle.pure.dev.html"
-        })
-    ]
-});
-
-const PURE_PROD_BUILD = merge(BASE_CONFIG, {
-    mode: "production",
-    output: {
-        filename: "fhir-client.pure.min.js"
-    },
-    module: {
-        rules: [
-            {
-                test: /\.ts$/,
-                exclude: /node_modules/,
-                use: [
-                    "babel-loader?envName=pure",
-                    "ts-loader"
-                ]
-            }
-        ]
-    },
-    plugins: [
-        new DefinePlugin({ "FHIRCLIENT_PURE": true }),
-        new BundleAnalyzerPlugin({
-            analyzerMode  : "static",
-            openAnalyzer  : false,
-            reportFilename: "bundle.pure.prod.html"
-        })
-    ]
-});
 
 const BROWSER_DEV_BUILD = merge(BASE_CONFIG, {
     mode: "development",
@@ -152,8 +98,6 @@ const BROWSER_PROD_BUILD = merge(BASE_CONFIG, {
 
 
 module.exports = [
-    PURE_DEV_BUILD,
-    PURE_PROD_BUILD,
     BROWSER_DEV_BUILD,
     BROWSER_PROD_BUILD
 ];

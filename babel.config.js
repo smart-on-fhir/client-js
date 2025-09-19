@@ -2,7 +2,6 @@ module.exports = {
     env: {
         pure: {},
         browser: {
-            plugins: ["@babel/plugin-transform-runtime"],
             presets: [
                 ["@babel/preset-env", {
                     useBuiltIns: "usage",

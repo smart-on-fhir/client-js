@@ -1,6 +1,16 @@
 # Changelog
 
 
+# v2.7.0 (unreleased)
+- **Removed IE11 support** and related polyfills (abortcontroller-polyfill, isomorphic-webcrypto)
+- **Now uses global `fetch`** (requires Node 18+ or browser with fetch)
+- Cleaned up and improved TypeScript type definitions
+- Reduced dependencies for a smaller, more modern bundle
+- Incremented version for breaking changes
+
+# v2.6.2
+- Forgot to include the built files in v2.6.1. This is the version that should be used instead!
+
 # v2.6.1
 - Added `wellKnownRequestOptions` and `conformanceRequestOptions` to `authorize` options, allowing custom headers and fetch options for SMART discovery endpoints ([#200](https://github.com/smart-on-fhir/client-js/issues/200))
 - Improved TypeScript types for `AuthorizeParams` and related interfaces
