@@ -7,12 +7,6 @@ import HttpError from "./HttpError";
 import { patientParams } from "./settings";
 import { fhirclient } from "./types";
 const debug = require("debug");
-
-// $lab:coverage:off$
-// @ts-ignore
-const { fetch } = typeof FHIRCLIENT_PURE !== "undefined" ? window : require("cross-fetch");
-// $lab:coverage:on$
-
 const _debug     = debug("FHIR");
 export { _debug as debug };
 
@@ -152,18 +146,18 @@ export async function request<T = fhirclient.FetchResult>(
 
         if (includeResponse) {
             // This cast is safe because when includeResponse is true, the return type is CombinedFetchResult
-            return { body, response: res } as T;
+            return { body, response: res } as unknown as T;
         }
 
         // For any non-text and non-json response return the Response object.
         // This to let users decide if they want to call text(), blob() or
         // something else on it
         if (body === undefined) {
-            return res as T;
+            return res as unknown as T;
         }
 
         // Otherwise just return the parsed body (can also be "" or null)
-        return body as T;
+        return body as unknown as T;
     });
 }
 

@@ -44,7 +44,6 @@ after(() => {
     if (mockDataServer && mockDataServer.listening) {
         return new Promise((resolve, reject) => {
             mockUrl = "";
-            delete (global as any).fetch;
             mockDataServer.close((error: Error) => {
                 if (error) {
                     reject(new Error("Error shutting down the mock-data server: " + error));

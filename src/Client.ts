@@ -21,10 +21,6 @@ import BrowserAdapter from "./adapters/BrowserAdapter";
 import { fhirclient } from "./types";
 import FhirClient from "./FhirClient";
 
-// $lab:coverage:off$
-// @ts-ignore
-const { Response } = typeof FHIRCLIENT_PURE !== "undefined" ? window : require("cross-fetch");
-// $lab:coverage:on$
 
 const debug = _debug.extend("client");
 
