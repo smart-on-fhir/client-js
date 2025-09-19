@@ -2,27 +2,24 @@ import { encodeURL, fromUint8Array } from "js-base64"
 import { fhirclient }                from "../types"
 
 
-const crypto: Crypto = typeof globalThis === "object" && globalThis.crypto ?
-    globalThis.crypto :
-    require("isomorphic-webcrypto").default;
-
-const subtle = () => {
-    if (!crypto.subtle) {
-        if (!globalThis.isSecureContext) {
-            throw new Error(
-                "Some of the required subtle crypto functionality is not " +
-                "available unless you run this app in secure context (using " +
-                "HTTPS or running locally). See " +
-                "https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts"
-            )
-        }
+if (!globalThis?.crypto?.subtle) {
+    if (!globalThis.isSecureContext) {
         throw new Error(
             "Some of the required subtle crypto functionality is not " +
-            "available in the current environment (no crypto.subtle)"
+            "available unless you run this app in secure context (using " +
+            "HTTPS or running locally). See " +
+            "https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts"
         )
     }
-    return crypto.subtle
+    throw new Error(
+        "Some of the required subtle crypto functionality is not " +
+        "available in the current environment (no crypto.subtle). " +
+        "Please use a polyfill to provide this functionality."
+    )
 }
+
+const crypto: Crypto = globalThis.crypto;
+const subtle = crypto.subtle;
 
 
 interface PkcePair {
@@ -51,7 +48,7 @@ export function randomBytes(count: number): Uint8Array {
 
 export async function digestSha256(payload: string): Promise<Uint8Array> {
     const prepared = new TextEncoder().encode(payload);
-    const hash = await subtle().digest('SHA-256', prepared);
+    const hash = await subtle.digest('SHA-256', prepared);
     return new Uint8Array(hash);
 }
 
@@ -82,7 +79,7 @@ export async function importJWK(jwk: fhirclient.JWK): Promise<CryptoKey> {
     }
 
     try {
-        return await subtle().importKey(
+        return await subtle.importKey(
             "jwk",
             jwk,
             ALGS[jwk.alg],
@@ -100,7 +97,7 @@ export async function signCompactJws(alg: keyof typeof ALGS, privateKey: CryptoK
     const jwtPayload = JSON.stringify(payload);
     const jwtAuthenticatedContent = `${encodeURL(jwtHeader)}.${encodeURL(jwtPayload)}`;
 
-    const signature = await subtle().sign(
+    const signature = await subtle.sign(
         { ...privateKey.algorithm, hash: 'SHA-384' },
         privateKey,
         new TextEncoder().encode(jwtAuthenticatedContent)
