@@ -1,5 +1,7 @@
 # Changelog
 
+# v2.6.2
+- Forgot to include the built files in v2.6.1. This is the version that should be used instead!
 
 # v2.6.1
 - Added `wellKnownRequestOptions` and `conformanceRequestOptions` to `authorize` options, allowing custom headers and fetch options for SMART discovery endpoints ([#200](https://github.com/smart-on-fhir/client-js/issues/200))

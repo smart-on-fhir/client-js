@@ -3989,66 +3989,72 @@ function isBrowser() {
  * @param baseUrl The base URL of the FHIR server
  */
 function fetchWellKnownJson() {
-  var baseUrl = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "/";
-  var requestOptions = arguments.length > 1 ? arguments[1] : undefined;
-  var url = String(baseUrl).replace(/\/*$/, "/") + ".well-known/smart-configuration";
-  return (0, lib_1.getAndCache)(url, requestOptions).catch(function (ex) {
-    throw new Error("Failed to fetch the well-known json \"".concat(url, "\". ").concat(ex.message));
-  });
+  return _fetchWellKnownJson.apply(this, arguments);
+}
+function _fetchWellKnownJson() {
+  _fetchWellKnownJson = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee() {
+    var baseUrl,
+      requestOptions,
+      url,
+      _args = arguments;
+    return _regenerator.default.wrap(function _callee$(_context) {
+      while (1) switch (_context.prev = _context.next) {
+        case 0:
+          baseUrl = _args.length > 0 && _args[0] !== undefined ? _args[0] : "/";
+          requestOptions = _args.length > 1 ? _args[1] : undefined;
+          url = String(baseUrl).replace(/\/*$/, "/") + ".well-known/smart-configuration";
+          return _context.abrupt("return", (0, lib_1.getAndCache)(url, requestOptions).catch(function (ex) {
+            throw new Error("Failed to fetch the well-known json \"".concat(url, "\". ").concat(ex.message));
+          }));
+        case 4:
+        case "end":
+          return _context.stop();
+      }
+    }, _callee);
+  }));
+  return _fetchWellKnownJson.apply(this, arguments);
 }
 exports.fetchWellKnownJson = fetchWellKnownJson;
 /**
  * Fetch a "WellKnownJson" and extract the SMART endpoints from it
  */
 function getSecurityExtensionsFromWellKnownJson() {
-  var baseUrl = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "/";
-  var requestOptions = arguments.length > 1 ? arguments[1] : undefined;
-  return fetchWellKnownJson(baseUrl, requestOptions).then(function (meta) {
-    if (!meta.authorization_endpoint || !meta.token_endpoint) {
-      throw new Error("Invalid wellKnownJson");
-    }
-    return {
-      registrationUri: meta.registration_endpoint || "",
-      authorizeUri: meta.authorization_endpoint,
-      tokenUri: meta.token_endpoint,
-      codeChallengeMethods: meta.code_challenge_methods_supported || []
-    };
-  });
+  return _getSecurityExtensionsFromWellKnownJson.apply(this, arguments);
 }
 /**
  * Fetch a `CapabilityStatement` and extract the SMART endpoints from it
  */
+function _getSecurityExtensionsFromWellKnownJson() {
+  _getSecurityExtensionsFromWellKnownJson = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee2() {
+    var baseUrl,
+      requestOptions,
+      _args2 = arguments;
+    return _regenerator.default.wrap(function _callee2$(_context2) {
+      while (1) switch (_context2.prev = _context2.next) {
+        case 0:
+          baseUrl = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : "/";
+          requestOptions = _args2.length > 1 ? _args2[1] : undefined;
+          return _context2.abrupt("return", fetchWellKnownJson(baseUrl, requestOptions).then(function (meta) {
+            if (!meta.authorization_endpoint || !meta.token_endpoint) {
+              throw new Error("Invalid wellKnownJson");
+            }
+            return {
+              registrationUri: meta.registration_endpoint || "",
+              authorizeUri: meta.authorization_endpoint,
+              tokenUri: meta.token_endpoint,
+              codeChallengeMethods: meta.code_challenge_methods_supported || []
+            };
+          }));
+        case 3:
+        case "end":
+          return _context2.stop();
+      }
+    }, _callee2);
+  }));
+  return _getSecurityExtensionsFromWellKnownJson.apply(this, arguments);
+}
 function getSecurityExtensionsFromConformanceStatement() {
-  var baseUrl = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "/";
-  var requestOptions = arguments.length > 1 ? arguments[1] : undefined;
-  return (0, lib_1.fetchConformanceStatement)(baseUrl, requestOptions).then(function (meta) {
-    var nsUri = "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris";
-    var extensions = ((0, lib_1.getPath)(meta || {}, "rest.0.security.extension") || []).filter(function (e) {
-      return e.url === nsUri;
-    }).map(function (o) {
-      return o.extension;
-    })[0];
-    var out = {
-      registrationUri: "",
-      authorizeUri: "",
-      tokenUri: "",
-      codeChallengeMethods: []
-    };
-    if (extensions) {
-      extensions.forEach(function (ext) {
-        if (ext.url === "register") {
-          out.registrationUri = ext.valueUri;
-        }
-        if (ext.url === "authorize") {
-          out.authorizeUri = ext.valueUri;
-        }
-        if (ext.url === "token") {
-          out.tokenUri = ext.valueUri;
-        }
-      });
-    }
-    return out;
-  });
+  return _getSecurityExtensionsFromConformanceStatement.apply(this, arguments);
 }
 /**
  * Given a FHIR server, returns an object with it's Oauth security endpoints
@@ -4057,11 +4063,77 @@ function getSecurityExtensionsFromConformanceStatement() {
  * Arrives first will be used and the other request will be aborted.
  * @param [baseUrl = "/"] Fhir server base URL
  */
+function _getSecurityExtensionsFromConformanceStatement() {
+  _getSecurityExtensionsFromConformanceStatement = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee3() {
+    var baseUrl,
+      requestOptions,
+      _args3 = arguments;
+    return _regenerator.default.wrap(function _callee3$(_context3) {
+      while (1) switch (_context3.prev = _context3.next) {
+        case 0:
+          baseUrl = _args3.length > 0 && _args3[0] !== undefined ? _args3[0] : "/";
+          requestOptions = _args3.length > 1 ? _args3[1] : undefined;
+          return _context3.abrupt("return", (0, lib_1.fetchConformanceStatement)(baseUrl, requestOptions).then(function (meta) {
+            var nsUri = "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris";
+            var extensions = ((0, lib_1.getPath)(meta || {}, "rest.0.security.extension") || []).filter(function (e) {
+              return e.url === nsUri;
+            }).map(function (o) {
+              return o.extension;
+            })[0];
+            var out = {
+              registrationUri: "",
+              authorizeUri: "",
+              tokenUri: "",
+              codeChallengeMethods: []
+            };
+            if (extensions) {
+              extensions.forEach(function (ext) {
+                if (ext.url === "register") {
+                  out.registrationUri = ext.valueUri;
+                }
+                if (ext.url === "authorize") {
+                  out.authorizeUri = ext.valueUri;
+                }
+                if (ext.url === "token") {
+                  out.tokenUri = ext.valueUri;
+                }
+              });
+            }
+            return out;
+          }));
+        case 3:
+        case "end":
+          return _context3.stop();
+      }
+    }, _callee3);
+  }));
+  return _getSecurityExtensionsFromConformanceStatement.apply(this, arguments);
+}
 function getSecurityExtensions() {
-  var baseUrl = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "/";
-  return getSecurityExtensionsFromWellKnownJson(baseUrl).catch(function () {
-    return getSecurityExtensionsFromConformanceStatement(baseUrl);
-  });
+  return _getSecurityExtensions.apply(this, arguments);
+}
+function _getSecurityExtensions() {
+  _getSecurityExtensions = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee4() {
+    var baseUrl,
+      wellKnownRequestOptions,
+      conformanceRequestOptions,
+      _args4 = arguments;
+    return _regenerator.default.wrap(function _callee4$(_context4) {
+      while (1) switch (_context4.prev = _context4.next) {
+        case 0:
+          baseUrl = _args4.length > 0 && _args4[0] !== undefined ? _args4[0] : "/";
+          wellKnownRequestOptions = _args4.length > 1 ? _args4[1] : undefined;
+          conformanceRequestOptions = _args4.length > 2 ? _args4[2] : undefined;
+          return _context4.abrupt("return", getSecurityExtensionsFromWellKnownJson(baseUrl, wellKnownRequestOptions).catch(function () {
+            return getSecurityExtensionsFromConformanceStatement(baseUrl, conformanceRequestOptions);
+          }));
+        case 4:
+        case "end":
+          return _context4.stop();
+      }
+    }, _callee4);
+  }));
+  return _getSecurityExtensions.apply(this, arguments);
 }
 exports.getSecurityExtensions = getSecurityExtensions;
 /**
@@ -4078,7 +4150,7 @@ function authorize(_x) {
   return _authorize.apply(this, arguments);
 }
 function _authorize() {
-  _authorize = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee(env) {
+  _authorize = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee5(env) {
     var params,
       url,
       urlISS,
@@ -4117,19 +4189,19 @@ function _authorize() {
       redirectParams,
       codes,
       win,
-      _args = arguments;
-    return _regenerator.default.wrap(function _callee$(_context) {
-      while (1) switch (_context.prev = _context.next) {
+      _args5 = arguments;
+    return _regenerator.default.wrap(function _callee5$(_context5) {
+      while (1) switch (_context5.prev = _context5.next) {
         case 0:
-          params = _args.length > 1 && _args[1] !== undefined ? _args[1] : {};
+          params = _args5.length > 1 && _args5[1] !== undefined ? _args5[1] : {};
           url = env.getUrl(); // Multiple config for EHR launches ---------------------------------------
           if (!Array.isArray(params)) {
-            _context.next = 11;
+            _context5.next = 11;
             break;
           }
           urlISS = url.searchParams.get("iss") || url.searchParams.get("fhirServiceUrl");
           if (urlISS) {
-            _context.next = 6;
+            _context5.next = 6;
             break;
           }
           throw new Error('Passing in an "iss" url parameter is required if authorize ' + 'uses multiple configurations');
@@ -4150,10 +4222,10 @@ function _authorize() {
             return false;
           });
           (0, lib_1.assert)(cfg, "No configuration found matching the current \"iss\" parameter \"".concat(urlISS, "\""));
-          _context.next = 10;
+          _context5.next = 10;
           return authorize(env, cfg);
         case 10:
-          return _context.abrupt("return", _context.sent);
+          return _context5.abrupt("return", _context5.sent);
         case 11:
           // ------------------------------------------------------------------------
           // Obtain input
@@ -4179,7 +4251,7 @@ function _authorize() {
           }
           serverUrl = String(iss || fhirServiceUrl || ""); // Validate input
           if (serverUrl) {
-            _context.next = 25;
+            _context5.next = 25;
             break;
           }
           throw new Error("No server url found. It must be specified as `iss` or as " + "`fhirServiceUrl` parameter");
@@ -4207,11 +4279,11 @@ function _authorize() {
           }
           // If `authorize` is called, make sure we clear any previous state (in case
           // this is a re-authorize)
-          _context.next = 30;
+          _context5.next = 30;
           return storage.get(settings_1.SMART_KEY);
         case 30:
-          oldKey = _context.sent;
-          _context.next = 33;
+          oldKey = _context5.sent;
+          _context5.next = 33;
           return storage.unset(oldKey);
         case 33:
           stateKey = stateKey !== null && stateKey !== void 0 ? stateKey : (0, lib_1.randomString)(16);
@@ -4230,10 +4302,10 @@ function _authorize() {
           };
           fullSessionStorageSupport = isBrowser() ? (0, lib_1.getPath)(env, "options.fullSessionStorageSupport") : true;
           if (!fullSessionStorageSupport) {
-            _context.next = 39;
+            _context5.next = 39;
             break;
           }
-          _context.next = 39;
+          _context5.next = 39;
           return storage.set(settings_1.SMART_KEY, stateKey);
         case 39:
           // fakeTokenResponse to override stuff (useful in development)
@@ -4254,46 +4326,46 @@ function _authorize() {
           }
           redirectUrl = redirectUri + "?state=" + encodeURIComponent(stateKey); // bypass oauth if fhirServiceUrl is used (but iss takes precedence)
           if (!(fhirServiceUrl && !iss)) {
-            _context.next = 52;
+            _context5.next = 52;
             break;
           }
           debug("Making fake launch...");
-          _context.next = 47;
+          _context5.next = 47;
           return storage.set(stateKey, state);
         case 47:
           if (!noRedirect) {
-            _context.next = 49;
+            _context5.next = 49;
             break;
           }
-          return _context.abrupt("return", redirectUrl);
+          return _context5.abrupt("return", redirectUrl);
         case 49:
-          _context.next = 51;
+          _context5.next = 51;
           return env.redirect(redirectUrl);
         case 51:
-          return _context.abrupt("return", _context.sent);
+          return _context5.abrupt("return", _context5.sent);
         case 52:
-          _context.next = 54;
-          return getSecurityExtensions(serverUrl);
+          _context5.next = 54;
+          return getSecurityExtensions(serverUrl, params.wellKnownRequestOptions, params.conformanceRequestOptions);
         case 54:
-          extensions = _context.sent;
+          extensions = _context5.sent;
           Object.assign(state, extensions);
-          _context.next = 58;
+          _context5.next = 58;
           return storage.set(stateKey, state);
         case 58:
           if (state.authorizeUri) {
-            _context.next = 64;
+            _context5.next = 64;
             break;
           }
           if (!noRedirect) {
-            _context.next = 61;
+            _context5.next = 61;
             break;
           }
-          return _context.abrupt("return", redirectUrl);
+          return _context5.abrupt("return", redirectUrl);
         case 61:
-          _context.next = 63;
+          _context5.next = 63;
           return env.redirect(redirectUrl);
         case 63:
-          return _context.abrupt("return", _context.sent);
+          return _context5.abrupt("return", _context5.sent);
         case 64:
           // build the redirect uri
           redirectParams = ["response_type=code", "client_id=" + encodeURIComponent(clientId || ""), "scope=" + encodeURIComponent(scope), "redirect_uri=" + encodeURIComponent(redirectUri), "aud=" + encodeURIComponent(serverUrl), "state=" + encodeURIComponent(stateKey)]; // also pass this in case of EHR launch
@@ -4301,15 +4373,15 @@ function _authorize() {
             redirectParams.push("launch=" + encodeURIComponent(launch));
           }
           if (!shouldIncludeChallenge(extensions.codeChallengeMethods.includes('S256'), pkceMode)) {
-            _context.next = 75;
+            _context5.next = 75;
             break;
           }
-          _context.next = 69;
+          _context5.next = 69;
           return env.security.generatePKCEChallenge();
         case 69:
-          codes = _context.sent;
+          codes = _context5.sent;
           Object.assign(state, codes);
-          _context.next = 73;
+          _context5.next = 73;
           return storage.set(stateKey, state);
         case 73:
           redirectParams.push("code_challenge=" + state.codeChallenge); // note that the challenge is ALREADY encoded properly
@@ -4317,19 +4389,19 @@ function _authorize() {
         case 75:
           redirectUrl = state.authorizeUri + "?" + redirectParams.join("&");
           if (!noRedirect) {
-            _context.next = 78;
+            _context5.next = 78;
             break;
           }
-          return _context.abrupt("return", redirectUrl);
+          return _context5.abrupt("return", redirectUrl);
         case 78:
           if (!(target && isBrowser())) {
-            _context.next = 87;
+            _context5.next = 87;
             break;
           }
-          _context.next = 81;
+          _context5.next = 81;
           return (0, lib_1.getTargetWindow)(target, width, height);
         case 81:
-          win = _context.sent;
+          win = _context5.sent;
           if (win !== self) {
             try {
               // Also remove any old state from the target window and then
@@ -4352,17 +4424,17 @@ function _authorize() {
           } else {
             self.location.href = redirectUrl;
           }
-          return _context.abrupt("return");
+          return _context5.abrupt("return");
         case 87:
-          _context.next = 89;
+          _context5.next = 89;
           return env.redirect(redirectUrl);
         case 89:
-          return _context.abrupt("return", _context.sent);
+          return _context5.abrupt("return", _context5.sent);
         case 90:
         case "end":
-          return _context.stop();
+          return _context5.stop();
       }
-    }, _callee);
+    }, _callee5);
   }));
   return _authorize.apply(this, arguments);
 }
@@ -4433,7 +4505,7 @@ function ready(_x2) {
   return _ready.apply(this, arguments);
 }
 function _ready() {
-  _ready = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee2(env) {
+  _ready = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee6(env) {
     var options,
       _a,
       _b,
@@ -4455,11 +4527,11 @@ function _ready() {
       requestOptions,
       tokenResponse,
       client,
-      _args2 = arguments;
-    return _regenerator.default.wrap(function _callee2$(_context2) {
-      while (1) switch (_context2.prev = _context2.next) {
+      _args6 = arguments;
+    return _regenerator.default.wrap(function _callee6$(_context6) {
+      while (1) switch (_context6.prev = _context6.next) {
         case 0:
-          options = _args2.length > 1 && _args2[1] !== undefined ? _args2[1] : {};
+          options = _args6.length > 1 && _args6[1] !== undefined ? _args6[1] : {};
           url = env.getUrl();
           Storage = env.getStorage();
           params = url.searchParams;
@@ -4468,16 +4540,16 @@ function _ready() {
           authError = params.get("error");
           authErrorDescription = params.get("error_description");
           if (key) {
-            _context2.next = 12;
+            _context6.next = 12;
             break;
           }
-          _context2.next = 11;
+          _context6.next = 11;
           return Storage.get(settings_1.SMART_KEY);
         case 11:
-          key = _context2.sent;
+          key = _context6.sent;
         case 12:
           if (!(authError || authErrorDescription)) {
-            _context2.next = 14;
+            _context6.next = 14;
             break;
           }
           throw new Error([authError, authErrorDescription].filter(Boolean).join(": "));
@@ -4486,14 +4558,14 @@ function _ready() {
           // key might be coming from the page url so it might be empty or missing
           (0, lib_1.assert)(key, "No 'state' parameter found. Please (re)launch the app.");
           // Check if we have a previous state
-          _context2.next = 18;
+          _context6.next = 18;
           return Storage.get(key);
         case 18:
-          state = _context2.sent;
+          state = _context6.sent;
           fullSessionStorageSupport = isBrowser() ? (0, lib_1.getPath)(env, "options.fullSessionStorageSupport") : true; // If we are in a popup window or an iframe and the authorization is
           // complete, send the location back to our opener and exit.
           if (!(isBrowser() && state && !state.completeInTarget)) {
-            _context2.next = 29;
+            _context6.next = 29;
             break;
           }
           inFrame = isInFrame();
@@ -4504,7 +4576,7 @@ function _ready() {
           // recursion we pass one additional parameter to the url which we later
           // remove.
           if (!((inFrame || inPopUp) && !url.searchParams.get("complete"))) {
-            _context2.next = 29;
+            _context6.next = 29;
             break;
           }
           url.searchParams.set("complete", "1");
@@ -4522,7 +4594,7 @@ function _ready() {
             }, origin);
             window.close();
           }
-          return _context2.abrupt("return", new Promise(function () {}));
+          return _context6.abrupt("return", new Promise(function () {}));
         case 29:
           url.searchParams.delete("complete");
           // Do we have to remove the `code` and `state` params from the URL?
@@ -4562,12 +4634,12 @@ function _ready() {
           authorized = !code || ((_a = state.tokenResponse) === null || _a === void 0 ? void 0 : _a.access_token); // If we are authorized already, then this is just a reload.
           // Otherwise, we have to complete the code flow
           if (!(!authorized && state.tokenUri)) {
-            _context2.next = 53;
+            _context6.next = 53;
             break;
           }
           (0, lib_1.assert)(code, "'code' url parameter is required");
           debug("Preparing to exchange the code for access token...");
-          _context2.next = 39;
+          _context6.next = 39;
           return buildTokenRequest(env, {
             code: code,
             state: state,
@@ -4575,15 +4647,15 @@ function _ready() {
             privateKey: options.privateKey || state.clientPrivateJwk
           });
         case 39:
-          requestOptions = _context2.sent;
+          requestOptions = _context6.sent;
           debug("Token request options: %O", requestOptions);
           // The EHR authorization server SHALL return a JSON structure that
           // includes an access token or a message indicating that the
           // authorization request has been denied.
-          _context2.next = 43;
+          _context6.next = 43;
           return (0, lib_1.request)(state.tokenUri, requestOptions);
         case 43:
-          tokenResponse = _context2.sent;
+          tokenResponse = _context6.sent;
           debug("Token response: %O", tokenResponse);
           (0, lib_1.assert)(tokenResponse.access_token, "Failed to obtain access token.");
           // Now we need to determine when is this authorization going to expire
@@ -4593,30 +4665,30 @@ function _ready() {
           state = _objectSpread(_objectSpread({}, state), {}, {
             tokenResponse: tokenResponse
           });
-          _context2.next = 50;
+          _context6.next = 50;
           return Storage.set(key, state);
         case 50:
           debug("Authorization successful!");
-          _context2.next = 54;
+          _context6.next = 54;
           break;
         case 53:
           debug(((_b = state.tokenResponse) === null || _b === void 0 ? void 0 : _b.access_token) ? "Already authorized" : "No authorization needed");
         case 54:
           if (!fullSessionStorageSupport) {
-            _context2.next = 57;
+            _context6.next = 57;
             break;
           }
-          _context2.next = 57;
+          _context6.next = 57;
           return Storage.set(settings_1.SMART_KEY, key);
         case 57:
           client = new Client_1.default(env, state);
           debug("Created client instance: %O", client);
-          return _context2.abrupt("return", client);
+          return _context6.abrupt("return", client);
         case 60:
         case "end":
-          return _context2.stop();
+          return _context6.stop();
       }
-    }, _callee2);
+    }, _callee6);
   }));
   return _ready.apply(this, arguments);
 }
@@ -4629,10 +4701,10 @@ function buildTokenRequest(_x3, _x4) {
   return _buildTokenRequest.apply(this, arguments);
 }
 function _buildTokenRequest() {
-  _buildTokenRequest = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee3(env, _ref) {
+  _buildTokenRequest = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee7(env, _ref) {
     var code, state, clientPublicKeySetUrl, privateKey, redirectUri, clientSecret, tokenUri, clientId, codeVerifier, requestOptions, pk, jwtHeaders, jwtClaims, clientAssertion;
-    return _regenerator.default.wrap(function _callee3$(_context3) {
-      while (1) switch (_context3.prev = _context3.next) {
+    return _regenerator.default.wrap(function _callee7$(_context7) {
+      while (1) switch (_context7.prev = _context7.next) {
         case 0:
           code = _ref.code, state = _ref.state, clientPublicKeySetUrl = _ref.clientPublicKeySetUrl, privateKey = _ref.privateKey;
           redirectUri = state.redirectUri, clientSecret = state.clientSecret, tokenUri = state.tokenUri, clientId = state.clientId, codeVerifier = state.codeVerifier;
@@ -4653,32 +4725,32 @@ function _buildTokenRequest() {
           // Basic authentication is required, where the username is the app’s
           // client_id and the password is the app’s client_secret (see example).
           if (!clientSecret) {
-            _context3.next = 11;
+            _context7.next = 11;
             break;
           }
           requestOptions.headers.authorization = "Basic " + env.btoa(clientId + ":" + clientSecret);
           debug("Using state.clientSecret to construct the authorization header: %s", requestOptions.headers.authorization);
-          _context3.next = 32;
+          _context7.next = 32;
           break;
         case 11:
           if (!privateKey) {
-            _context3.next = 30;
+            _context7.next = 30;
             break;
           }
           if (!("key" in privateKey)) {
-            _context3.next = 16;
+            _context7.next = 16;
             break;
           }
-          _context3.t0 = privateKey.key;
-          _context3.next = 19;
+          _context7.t0 = privateKey.key;
+          _context7.next = 19;
           break;
         case 16:
-          _context3.next = 18;
+          _context7.next = 18;
           return env.security.importJWK(privateKey);
         case 18:
-          _context3.t0 = _context3.sent;
+          _context7.t0 = _context7.sent;
         case 19:
-          pk = _context3.t0;
+          pk = _context7.t0;
           jwtHeaders = {
             typ: "JWT",
             kid: privateKey.kid,
@@ -4691,14 +4763,14 @@ function _buildTokenRequest() {
             jti: env.base64urlencode(env.security.randomBytes(32)),
             exp: (0, lib_1.getTimeInFuture)(120) // two minutes in the future
           };
-          _context3.next = 24;
+          _context7.next = 24;
           return env.security.signCompactJws(privateKey.alg, pk, jwtHeaders, jwtClaims);
         case 24:
-          clientAssertion = _context3.sent;
+          clientAssertion = _context7.sent;
           requestOptions.body += "&client_assertion_type=".concat(encodeURIComponent("urn:ietf:params:oauth:client-assertion-type:jwt-bearer"));
           requestOptions.body += "&client_assertion=".concat(encodeURIComponent(clientAssertion));
           debug("Using state.clientPrivateJwk to add a client_assertion to the POST body");
-          _context3.next = 32;
+          _context7.next = 32;
           break;
         case 30:
           debug("Public client detected; adding state.clientId to the POST body");
@@ -4709,12 +4781,12 @@ function _buildTokenRequest() {
             // Note that the codeVerifier is ALREADY encoded properly  
             requestOptions.body += "&code_verifier=" + codeVerifier;
           }
-          return _context3.abrupt("return", requestOptions);
+          return _context7.abrupt("return", requestOptions);
         case 34:
         case "end":
-          return _context3.stop();
+          return _context7.stop();
       }
-    }, _callee3);
+    }, _callee7);
   }));
   return _buildTokenRequest.apply(this, arguments);
 }
@@ -4753,46 +4825,46 @@ function init(_x5, _x6, _x7) {
   return _init.apply(this, arguments);
 }
 function _init() {
-  _init = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee4(env, authorizeOptions, readyOptions) {
+  _init = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee8(env, authorizeOptions, readyOptions) {
     var url, code, state, storage, key, cached;
-    return _regenerator.default.wrap(function _callee4$(_context4) {
-      while (1) switch (_context4.prev = _context4.next) {
+    return _regenerator.default.wrap(function _callee8$(_context8) {
+      while (1) switch (_context8.prev = _context8.next) {
         case 0:
           url = env.getUrl();
           code = url.searchParams.get("code");
           state = url.searchParams.get("state"); // if `code` and `state` params are present we need to complete the auth flow
           if (!(code && state)) {
-            _context4.next = 5;
+            _context8.next = 5;
             break;
           }
-          return _context4.abrupt("return", ready(env, readyOptions));
+          return _context8.abrupt("return", ready(env, readyOptions));
         case 5:
           // Check for existing client state. If state is found, it means a client
           // instance have already been created in this session and we should try to
           // "revive" it.
           storage = env.getStorage();
-          _context4.t0 = state;
-          if (_context4.t0) {
-            _context4.next = 11;
+          _context8.t0 = state;
+          if (_context8.t0) {
+            _context8.next = 11;
             break;
           }
-          _context4.next = 10;
+          _context8.next = 10;
           return storage.get(settings_1.SMART_KEY);
         case 10:
-          _context4.t0 = _context4.sent;
+          _context8.t0 = _context8.sent;
         case 11:
-          key = _context4.t0;
-          _context4.next = 14;
+          key = _context8.t0;
+          _context8.next = 14;
           return storage.get(key);
         case 14:
-          cached = _context4.sent;
+          cached = _context8.sent;
           if (!cached) {
-            _context4.next = 17;
+            _context8.next = 17;
             break;
           }
-          return _context4.abrupt("return", new Client_1.default(env, cached));
+          return _context8.abrupt("return", new Client_1.default(env, cached));
         case 17:
-          return _context4.abrupt("return", authorize(env, authorizeOptions).then(function () {
+          return _context8.abrupt("return", authorize(env, authorizeOptions).then(function () {
             // `init` promises a Client but that cannot happen in this case. The
             // browser will be redirected (unload the page and be redirected back
             // to it later and the same init function will be called again). On
@@ -4804,9 +4876,9 @@ function _init() {
           }));
         case 18:
         case "end":
-          return _context4.stop();
+          return _context8.stop();
       }
-    }, _callee4);
+    }, _callee8);
   }));
   return _init.apply(this, arguments);
 }

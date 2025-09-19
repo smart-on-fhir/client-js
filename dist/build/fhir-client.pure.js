@@ -1998,7 +1998,7 @@ function isBrowser() {
  * browser) because it might have to be re-used by the client
  * @param baseUrl The base URL of the FHIR server
  */
-function fetchWellKnownJson(baseUrl = "/", requestOptions) {
+async function fetchWellKnownJson(baseUrl = "/", requestOptions) {
   const url = String(baseUrl).replace(/\/*$/, "/") + ".well-known/smart-configuration";
   return (0, lib_1.getAndCache)(url, requestOptions).catch(ex => {
     throw new Error(`Failed to fetch the well-known json "${url}". ${ex.message}`);
@@ -2008,7 +2008,7 @@ exports.fetchWellKnownJson = fetchWellKnownJson;
 /**
  * Fetch a "WellKnownJson" and extract the SMART endpoints from it
  */
-function getSecurityExtensionsFromWellKnownJson(baseUrl = "/", requestOptions) {
+async function getSecurityExtensionsFromWellKnownJson(baseUrl = "/", requestOptions) {
   return fetchWellKnownJson(baseUrl, requestOptions).then(meta => {
     if (!meta.authorization_endpoint || !meta.token_endpoint) {
       throw new Error("Invalid wellKnownJson");
@@ -2024,7 +2024,7 @@ function getSecurityExtensionsFromWellKnownJson(baseUrl = "/", requestOptions) {
 /**
  * Fetch a `CapabilityStatement` and extract the SMART endpoints from it
  */
-function getSecurityExtensionsFromConformanceStatement(baseUrl = "/", requestOptions) {
+async function getSecurityExtensionsFromConformanceStatement(baseUrl = "/", requestOptions) {
   return (0, lib_1.fetchConformanceStatement)(baseUrl, requestOptions).then(meta => {
     const nsUri = "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris";
     const extensions = ((0, lib_1.getPath)(meta || {}, "rest.0.security.extension") || []).filter(e => e.url === nsUri).map(o => o.extension)[0];
@@ -2057,8 +2057,8 @@ function getSecurityExtensionsFromConformanceStatement(baseUrl = "/", requestOpt
  * Arrives first will be used and the other request will be aborted.
  * @param [baseUrl = "/"] Fhir server base URL
  */
-function getSecurityExtensions(baseUrl = "/") {
-  return getSecurityExtensionsFromWellKnownJson(baseUrl).catch(() => getSecurityExtensionsFromConformanceStatement(baseUrl));
+async function getSecurityExtensions(baseUrl = "/", wellKnownRequestOptions, conformanceRequestOptions) {
+  return getSecurityExtensionsFromWellKnownJson(baseUrl, wellKnownRequestOptions).catch(() => getSecurityExtensionsFromConformanceStatement(baseUrl, conformanceRequestOptions));
 }
 exports.getSecurityExtensions = getSecurityExtensions;
 /**
@@ -2219,7 +2219,7 @@ async function authorize(env, params = {}) {
     return await env.redirect(redirectUrl);
   }
   // Get oauth endpoints and add them to the state
-  const extensions = await getSecurityExtensions(serverUrl);
+  const extensions = await getSecurityExtensions(serverUrl, params.wellKnownRequestOptions, params.conformanceRequestOptions);
   Object.assign(state, extensions);
   await storage.set(stateKey, state);
   // If this happens to be an open server and there is no authorizeUri
