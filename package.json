@@ -1,6 +1,6 @@
 {
   "name": "fhirclient",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "description": "JavaScript client for Fast Healthcare Interoperability Resources",
   "author": "SMART Health IT <support@smarthealthit.org> (https://smarthealthit.org/)",
   "contributors": [
@@ -23,7 +23,6 @@
   ],
   "dependencies": {
     "@types/fhir": "^0.0.41",
-    "abortcontroller-polyfill": "^1.5.0",
     "core-js": "^3.23.4",
     "debug": "^4.1.1",
     "jose": "^4.15.5",
