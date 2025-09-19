@@ -1,5 +1,14 @@
 # Changelog
 
+
+# v2.7.0
+- Added `wellKnownRequestOptions` and `conformanceRequestOptions` to `authorize` options, allowing custom headers and fetch options for SMART discovery endpoints ([#200](https://github.com/smart-on-fhir/client-js/issues/200))
+- Improved TypeScript types for `AuthorizeParams` and related interfaces
+- Enhanced test coverage for new options and fixed test environment compatibility issues
+- Updated documentation for new options and usage patterns
+- Fixed compatibility with newer versions of ChromeDriver and Chrome for Nightwatch/browser tests
+- Various bugfixes and internal refactoring for better maintainability
+
 ## v2.6.0
 - Mark @types/hapi peer dependency as optional #193
 - Auto-detect Chrome driver version in GitHub CI
