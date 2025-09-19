@@ -1,7 +1,7 @@
 # Changelog
 
 
-# v2.7.0
+# v2.6.1
 - Added `wellKnownRequestOptions` and `conformanceRequestOptions` to `authorize` options, allowing custom headers and fetch options for SMART discovery endpoints ([#200](https://github.com/smart-on-fhir/client-js/issues/200))
 - Improved TypeScript types for `AuthorizeParams` and related interfaces
 - Enhanced test coverage for new options and fixed test environment compatibility issues
