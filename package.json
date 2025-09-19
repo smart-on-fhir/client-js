@@ -23,7 +23,6 @@
   ],
   "dependencies": {
     "@types/fhir": "^0.0.41",
-    "core-js": "^3.23.4",
     "debug": "^4.1.1",
     "jose": "^4.15.5",
     "js-base64": "^3.7.2"
