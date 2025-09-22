@@ -22,7 +22,7 @@ const crypto: Crypto = globalThis.crypto;
 const subtle = crypto.subtle;
 
 
-interface PkcePair {
+export interface PkcePair {
     codeChallenge: string
     codeVerifier: string
 }

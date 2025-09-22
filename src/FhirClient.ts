@@ -16,7 +16,7 @@ import {
 
 const debug = _debug.extend("FhirClient");
 
-interface RequestOptions extends RequestInit {
+export interface RequestOptions extends RequestInit {
     /**
      * If the `includeResponse` option is `true` we can expect a
      * `CombinedFetchResult` where the `response` property is the `Response`

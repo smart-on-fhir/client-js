@@ -3,12 +3,11 @@ import { IncomingMessage, ServerResponse } from "http";
 import { fhirclient } from "../types";
 import FhirClient from "../FhirClient";
 
-type storageFactory = (options?: Record<string, any>) => fhirclient.Storage;
 
 function smart(
     request: IncomingMessage,
     response: ServerResponse,
-    storage?: fhirclient.Storage | storageFactory
+    storage?: fhirclient.Storage | fhirclient.storageFactory
 )
 {
     return new NodeAdapter({

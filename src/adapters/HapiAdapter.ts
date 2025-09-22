@@ -3,7 +3,7 @@ import ServerStorage from "../storage/ServerStorage";
 import { fhirclient } from "../types";
 import { ResponseToolkit, Request, ResponseObject } from "hapi";
 
-interface HapiAdapterOptions {
+export interface HapiAdapterOptions {
     request: Request;
     responseToolkit: ResponseToolkit;
     storage?: fhirclient.Storage | fhirclient.storageFactory;

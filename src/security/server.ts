@@ -11,7 +11,7 @@ import {
 import { fhirclient } from "../types";
 
 
-interface PkcePair {
+export interface PkcePair {
     codeChallenge: string;
     codeVerifier: string;
 }
@@ -21,7 +21,7 @@ interface PkcePair {
 //     RS384: RsaHashedKeyGenParams;
 // };
 
-type SupportedAlg = 'ES384' | 'RS384'
+export type SupportedAlg = 'ES384' | 'RS384'
 
 
 export { randomBytes }

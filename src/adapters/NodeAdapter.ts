@@ -8,7 +8,7 @@ import * as security from "../security/server"
 import { base64url } from "jose"
 
 
-interface NodeAdapterOptions {
+export interface NodeAdapterOptions {
     request: IncomingMessage;
     response: ServerResponse;
     storage?: fhirclient.Storage | fhirclient.storageFactory;
@@ -113,9 +113,7 @@ export default class NodeAdapter implements fhirclient.Adapter
      */
     btoa(str: string): string
     {
-        // The "global." makes Webpack understand that it doesn't have to
-        // include the Buffer code in the bundle
-        return global.Buffer.from(str).toString("base64");
+        return Buffer.from(str).toString("base64");
     }
 
     /**
@@ -123,9 +121,7 @@ export default class NodeAdapter implements fhirclient.Adapter
      */
     atob(str: string): string
     {
-        // The "global." makes Webpack understand that it doesn't have to
-        // include the Buffer code in the bundle
-        return global.Buffer.from(str, "base64").toString("ascii");
+        return Buffer.from(str, "base64").toString("ascii");
     }
 
     base64urlencode(input: string | Uint8Array)
