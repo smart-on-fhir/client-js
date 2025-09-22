@@ -1,9 +1,3 @@
-
-// Note: the following 2 imports appear as unused but they affect how tsc is
-// generating type definitions!
-import { fhirclient } from "../types";
-import Client from "../Client";
-
 // In Browsers we create an adapter, get the SMART api from it and build the
 // global FHIR object
 import BrowserAdapter from "../adapters/BrowserAdapter";

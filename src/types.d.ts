@@ -1,7 +1,6 @@
 /// <reference lib="dom" />
 
 import Client from "./Client";
-import { getPath, byCodes, byCode } from "./lib";
 import { IncomingMessage } from "http";
 
 declare namespace fhirclient {
