@@ -1,8 +1,7 @@
-/// <reference types="node" />
 import { fhirclient } from "../types";
 import { IncomingMessage, ServerResponse } from "http";
 import * as security from "../security/server";
-interface NodeAdapterOptions {
+export interface NodeAdapterOptions {
     request: IncomingMessage;
     response: ServerResponse;
     storage?: fhirclient.Storage | fhirclient.storageFactory;
@@ -66,4 +65,3 @@ export default class NodeAdapter implements fhirclient.Adapter {
      */
     getSmartApi(): fhirclient.SMART;
 }
-export {};

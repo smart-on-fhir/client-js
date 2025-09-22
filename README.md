@@ -34,9 +34,6 @@ npm test
 # Build everything
 npm run build
 
-# Build all bundles (browser packages in dist/build)
-npm run pack
-
 # Build the CommonJS modules (for Node and bundlers)
 npm run build:module
 ```

@@ -1,7 +1,7 @@
 import NodeAdapter from "./NodeAdapter";
 import { fhirclient } from "../types";
 import { ResponseToolkit, Request, ResponseObject } from "hapi";
-interface HapiAdapterOptions {
+export interface HapiAdapterOptions {
     request: Request;
     responseToolkit: ResponseToolkit;
     storage?: fhirclient.Storage | fhirclient.storageFactory;
@@ -35,4 +35,3 @@ export default class HapiAdapter extends NodeAdapter {
      */
     static smart(request: Request, h: ResponseToolkit, storage?: fhirclient.Storage | fhirclient.storageFactory): fhirclient.SMART;
 }
-export {};

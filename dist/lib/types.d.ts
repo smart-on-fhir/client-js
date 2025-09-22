@@ -1,7 +1,6 @@
 /// <reference lib="dom" />
 
 import Client from "./Client";
-import { getPath, byCodes, byCode } from "./lib";
 import { IncomingMessage } from "http";
 
 declare namespace fhirclient {
@@ -141,7 +140,7 @@ declare namespace fhirclient {
         /**
          * Given the current environment, this method must redirect to the given
          * path
-         * @param path The relative path to redirect to
+         * @param to The relative path to redirect to
          */
         redirect(to: string): void | Promise<any>;
 
@@ -242,8 +241,8 @@ declare namespace fhirclient {
      * where the `response` property is the `Response` object and the `body`
      * property is the result of type `R` (if any). Otherwise resolves with the
      * result as `R`.
-     * @param R The expected return type
-     * @param O May contain the `includeResponse` flag to signal that we also
+     * @template R The expected return type
+     * @template O May contain the `includeResponse` flag to signal that we also
      * want to receive the raw response object. Any other option will be passed
      * to the underlying `fetch` call.
      */

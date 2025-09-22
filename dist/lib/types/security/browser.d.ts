@@ -1,5 +1,5 @@
 import { fhirclient } from "../types";
-interface PkcePair {
+export interface PkcePair {
     codeChallenge: string;
     codeVerifier: string;
 }

@@ -107,13 +107,13 @@ export default class Client extends FhirClient {
          * user is not available. This is a string having the shape
          * `{user type}/{user id}`. For example `Practitioner/abc` or
          * `Patient/xyz`.
-         * @alias client.getFhirUser()
+         * @see client.getFhirUser()
          */
         fhirUser: string | null;
         /**
          * Returns the type of the logged-in user or null. The result can be
          * `Practitioner`, `Patient` or `RelatedPerson`.
-         * @alias client.getUserType()
+         * @see client.getUserType()
          */
         resourceType: string | null;
     };
@@ -228,7 +228,7 @@ export default class Client extends FhirClient {
      * ```
      * @param observations Array of observations
      * @param property The name of a CodeableConcept property to group by
-     * @todo This should be deprecated and moved elsewhere. One should not have
+     * @remarks This should be deprecated and moved elsewhere. One should not have
      * to obtain an instance of [[Client]] just to use utility functions like this.
      * @deprecated
      * @category Utility
@@ -246,7 +246,7 @@ export default class Client extends FhirClient {
      * ```
      * @param observations Array of observations
      * @param property The name of a CodeableConcept property to group by
-     * @todo This should be deprecated and moved elsewhere. One should not have
+     * @remarks This should be deprecated and moved elsewhere. One should not have
      * to obtain an instance of [[Client]] just to use utility functions like this.
      * @deprecated
      * @category Utility
@@ -268,7 +268,7 @@ export default class Client extends FhirClient {
      * @param obj The object (or Array) to walk through
      * @param path The path (eg. "a.b.4.c")
      * @returns {*} Whatever is found in the path or undefined
-     * @todo This should be deprecated and moved elsewhere. One should not have
+     * @remarks This should be deprecated and moved elsewhere. One should not have
      * to obtain an instance of [[Client]] just to use utility functions like this.
      * @deprecated
      * @category Utility

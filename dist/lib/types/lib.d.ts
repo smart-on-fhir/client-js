@@ -59,7 +59,7 @@ export declare function fetchConformanceStatement(baseUrl?: string, requestOptio
  */
 export declare function getPath(obj: Record<string, any>, path?: string): any;
 /**
- * Like getPath, but if the node is found, its value is set to @value
+ * Like getPath, but if the node is found, its value is set to the value param.
  * @param obj The object (or Array) to walk through
  * @param path The path (eg. "a.b.4.c")
  * @param value The value to set

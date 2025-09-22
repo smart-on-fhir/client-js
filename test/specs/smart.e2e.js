@@ -3,8 +3,8 @@ const express        = require("express");
 const jose           = require('jose');
 const cors           = require("cors");
 const mockServer     = require("../mocks/mockServer2");
-const chaiAsPromised = require("chai-as-promised");
-const path = require("path");
+const chaiAsPromised = require("chai-as-promised").default;
+const path           = require("path");
 
 chai.use(chaiAsPromised);
 chai.should();

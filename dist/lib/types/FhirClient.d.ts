@@ -1,6 +1,6 @@
 import type { Bundle, Resource } from 'fhir/r4';
 import { fhirclient } from './types';
-interface RequestOptions extends RequestInit {
+export interface RequestOptions extends RequestInit {
     /**
      * If the `includeResponse` option is `true` we can expect a
      * `CombinedFetchResult` where the `response` property is the `Response`
@@ -126,4 +126,3 @@ export default class FhirClient {
      */
     getFhirRelease(): Promise<number>;
 }
-export {};

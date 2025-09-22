@@ -35,11 +35,6 @@
   "engines": {
     "node": ">=18"
   },
-  "browserslist": [
-    "last 2 Chrome versions",
-    "last 2 firefox versions",
-    "last 2 Edge versions"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/smart-on-fhir/client-js.git"

@@ -19,7 +19,7 @@ app.mock = mock => mocks.push(mock);
 app.clear = () => mocks.splice(0, mocks.length);
 
 
-app.all("*", (req, res, next) => {
+app.use((req, res, next) => {
     if (!mocks.length) {
         return next(new Error("No mocks defined for this request"));
     }
