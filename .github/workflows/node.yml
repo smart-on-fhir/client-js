@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [22.x, 24.x]
     steps:
       - uses: actions/checkout@v3
       - name: Setup Node.js ${{ matrix.node-version }}
@@ -24,7 +24,7 @@ jobs:
       - run: npm run build --if-present
       - run: npm test
       - name: Upload coverage artifact
-        if: matrix.node-version == '18.x' # Only upload once
+        if: matrix.node-version == '22.x' # Only upload once
         uses: actions/upload-artifact@v4
         with:
           name: coverage

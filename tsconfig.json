@@ -10,6 +10,7 @@
         "importHelpers": true,
         "esModuleInterop": true,
         "noEmitHelpers": true,
+        "allowSyntheticDefaultImports": true,
         "types"        : ["mocha"]
     },
     "include": [
