@@ -1,6 +1,6 @@
 {
   "name": "fhirclient",
-  "version": "2.7.0",
+  "version": "3.0.0-beta.1",
   "description": "JavaScript client for Fast Healthcare Interoperability Resources",
   "author": "SMART Health IT <support@smarthealthit.org> (https://smarthealthit.org/)",
   "contributors": [
@@ -14,10 +14,32 @@
     "Client"
   ],
   "license": "Apache-2.0",
-  "main": "lib/entry/node.js",
-  "browser": "lib/entry/browser.js",
-  "modules.root": "lib",
-  "types": "index.d.ts",
+
+  "exports": {
+    ".": {
+      "types": "./index.d.ts"
+    },
+    "./browser": {
+      "import": "./esm/entry/browser.js",
+      "require": "./cjs/entry/browser.js",
+      "types": "./types/entry/browser.d.ts"
+    },
+    "./browser/*": {
+      "import": "./esm/*.js",
+      "require": "./cjs/*.js",
+      "types": "./types/*.d.ts"
+    },
+    "./node": {
+      "import": "./esm/entry/node.js",
+      "require": "./cjs/entry/node.js",
+      "types": "./types/entry/node.d.ts"
+    },
+    "./node/*": {
+      "import" : "./esm/*.js",
+      "require": "./cjs/*.js",
+      "types"  : "./types/*.d.ts"
+    }
+  },
   "dependencies": {
     "debug": "^4.1.1",
     "jose": "^4.15.5",
@@ -29,6 +51,9 @@
   },
   "peerDependenciesMeta": {
     "@types/hapi": {
+      "optional": true
+    },
+    "@types/node": {
       "optional": true
     }
   },

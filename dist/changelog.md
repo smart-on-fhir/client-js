@@ -3,7 +3,7 @@
 
 # v2.7.0 (unreleased)
 - **Removed IE11 support** and related polyfills (abortcontroller-polyfill, isomorphic-webcrypto)
-- **Now uses global `fetch`** (requires Node 18+ or browser with fetch)
+- **Now uses global `fetch`** (requires Node 18+ or browser with fetch). We no longer polyfill things like fetch, Request, Response, Headers, AbortController...
 - Cleaned up and improved TypeScript type definitions
 - Reduced dependencies for a smaller, more modern bundle
 - Incremented version for breaking changes

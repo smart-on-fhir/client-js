@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 22
 
       - name: Install project dependencies
         run: npm ci --legacy-peer-deps
@@ -39,6 +39,6 @@ jobs:
         run: npm run build --if-present
 
       - name: Run Nightwatch
-        run: npm run nightwatch
+        run: npm run test:e2e
 
 

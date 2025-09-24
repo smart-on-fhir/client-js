@@ -1,0 +1,289 @@
+import { fhirVersions } from './settings';
+import { absolute, debug as _debug, getPath, setPath, makeArray, request, fetchConformanceStatement, assertJsonPatch, assert } from "./lib";
+const debug = _debug.extend("FhirClient");
+/**
+ * This is a basic FHIR client for making basic FHIR API calls
+ */
+export default class FhirClient {
+    /**
+     * The state of the client instance is an object with various properties.
+     * It contains some details about how the client has been authorized and
+     * determines the behavior of the client instance. This state is persisted
+     * in `SessionStorage` in browsers or in request session on the servers.
+     */
+    fhirBaseUrl;
+    /**
+     * Validates the parameters and creates an instance.
+     */
+    constructor(fhirBaseUrl) {
+        assert(fhirBaseUrl && typeof fhirBaseUrl === "string" && fhirBaseUrl.match(/https?:\/\/.+/), "A \"fhirBaseUrl\" string parameter is required and must begin with \"http(s)\"");
+        this.fhirBaseUrl = fhirBaseUrl;
+    }
+    /**
+     * Creates a new resource in a server-assigned location
+     * @see http://hl7.org/fhir/http.html#create
+     * @param resource A FHIR resource to be created
+     * @param [requestOptions] Any options to be passed to the fetch call.
+     * Note that `method` and `body` will be ignored.
+     * @category Request
+     */
+    async create(resource, requestOptions) {
+        return this.fhirRequest(resource.resourceType, {
+            ...requestOptions,
+            method: "POST",
+            body: JSON.stringify(resource),
+            headers: {
+                "content-type": "application/json",
+                ...(requestOptions || {}).headers
+            }
+        });
+    }
+    /**
+     * Creates a new current version for an existing resource or creates an
+     * initial version if no resource already exists for the given id.
+     * @see http://hl7.org/fhir/http.html#update
+     * @param resource A FHIR resource to be updated
+     * @param requestOptions Any options to be passed to the fetch call.
+     * Note that `method` and `body` will be ignored.
+     * @category Request
+     */
+    async update(resource, requestOptions) {
+        return this.fhirRequest(`${resource.resourceType}/${resource.id}`, {
+            ...requestOptions,
+            method: "PUT",
+            body: JSON.stringify(resource),
+            headers: {
+                "content-type": "application/json",
+                ...(requestOptions || {}).headers
+            }
+        });
+    }
+    /**
+     * Removes an existing resource.
+     * @see http://hl7.org/fhir/http.html#delete
+     * @param url Relative URI of the FHIR resource to be deleted
+     * (format: `resourceType/id`)
+     * @param requestOptions Any options (except `method` which will be fixed
+     * to `DELETE`) to be passed to the fetch call.
+     * @category Request
+     */
+    async delete(url, requestOptions = {}) {
+        return this.fhirRequest(url, { ...requestOptions, method: "DELETE" });
+    }
+    /**
+     * Makes a JSON Patch to the given resource
+     * @see http://hl7.org/fhir/http.html#patch
+     * @param url Relative URI of the FHIR resource to be patched
+     * (format: `resourceType/id`)
+     * @param patch A JSON Patch array to send to the server, For details
+     * see https://datatracker.ietf.org/doc/html/rfc6902
+     * @param requestOptions Any options to be passed to the fetch call,
+     * except for `method`, `url` and `body` which cannot be overridden.
+     * @since 2.4.0
+     * @category Request
+     * @typeParam ResolveType This method would typically resolve with the
+     * patched resource or reject with an OperationOutcome. However, this may
+     * depend on the server implementation or even on the request headers.
+     * For that reason, if the default resolve type (which is
+     * [[fhirclient.FHIR.Resource]]) does not work for you, you can pass
+     * in your own resolve type parameter.
+     */
+    async patch(url, patch, requestOptions = {}) {
+        assertJsonPatch(patch);
+        return this.fhirRequest(url, {
+            ...requestOptions,
+            method: "PATCH",
+            body: JSON.stringify(patch),
+            headers: {
+                "prefer": "return=presentation",
+                "content-type": "application/json-patch+json; charset=UTF-8",
+                ...requestOptions.headers,
+            }
+        });
+    }
+    async resolveRef(obj, path, graph, cache, requestOptions = {}) {
+        const node = getPath(obj, path);
+        if (node) {
+            const isArray = Array.isArray(node);
+            return Promise.all(makeArray(node).filter(Boolean).map((item, i) => {
+                const ref = item.reference;
+                if (ref) {
+                    return this.fhirRequest(ref, { ...requestOptions, includeResponse: false, cacheMap: cache }).then(sub => {
+                        if (graph) {
+                            if (isArray) {
+                                if (path.indexOf("..") > -1) {
+                                    setPath(obj, `${path.replace("..", `.${i}.`)}`, sub);
+                                }
+                                else {
+                                    setPath(obj, `${path}.${i}`, sub);
+                                }
+                            }
+                            else {
+                                setPath(obj, path, sub);
+                            }
+                        }
+                    }).catch((ex) => {
+                        if (ex?.status === 404) {
+                            console.warn(`Missing reference ${ref}. ${ex}`);
+                        }
+                        else {
+                            throw ex;
+                        }
+                    });
+                }
+            }));
+        }
+    }
+    /**
+     * Fetches all references in the given resource, ignoring duplicates, and
+     * then modifies the resource by "mounting" the resolved references in place
+     */
+    async resolveReferences(resource, references, requestOptions = {}) {
+        await this.fetchReferences(resource, references, true, {}, requestOptions);
+    }
+    async fetchReferences(resource, references, graph, cache = {}, requestOptions = {}) {
+        if (resource.resourceType == "Bundle") {
+            for (const item of (resource.entry || [])) {
+                if (item.resource) {
+                    await this.fetchReferences(item.resource, references, graph, cache, requestOptions);
+                }
+            }
+            return cache;
+        }
+        // 1. Sanitize paths, remove any invalid ones
+        let paths = references.map(path => String(path).trim()).filter(Boolean);
+        // 2. Remove duplicates
+        paths = paths.reduce((prev, cur) => {
+            if (prev.includes(cur)) {
+                debug("Duplicated reference path \"%s\"", cur);
+            }
+            else {
+                prev.push(cur);
+            }
+            return prev;
+        }, []);
+        // 3. Early exit if no valid paths are found
+        if (!paths.length) {
+            return Promise.resolve(cache);
+        }
+        // 4. Group the paths by depth so that child refs are looked up
+        // after their parents!
+        const groups = {};
+        paths.forEach(path => {
+            const len = path.split(".").length;
+            if (!groups[len]) {
+                groups[len] = [];
+            }
+            groups[len].push(path);
+        });
+        // 5. Execute groups sequentially! Paths within same group are
+        // fetched in parallel!
+        let task = Promise.resolve();
+        Object.keys(groups).sort().forEach(len => {
+            const group = groups[len];
+            task = task.then(() => Promise.all(group.map((path) => {
+                return this.resolveRef(resource, path, graph, cache, requestOptions);
+            })));
+        });
+        await task;
+        return cache;
+    }
+    /**
+     * Fetches all references in the given resource, ignoring duplicates
+     */
+    async getReferences(resource, references, requestOptions = {}) {
+        const refs = await this.fetchReferences(resource, references, false, {}, requestOptions);
+        const out = {};
+        for (const key in refs) {
+            out[key] = await refs[key];
+        }
+        return out;
+    }
+    /**
+     * Given a FHIR Bundle or a URL pointing to a bundle, iterates over all
+     * entry resources. Note that this will also automatically crawl through
+     * further pages (if any)
+     */
+    async *resources(bundleOrUrl, options) {
+        let count = 0;
+        for await (const page of this.pages(bundleOrUrl, options)) {
+            for (const entry of (page.entry || [])) {
+                if (options?.limit && ++count > options.limit) {
+                    return;
+                }
+                yield entry.resource;
+            }
+        }
+    }
+    /**
+     * Given a FHIR Bundle or a URL pointing to a bundle, iterates over all
+     * pages. Note that this will automatically crawl through
+     * further pages (if any) but it will not detect previous pages. It is
+     * designed to be called on the first page and fetch any followup pages.
+     */
+    async *pages(bundleOrUrl, requestOptions) {
+        const { limit, ...options } = requestOptions || {};
+        const fetchPage = (url) => this.fhirRequest(url, options);
+        let page = typeof bundleOrUrl === "string" || bundleOrUrl instanceof URL ?
+            await fetchPage(bundleOrUrl) :
+            bundleOrUrl;
+        let count = 0;
+        while (page && page.resourceType === "Bundle" && (!limit || ++count <= limit)) {
+            // Yield the current page
+            yield page;
+            // If caller aborted, stop crawling
+            if (options?.signal?.aborted) {
+                break;
+            }
+            // Find the "next" link
+            const nextLink = (page.link ?? []).find((l) => l.relation === 'next' && typeof l.url === 'string');
+            if (!nextLink) {
+                break; // no more pages
+            }
+            // Fetch the next page
+            page = await fetchPage(nextLink.url);
+        }
+    }
+    /**
+     * The method responsible for making all http requests
+     */
+    async fhirRequest(uri, options = {}) {
+        assert(options, "fhirRequest requires a uri as first argument");
+        const path = uri + "";
+        const url = absolute(path, this.fhirBaseUrl);
+        const { cacheMap } = options;
+        if (cacheMap) {
+            if (!(path in cacheMap)) {
+                cacheMap[path] = request(url, options)
+                    .then(res => {
+                    cacheMap[path] = res;
+                    return res;
+                })
+                    .catch(error => {
+                    delete cacheMap[path];
+                    throw error;
+                });
+            }
+            return cacheMap[path];
+        }
+        return request(url, options);
+    }
+    /**
+     * Returns a promise that will be resolved with the fhir version as defined
+     * in the CapabilityStatement.
+     */
+    async getFhirVersion() {
+        return fetchConformanceStatement(this.fhirBaseUrl)
+            .then((metadata) => metadata.fhirVersion);
+    }
+    /**
+     * Returns a promise that will be resolved with the numeric fhir version
+     * - 2 for DSTU2
+     * - 3 for STU3
+     * - 4 for R4
+     * - 0 if the version is not known
+     */
+    async getFhirRelease() {
+        return this.getFhirVersion().then(v => fhirVersions[v] ?? 0);
+    }
+}
