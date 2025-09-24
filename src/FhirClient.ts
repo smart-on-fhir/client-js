@@ -53,8 +53,7 @@ export default class FhirClient
     readonly fhirBaseUrl: string;
 
     /**
-     * Validates the parameters, creates an instance and tries to connect it to
-     * FhirJS, if one is available globally.
+     * Validates the parameters and creates an instance.
      */
     constructor(fhirBaseUrl: string)
     {

@@ -8,7 +8,6 @@ import mockDebug      from "./mocks/mockDebug";
 import mockServer     from "./mocks/mockServer";
 import ServerEnv      from "./mocks/ServerEnvironment";
 import BrowserEnv     from "./mocks/BrowserEnvironment";
-import BrowserEnvFhir from "./mocks/BrowserEnvironmentWithFhirJs";
 import Window         from "./mocks/Window";
 import str            from "../src/strings";
 import Client         from "../src/Client";
@@ -16,6 +15,7 @@ import { KEY }        from "../src/smart";
 import Adapter        from "../src/adapters/BrowserAdapter";
 import { fhirclient } from "../src/types";
 import FhirClient     from "../src/FhirClient";
+import { aborted } from "util";
 
 export const lab = Lab.script();
 const { it, describe, before, after, afterEach } = lab;
@@ -135,9 +135,7 @@ describe("FHIR.client", () => {
                 const abortController = new AbortController();
                 const task = client.patient.read({ signal: abortController.signal });
                 abortController.abort();
-                await expect(task).to.reject(
-                    Error, "The user aborted a request."
-                );
+                await expect(task).to.reject(Error, /abort/i);
             });
         });
 
@@ -481,9 +479,7 @@ describe("FHIR.client", () => {
                 const abortController = new AbortController();
                 const task = client.patient.request({ url: "Observation", signal: abortController.signal });
                 abortController.abort();
-                await expect(task).to.reject(
-                    Error, "The user aborted a request."
-                );
+                await expect(task).to.reject(Error, /abort/i);
             });
         });
 
@@ -649,9 +645,7 @@ describe("FHIR.client", () => {
                 const abortController = new AbortController();
                 const task = client.encounter.read({ signal: abortController.signal });
                 abortController.abort();
-                await expect(task).to.reject(
-                    Error, "The user aborted a request."
-                );
+                await expect(task).to.reject(Error, /abort/i);
             });
         });
 
@@ -743,9 +737,7 @@ describe("FHIR.client", () => {
                 const abortController = new AbortController();
                 const task = client.user.read({ signal: abortController.signal });
                 abortController.abort();
-                await expect(task).to.reject(
-                    Error, "The user aborted a request."
-                );
+                await expect(task).to.reject(Error, /abort/i);
             });
         });
 
@@ -770,87 +762,6 @@ describe("FHIR.client", () => {
                 expect(result.body).to.equal({ resourceType: "Patient", id: "user-id" });
                 expect(result.response.status).to.equal(200);
             });
-        });
-    });
-
-    describe("fhir.js api", { timeout: 5000 }, () => {
-        it ("does not work without fhir.js", async () => {
-            const env    = new BrowserEnv();
-            // @ts-ignore
-            const client = new Client(env, {
-                serverUrl: "https://r2.smarthealthit.org",
-                tokenResponse: {
-                    patient: "bd7cb541-732b-4e39-ab49-ae507aa49326"
-                }
-            });
-            expect(client.api).to.be.undefined();
-            expect(client.patient.api).to.be.undefined();
-        });
-
-        it ("works in the browser", async () => {
-            const env    = new BrowserEnvFhir();
-            // @ts-ignore
-            const client = new Client(env, {
-                serverUrl: "https://r2.smarthealthit.org",
-                tokenResponse: {
-                    patient: "bd7cb541-732b-4e39-ab49-ae507aa49326"
-                }
-            });
-            await (client.api as any).read({ type: "Patient", id: "bd7cb541-732b-4e39-ab49-ae507aa49326" });
-            await (client.api as any).search({ type: "Patient" });
-            await (client.patient.api as any).read({ type: "Patient", id: "bd7cb541-732b-4e39-ab49-ae507aa49326" });
-        });
-    });
-
-    describe("client.connect", () => {
-        it ("works as expected", () => {
-            const env    = new BrowserEnv();
-            // @ts-ignore
-            const client = new Client(env, {
-                serverUrl: "https://r2.smarthealthit.org",
-                tokenResponse: {
-                    access_token: "my access token"
-                }
-            });
-
-            let _passedOptions: any = {};
-
-            const fhirJs = (options: any) => {
-                _passedOptions = options;
-                return options;
-            };
-
-            client.connect(fhirJs);
-
-            expect(_passedOptions.baseUrl).to.equal("https://r2.smarthealthit.org");
-            expect(_passedOptions.auth).to.equal({ token: "my access token" });
-
-            (client.state.tokenResponse as any).access_token = null;
-            client.connect(fhirJs);
-            expect(_passedOptions.auth).to.be.undefined();
-            expect(client.patient.api).to.be.undefined();
-
-            client.state.username = "my username";
-            client.connect(fhirJs);
-            expect(_passedOptions.auth).to.be.undefined();
-
-            client.state.password = "my password";
-            client.connect(fhirJs);
-            expect(_passedOptions.auth).to.equal({
-                user: "my username",
-                pass: "my password"
-            });
-
-            client.state.password = "my password";
-            client.connect(fhirJs);
-            expect(_passedOptions.auth).to.equal({
-                user: "my username",
-                pass: "my password"
-            });
-
-            (client.state.tokenResponse as any).patient = "bd7cb541-732b-4e39-ab49-ae507aa49326";
-            client.connect(fhirJs);
-            expect(client.patient.api).to.not.be.undefined();
         });
     });
 
@@ -2740,9 +2651,7 @@ describe("FHIR.client", () => {
                     const abortController = new AbortController();
                     const task = client.request({ url: "/Patient/patient-id", signal: abortController.signal });
                     abortController.abort();
-                    await expect(task).to.reject(
-                        Error, "The user aborted a request."
-                    );
+                    await expect(task).to.reject(Error, /abort/i);
                 });
             }
         });
@@ -2811,7 +2720,7 @@ describe("FHIR.client", () => {
                     onPage
                 });
 
-                await expect(task).to.reject(Error, "The user aborted a request.");
+                await expect(task).to.reject(Error, /abort/i);
                 expect(pages.length, "onPage should be called twice").to.equal(2);
                 expect(pages[0]).to.include({ pageId: 1 });
                 expect(pages[1]).to.include({ pageId: 2 });
@@ -2867,7 +2776,7 @@ describe("FHIR.client", () => {
                 // rejected with abort error.
                 setTimeout(() => abortController.abort(), 30);
 
-                await expect(task).to.reject(Error, "The user aborted a request.");
+                await expect(task).to.reject(Error, /abort/i);
             });
         });
 

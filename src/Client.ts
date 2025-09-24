@@ -210,8 +210,7 @@ export default class Client extends FhirClient
     private _refreshTask: Promise<any> | null;
 
     /**
-     * Validates the parameters, creates an instance and tries to connect it to
-     * FhirJS, if one is available globally.
+     * Validates the parameters and creates an instance.
      */
     constructor(environment: fhirclient.Adapter, state: fhirclient.ClientState | string)
     {
@@ -275,51 +274,6 @@ export default class Client extends FhirClient
                     Promise.reject(new Error("User is not available"));
             }
         };
-
-        // fhir.js api (attached automatically in browser)
-        // ---------------------------------------------------------------------
-        this.connect((environment as BrowserAdapter).fhir);
-    }
-
-    /**
-     * This method is used to make the "link" between the `fhirclient` and the
-     * `fhir.js`, if one is available.
-     * **Note:** This is called by the constructor. If fhir.js is available in
-     * the global scope as `fhir`, it will automatically be linked to any [[Client]]
-     * instance. You should only use this method to connect to `fhir.js` which
-     * is not global.
-     */
-    connect(fhirJs?: (options: Record<string, any>) => Record<string, any>): Client
-    {
-        if (typeof fhirJs == "function") {
-            const options: Record<string, any> = {
-                baseUrl: this.state.serverUrl.replace(/\/$/, "")
-            };
-
-            const accessToken = this.getState("tokenResponse.access_token");
-            if (accessToken) {
-                options.auth = { token: accessToken };
-            }
-            else {
-                const { username, password } = this.state;
-                if (username && password) {
-                    options.auth = {
-                        user: username,
-                        pass: password
-                    };
-                }
-            }
-            this.api = fhirJs(options);
-
-            const patientId = this.getState("tokenResponse.patient");
-            if (patientId) {
-                this.patient.api = fhirJs({
-                    ...options,
-                    patient: patientId
-                });
-            }
-        }
-        return this;
     }
 
     /**
