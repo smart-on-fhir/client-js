@@ -1,5 +1,5 @@
 /* global fhir */
-const EventEmitter = require("events");
+import { EventEmitter }    from "node:events";
 import BrowserStorage      from "../../src/storage/BrowserStorage";
 import { fhirclient }      from "../../src/types";
 import * as security       from "../../src/security/server"

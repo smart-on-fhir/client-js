@@ -6,7 +6,7 @@
 import HttpError from "./HttpError";
 import { patientParams } from "./settings";
 import { fhirclient } from "./types";
-const debug = require("debug");
+import debug from "debug";
 const _debug     = debug("FHIR");
 export { _debug as debug };
 

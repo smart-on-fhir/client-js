@@ -17,7 +17,6 @@ function smart(
     }).getSmartApi();
 }
 
-smart.AbortController = AbortController;
 smart.FhirClient = FhirClient;
 
-export = smart;
+export default smart;

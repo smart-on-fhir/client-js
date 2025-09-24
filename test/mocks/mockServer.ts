@@ -1,8 +1,7 @@
 import { Application, Request, Response } from "express";
 import { AddressInfo } from "net";
-
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import cors    from "cors";
 
 interface App extends Application {
     mock: (mock: any) => number;

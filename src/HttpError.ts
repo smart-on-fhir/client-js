@@ -1,5 +1,3 @@
-import { fhirclient } from "./types";
-
 
 export default class HttpError extends Error
 {

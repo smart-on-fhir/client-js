@@ -20,4 +20,4 @@ function smart(
 smart.AbortController = AbortController;
 smart.FhirClient = FhirClient;
 
-export = smart;
+export default smart;

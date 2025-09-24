@@ -3608,8 +3608,8 @@ describe("FHIR.client", () => {
     describe("byCode", () => {
         crossPlatformTest(async (env) => {
             const client = new Client(env, "http://localhost");
-            const observation1 = require("./mocks/Observation-1.json");
-            const observation2 = require("./mocks/Observation-2.json");
+            const observation1 = (await import("./mocks/Observation-1.json")).default;
+            const observation2 = (await import("./mocks/Observation-2.json")).default;
 
             const resources = [
                 observation1,

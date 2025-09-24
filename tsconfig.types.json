@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declarationDir"     : "./dist/types",
+    "declaration"        : true,
+    "emitDeclarationOnly": true,
+    "noEmit"             : false,
+    "preserveWatchOutput": true,
+  }
+}

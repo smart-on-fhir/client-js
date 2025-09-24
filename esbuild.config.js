@@ -10,13 +10,14 @@ async function buildAll() {
             bundle     : true,
             minify     : true,
             sourcemap  : true,
-            outfile    : 'dist/build/fhir-client.min.js',
+            outfile    : 'dist/bundle/fhir-client.min.js',
             target     : ['chrome99', 'firefox99', 'edge99'],
             platform   : 'browser',
             format     : 'iife',
             logLevel   : 'info',
             globalName : 'FHIR',
-            banner     : { js: '// @ts-nocheck' },
+            banner     : { js: '// @ts-nocheck\n(() => {' },
+            footer     : { js: ';window.FHIR = FHIR.default;})();' },
             metafile   : true,
         });
         if (watch) {
@@ -34,13 +35,14 @@ async function buildAll() {
             bundle     : true,
             minify     : false,
             sourcemap  : true,
-            outfile    : 'dist/build/fhir-client.js',
+            outfile    : 'dist/bundle/fhir-client.js',
             target     : ['chrome99', 'firefox99', 'edge99'],
             platform   : 'browser',
             format     : 'iife',
             logLevel   : 'info',
             globalName : 'FHIR',
-            banner     : { js: '// @ts-nocheck' },
+            banner     : { js: '// @ts-nocheck\n(() => {' },
+            footer     : { js: ';window.FHIR = FHIR.default;})();' },
             metafile   : true,
         });
 
@@ -52,6 +54,7 @@ async function buildAll() {
             console.log(await esbuild.analyzeMetafile(result.metafile));
             await prettyCtx.dispose();
         }
+
     } catch (err) {
         process.exit(1);
     }

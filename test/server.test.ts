@@ -4,7 +4,7 @@ import * as Lab          from "@hapi/lab";
 import Adapter           from "../src/adapters/NodeAdapter";
 import { KEY }           from "../src/smart";
 import ServerStorage     from "../src/storage/ServerStorage";
-import FHIR              = require("../src/entry/node");
+import FHIR              from "../src/entry/node";
 
 // Mocks
 import mockServer        from "./mocks/mockServer";

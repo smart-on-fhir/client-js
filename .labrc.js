@@ -49,7 +49,7 @@ module.exports = {
     // Other -------------------------------------------------------------------
     // ignore a list of globals for the leak detection (comma separated)
     // (-I, --globals)
-    globals: "crypto,__coverage__", // "__core-js_shared__",
+    globals: "crypto,__coverage__,__spreadArray", // "__core-js_shared__",
 
     // --bail                          exit the process with a non zero exit code on the first test failure
     bail: false,

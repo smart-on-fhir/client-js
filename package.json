@@ -1,6 +1,6 @@
 {
   "name": "fhirclient",
-  "version": "2.7.0",
+  "version": "3.0.0-beta.1",
   "description": "JavaScript client for Fast Healthcare Interoperability Resources",
   "author": "SMART Health IT <support@smarthealthit.org> (https://smarthealthit.org/)",
   "contributors": [
@@ -16,21 +16,27 @@
   "license": "Apache-2.0",
   "main": "dist/lib/entry/node.js",
   "browser": "dist/lib/entry/browser.js",
-  "overrides": {
-    "braces": "^3.0.3",
-    "ip": "^1.1.9"
-  },
   "scripts": {
-    "clean": "rm -rf dist/build && rm -r dist/lib/*",
-    "build": "npm run clean && npm run build:module && npm run build:browser",
-    "build:dev": "npm run build:browser:watch",
-    "build:module": "cp src/types.d.ts dist/lib && tsc -p tsconfig.module.json",
-    "build:browser": "node esbuild.config.js",
-    "build:browser:watch": "node esbuild.config.js --watch",
-    "test": "nyc --cache false --reporter lcov --reporter html lab --typescript test/*.test.ts",
-    "test-only": "lab --typescript test/*.test.ts",
-    "nightwatch": "nightwatch --headless test/specs/*.js",
-    "doc": "typedoc"
+    "clean": "npm-run-all --parallel clean:bundle clean:cjs clean:esm clean:types",
+    "clean:bundle": "rm -rf dist/bundle",
+    "clean:cjs": "rm -rf dist/cjs",
+    "clean:esm": "rm -rf dist/esm",
+    "clean:types": "rm -rf dist/types",
+    "build:watch": "nodemon -i dist -i test -e ts,js,json -x 'npm run build'",
+    "build": "npm-run-all --parallel build:cjs build:esm build:types build:bundle",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:types": "tsc -p tsconfig.types.json",
+    "build:bundle": "node esbuild.config.js",
+    "test": "npm run coverage && npm run test:e2e",
+    "test:watch": "npm-run-all --parallel test:integration:watch test:e2e:watch",
+    "test:integration": "lab --typescript test/*.test.ts",
+    "test:integration:watch": "nodemon -w test -w src -e ts,js,json -x 'npm run test:integration'",
+    "test:e2e": "nightwatch --headless test/specs/*.js",
+    "test:e2e:watch": "nodemon -w test/specs -w dist/bundle -e js,html -x 'npm run test:e2e'",
+    "coverage": "nyc --cache false --reporter lcov --reporter html lab --typescript test/*.test.ts",
+    "doc": "typedoc",
+    "dev": "npm run clean && npm run build && npm run test && npm run doc"
   },
   "dependencies": {
     "@types/fhir": "^0.0.41",
@@ -60,6 +66,8 @@
     "jsdom": "^27.0.0",
     "jsonwebtoken": "^9.0.2",
     "nightwatch": "^3.11.1",
+    "nodemon": "^3.1.10",
+    "npm-run-all": "^4.1.5",
     "nyc": "^17.0.0",
     "typedoc": "^0.28.13",
     "typescript": "^5.9.2"

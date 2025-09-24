@@ -8,8 +8,6 @@ const { ready, authorize, init, client, options, utils } = adapter.getSmartApi()
 
 // $lab:coverage:off$
 const FHIR = {
-    AbortController: window.AbortController,
-
     client,
 
     /**
@@ -27,5 +25,5 @@ const FHIR = {
     }
 };
 
-export = FHIR;
+export default FHIR;
 // $lab:coverage:on$
