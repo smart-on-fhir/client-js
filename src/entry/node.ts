@@ -1,10 +1,9 @@
 import NodeAdapter from "../adapters/NodeAdapter";
 import { IncomingMessage, ServerResponse } from "http";
 import { fhirclient } from "../types";
-import FhirClient from "../FhirClient";
+export { default as FhirClient } from "../FhirClient";
 
-
-function smart(
+export function smart(
     request: IncomingMessage,
     response: ServerResponse,
     storage?: fhirclient.Storage | fhirclient.storageFactory
@@ -16,7 +15,3 @@ function smart(
         storage
     }).getSmartApi();
 }
-
-smart.FhirClient = FhirClient;
-
-export default smart;

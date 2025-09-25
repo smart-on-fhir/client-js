@@ -4,7 +4,7 @@ import * as Lab          from "@hapi/lab";
 import Adapter           from "../src/adapters/NodeAdapter";
 import { KEY }           from "../src/smart";
 import ServerStorage     from "../src/storage/ServerStorage";
-import FHIR              from "../src/entry/node";
+import { smart }         from "../src/entry/node";
 
 // Mocks
 import mockServer        from "./mocks/mockServer";
@@ -62,7 +62,7 @@ describe("Complete authorization [SERVER]", () => {
 
         const req1   = new HttpRequest("http://localhost/launch?launch=123&state=" + key);
         const res1   = new HttpResponse();
-        const smart1 = FHIR(req1 as any, res1 as any);
+        const smart1 = smart(req1 as any, res1 as any);
 
         // mock our oauth endpoints
         mockServer.mock({
@@ -99,7 +99,7 @@ describe("Complete authorization [SERVER]", () => {
         const req2   = new HttpRequest("http://localhost/index?code=123&state=" + code);
         req2.session = req1.session; // inherit the session
         const res2   = new HttpResponse();
-        const smart2 = FHIR(req2 as any, res2 as any);
+        const smart2 = smart(req2 as any, res2 as any);
 
         // mock our access token response
         mockServer.mock({
@@ -133,10 +133,10 @@ describe("Complete authorization [SERVER]", () => {
 
         const key = "my-random-state";
 
-        const req     = new HttpRequest("http://localhost/index");
-        const res     = new HttpResponse();
-        const storage = new MemoryStorage();
-        const smart   = FHIR(req as any, res as any, storage);
+        const req      = new HttpRequest("http://localhost/index");
+        const res      = new HttpResponse();
+        const storage  = new MemoryStorage();
+        const smartApi = smart(req as any, res as any, storage);
 
         await storage.set(KEY, key);
         await storage.set(key, {
@@ -160,7 +160,7 @@ describe("Complete authorization [SERVER]", () => {
             }
         });
 
-        const client = await smart.ready();
+        const client = await smartApi.ready();
 
         expect(client.patient.id).to.equal("b2536dd3-bccd-4d22-8355-ab20acdf240b");
         expect(client.encounter.id).to.equal("e3ec2d15-4c27-4607-a45c-2f84962b0700");
@@ -171,8 +171,8 @@ describe("Complete authorization [SERVER]", () => {
     it ("can bypass oauth by passing `fhirServiceUrl` to `authorize`", async () => {
         const req   = new HttpRequest("http://localhost/launch");
         const res   = new HttpResponse();
-        const smart = FHIR(req as any, res as any);
-        await smart.authorize({ fhirServiceUrl: "http://localhost" });
+        const smartApi = smart(req as any, res as any);
+        await smartApi.authorize({ fhirServiceUrl: "http://localhost" });
         expect(res.status).to.equal(302);
         expect(res.headers.location).to.exist();
         const url = new URL(res.headers.location);
@@ -183,8 +183,8 @@ describe("Complete authorization [SERVER]", () => {
         const req     = new HttpRequest("http://localhost/launch");
         const res     = new HttpResponse();
         const storage = new MemoryStorage();
-        const smart   = FHIR(req as any, res as any, storage);
-        await smart.authorize({
+        const smartApi = smart(req as any, res as any, storage);
+        await smartApi.authorize({
             fhirServiceUrl: "http://localhost",
             scope: "x",
             launch: "123"
