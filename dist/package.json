@@ -24,20 +24,20 @@
       "require": "./cjs/entry/browser.js",
       "types": "./types/entry/browser.d.ts"
     },
-    "./browser/*": {
-      "import": "./esm/*.js",
-      "require": "./cjs/*.js",
-      "types": "./types/*.d.ts"
-    },
     "./node": {
       "import": "./esm/entry/node.js",
       "require": "./cjs/entry/node.js",
       "types": "./types/entry/node.d.ts"
     },
-    "./node/*": {
-      "import" : "./esm/*.js",
+    "./hapi": {
+      "import": "./esm/entry/hapi.js",
+      "require": "./cjs/entry/hapi.js",
+      "types": "./types/entry/hapi.d.ts"
+    },
+    "./*": {
+      "import": "./esm/*.js",
       "require": "./cjs/*.js",
-      "types"  : "./types/*.d.ts"
+      "types": "./types/*.d.ts"
     }
   },
   "dependencies": {

@@ -499,7 +499,14 @@ var FHIR = (() => {
   // src/entry/browser.ts
   var browser_exports2 = {};
   __export(browser_exports2, {
-    default: () => browser_default
+    FhirClient: () => FhirClient,
+    authorize: () => authorize2,
+    createSmartClient: () => client,
+    default: () => browser_default,
+    init: () => init2,
+    ready: () => ready2,
+    settings: () => options,
+    utils: () => utils
   });
 
   // src/HttpError.ts
@@ -2633,20 +2640,18 @@ URL: ${response.url}`);
   // src/entry/browser.ts
   var adapter = new BrowserAdapter();
   var { ready: ready2, authorize: authorize2, init: init2, client, options, utils } = adapter.getSmartApi();
+  var oauth2 = {
+    settings: options,
+    ready: ready2,
+    authorize: authorize2,
+    init: init2
+  };
   var FHIR = {
     client,
-    /**
-     * Using this class if you are connecting to open server that does not
-     * require authorization.
-     */
+    // Use this class if you are connecting to open server (no authorization).
     FhirClient,
     utils,
-    oauth2: {
-      settings: options,
-      ready: ready2,
-      authorize: authorize2,
-      init: init2
-    }
+    oauth2
   };
   var browser_default = FHIR;
   return __toCommonJS(browser_exports2);
