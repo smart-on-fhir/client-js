@@ -17,7 +17,6 @@ import {
 import str from "./strings";
 import { SMART_KEY, patientCompartment } from "./settings";
 import HttpError from "./HttpError";
-import BrowserAdapter from "./adapters/BrowserAdapter";
 import { fhirclient } from "./types";
 import FhirClient from "./FhirClient";
 
