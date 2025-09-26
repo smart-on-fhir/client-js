@@ -1,5 +1,8 @@
 # Changelog
 
+# v2.6.3
+- Added missing authorization header to sub-request client methods like `update`, `create`, `delete`, etc. Fixes #201
+
 # v2.6.2
 - Forgot to include the built files in v2.6.1. This is the version that should be used instead!
 
