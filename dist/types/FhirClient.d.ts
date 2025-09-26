@@ -36,6 +36,11 @@ export default class FhirClient {
      */
     constructor(fhirBaseUrl: string);
     /**
+     * Default request options to be used for every request. This method can be
+     * overridden in subclasses to provide custom default options.
+     */
+    getRequestDefaults(): Promise<Partial<RequestInit>>;
+    /**
      * Creates a new resource in a server-assigned location
      * @see http://hl7.org/fhir/http.html#create
      * @param resource A FHIR resource to be created

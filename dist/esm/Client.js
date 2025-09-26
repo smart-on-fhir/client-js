@@ -302,6 +302,17 @@ export default class Client extends FhirClient {
         this.state.tokenResponse = {};
     }
     /**
+     * Default request options to be used for every request.
+     */
+    async getRequestDefaults() {
+        const authHeader = this.getAuthorizationHeader();
+        return {
+            headers: {
+                ...(authHeader ? { authorization: authHeader } : {})
+            }
+        };
+    }
+    /**
      * @param requestOptions Can be a string URL (relative to the serviceUrl),
      * or an object which will be passed to fetch()
      * @param fhirOptions Additional options to control the behavior

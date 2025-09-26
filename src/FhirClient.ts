@@ -65,6 +65,14 @@ export default class FhirClient
     }
 
     /**
+     * Default request options to be used for every request. This method can be
+     * overridden in subclasses to provide custom default options.
+     */
+    async getRequestDefaults(): Promise<Partial<RequestInit>> {
+        return {}
+    }
+
+    /**
      * Creates a new resource in a server-assigned location
      * @see http://hl7.org/fhir/http.html#create
      * @param resource A FHIR resource to be created
@@ -355,6 +363,16 @@ export default class FhirClient
     async fhirRequest<T = any>(uri: string | URL, options: RequestOptions = {}): Promise<T>
     {
         assert(options, "fhirRequest requires a uri as first argument");
+
+        const getRequestDefaults = await this.getRequestDefaults();
+        options = {
+            ...getRequestDefaults,
+            ...options,
+            headers: {
+                ...(getRequestDefaults.headers || {}),
+                ...(options.headers || {})
+            }            
+        }
 
         const path = uri + ""
         const url  = absolute(path, this.fhirBaseUrl);

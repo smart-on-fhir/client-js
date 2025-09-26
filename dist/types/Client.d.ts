@@ -176,6 +176,10 @@ export default class Client extends FhirClient {
      */
     private _clearState;
     /**
+     * Default request options to be used for every request.
+     */
+    getRequestDefaults(): Promise<Partial<fhirclient.RequestOptions>>;
+    /**
      * @param requestOptions Can be a string URL (relative to the serviceUrl),
      * or an object which will be passed to fetch()
      * @param fhirOptions Additional options to control the behavior

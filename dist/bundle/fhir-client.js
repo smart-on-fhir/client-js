@@ -1033,6 +1033,13 @@ URL: ${response.url}`);
       this.fhirBaseUrl = fhirBaseUrl;
     }
     /**
+     * Default request options to be used for every request. This method can be
+     * overridden in subclasses to provide custom default options.
+     */
+    async getRequestDefaults() {
+      return {};
+    }
+    /**
      * Creates a new resource in a server-assigned location
      * @see http://hl7.org/fhir/http.html#create
      * @param resource A FHIR resource to be created
@@ -1247,6 +1254,15 @@ URL: ${response.url}`);
      */
     async fhirRequest(uri, options2 = {}) {
       assert(options2, "fhirRequest requires a uri as first argument");
+      const getRequestDefaults = await this.getRequestDefaults();
+      options2 = {
+        ...getRequestDefaults,
+        ...options2,
+        headers: {
+          ...getRequestDefaults.headers || {},
+          ...options2.headers || {}
+        }
+      };
       const path = uri + "";
       const url = absolute(path, this.fhirBaseUrl);
       const { cacheMap } = options2;
@@ -1547,6 +1563,17 @@ URL: ${response.url}`);
       }
       await storage.unset(SMART_KEY);
       this.state.tokenResponse = {};
+    }
+    /**
+     * Default request options to be used for every request.
+     */
+    async getRequestDefaults() {
+      const authHeader = this.getAuthorizationHeader();
+      return {
+        headers: {
+          ...authHeader ? { authorization: authHeader } : {}
+        }
+      };
     }
     /**
      * @param requestOptions Can be a string URL (relative to the serviceUrl),
