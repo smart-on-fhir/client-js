@@ -1,10 +1,19 @@
 # Client
 This is a FHIR client that is returned to you from the `ready()` call of the SMART API. You can also create it yourself if needed:
 ```js
-// BROWSER
+
+// BROWSER (via script tag; FHIR is global variable)
 const client = FHIR.client("https://r4.smarthealthit.org");
 
-// SERVER
+// BROWSER (ES module or TypeScript)
+import { createSmartClient } from "fhirclient/browser";
+const client = createSmartClient("https://r4.smarthealthit.org");
+
+// BROWSER (bundler in CommonJS project)
+const { createSmartClient } = require("fhirclient/browser");
+const client = createSmartClient("https://r4.smarthealthit.org");
+
+// SERVER (needs request and response objects)
 const client = smart(req, res).client("https://r4.smarthealthit.org");
 ```
 It exposes the following API:
@@ -275,10 +284,9 @@ client.getPath(data, "a.b.c.d.e") // => undefined
 ```
 
 ## Aborting Requests
-It is possible to abort HTTP requests since version `2.2.0`. The implementation
-is based on the standard `AbortController` approach. You need to create an
-instance of `AbortController` and pass it's `AbortSignal` as request option as
-shown below.
+The implementation is based on the standard `AbortController` approach. You need
+to create an instance of `AbortController` and pass it's `AbortSignal` as request
+option as shown below.
 
 Note that `client.request` is a powerful method that might start other requests
 depending on the passed options (to fetch references or additional pages). If
@@ -286,12 +294,8 @@ a `client.request` task is aborted, that will propagate and cancel any sub-reque
 that are being executed at that point.
 
 
-### When used as library
-When the bundle is included via `script` tag in a web page, the `AbortController`
-class will be globally available (we include a polyfill). Then an abort-able
-request could look like this:
+Example:
 ```js
-const client = new FHIR.client("https://r3.smarthealthit.org");
 const abortController = new AbortController();
 const signal = abortController.signal;
 
@@ -310,22 +314,5 @@ client.refresh({ signal });
 abortController.abort();
 ```
 
-### When used as module
-If the library is used as module (with a bundler or in NodeJS), the usage is the
-same, except that the global scope is not polyfilled. You can include your own polyfill for `AbortController`. However, we are already using `AbortController` internally and made it accessible via the entry point:
-```js
-import FHIR, { AbortController } from "fhirclient"
-
-const client = new FHIR.client("https://r3.smarthealthit.org");
-const abortController = new AbortController();
-
-client.request({
-    url: "Patient",
-    signal: abortController.signal
-}).then(console.log, console.error);
-
-// Later...
-abortController.abort();
-```
 
 

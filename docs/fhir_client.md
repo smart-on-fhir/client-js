@@ -6,26 +6,36 @@ ideal if you want to connect to an open server, especially in NodeJS where it ca
 used without having to provide a server request/response environment.
 
 ## Usage
-In browsers you can do:
 ```js
+// BROWSER (via script tag; FHIR is global variable)
 const client = new FHIR.FhirClient("https://open-fhir-server.org");
-```
 
-In node the same could be done like so:
-```ts
-import FHIR from "fhirclient";
+// BROWSER (ES module or TypeScript)
+import { FhirClient } from "fhirclient/browser";
+const client = new FhirClient("https://open-fhir-server.org");
 
-const client = new FHIR.FhirClient("https://open-fhir-server.org");
+// BROWSER (bundler in CommonJS project)
+const { FhirClient } = require("fhirclient/browser");
+const client = new FhirClient("https://open-fhir-server.org");
+
+// SERVER (CommonJS syntax
+const { FhirClient } = require("fhirclient/node");
+const client = new FhirClient("https://open-fhir-server.org");
+
+// SERVER (ESM syntax)
+import { FhirClient } from "fhirclient/node";
+const client = new FhirClient("https://open-fhir-server.org");
 ```
 
 ## Constructor
-Creating an instance is simple. The constructor only accepts a single required argument - the base URL of the FHIR server:
+Creating an instance is simple. The constructor only accepts a single required
+argument - the base URL of the FHIR server:
 
 ```ts
-import FHIR from "fhirclient";
+// Create a client for the public FHIR server
+const client = new FhirClient("https://r4.smarthealthit.org");
 
-const client = new FHIR.FhirClient("https://r4.smarthealthit.org");
-
+// Now we can use the client to make requests
 const patient = await client.fhirRequest("Patient/123");
 const observation = await client.fhirRequest("Observation/123");
 // ....
@@ -168,9 +178,9 @@ interface RequestOptions extends RequestInit {
 You can extend this class to provide additional functionality. Here is a simple example that would add an access token to every request:
 
 ```ts
-import FHIR from "fhirclient";
+import { FhirClient } from "fhirclient";
 
-class AuthenticatedFhirClient extends FHIR.FhirClient {
+class AuthenticatedFhirClient extends FhirClient {
     async fhirRequest<T>(uri, options = {}) {
         options.headers = {
             ...options.headers,

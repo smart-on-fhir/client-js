@@ -4,153 +4,77 @@ This document describes the most important changes that might be required
 in order to update an old SMART app to support new versions of the `fhirclient`
 library.
 
-## Migrating to v2+
+## Migrating to v3+
+The latest major version is v3. It includes some breaking changes, but
+most apps should be able to upgrade with minimal changes.
 
-There are lots of changes in v2, compared to the older versions. It might be a
-good idea to start by reading [this document](v2.md).
+How to import the library
+--------------------------------
+The library is now also published as ES module. This means that if you are
+using a bundler like Webpack, Rollup, Parcel or Vite you can import it as
+module.
 
-> This only covers browser-related changes, since versions below 2 were not server-compatible.
-
-
-### Load the correct version
-First make sure that you are loading the correct version of the library
-through the script tags. For example, this should load the latest development build:
+Client-side via script tag:
 ```html
-<script src="https://cdn.jsdelivr.net/npm/fhirclient/build/fhir-client.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fhirclient/bundle/fhir-client.min.js"></script>
+<script>
+FHIR.oauth2.authorize(options);
+</script>
 ```
 
-### FHIR.oauth2.authorize()
-    
-In your launch page you should have a call to `FHIR.oauth2.authorize()`.
-This should work without any changes for EHR launch. For Standalone Launch,
-you probably  have something like:
+Client-side ESM or TS:
 ```js
-FHIR.oauth2.authorize({
-    client: {
-        client_id: "...",
-        scope: "..."
-        },
-        server: "https://my-launch-url"
-})
+import { authorize } from "fhirclient/browser";
+authorize(options);
 ```
-For v2 you need to change that to:
+
+Client-side CommonJS:
 ```js
-FHIR.oauth2.authorize({
-    client_id: "...",
-    scope: "...",
-    iss: "https://my-launch-url"
-})
+const { authorize } = require("fhirclient/browser");
+authorize(options);
 ```
 
-### FHIR.oauth2.ready()
-This is where apps are initialized. You probably call this with
-one or two callback arguments like:
+Server-side CommonJS:
 ```js
-FHIR.oauth2.ready(onSuccess, onError);
+const { smart } = require("fhirclient/node");
+smart(request, response).authorize(options);
 ```
-In v2 this is acceptable, but `ready` returns a `Promise` and we
-advise you to change it to:
+
+Server-side ESM or TS:
 ```js
-FHIR.oauth2.ready().then(onSuccess).catch(onError);
+import { smart } from "fhirclient/node";
+smart(request, response).authorize(options);
 ```
-This is just for clarity. Even if you keep the old signature (`ready(onSuccess, onError)`)
-it will be converted internally to `ready().then(onSuccess).catch(onError)`. The important
-part is that `onSuccess` now becomes part of the promise chain and as such, it's return
-value will be passed to any function that might be chained after that.
 
-At this point, review the code of those two callback and consider
-the following:
-- `onError` is now a promise rejection handler. As such, it will
-always be called with single argument that is an Error instance
-(no more multiple argument or string messages or custom objects).
-- `onSuccess` is now part of the promise chain. If you throw an
-an error or return a rejected promise, the error should propagate
-to your `onError function`
-- You can return a `Promise` from `onSuccess` and it will be awaited for.
+**BREAKING CHANGE:**
+You must import from specific entry points depending on your environment.
+Do NOT import from `"fhirclient"` directly, as that will not work!
 
-### FHIR queries
-Once you have the SMART part (`authorize` and `ready`) working, it
-is time to proceed to the FHIR queries. Almost every http request
-made by this library before v2 was sent through another library called [fhir.js](https://github.com/FHIR/fhir.js/). Since v2, we recommended switching to the built-in
-`request` function which came with some benefits. Now that fhir.js is not longer
-maintained, we have removed it from the main library. This means that
-if you were using fhir.js directly, you will have to make some changes.
+Examples:
 
-#### patient.read()
-Most of the apps are using information about the
-selected patient, so you probably have a call like `client.patient.read()`
-somewhere in your code. That should work in v2, but it returns a `Promise`
-instead of `jQuery.Deferred`. This means that things like:
 ```js
-patient.read().done(...).fail(...).always(...)
-```
-must be changed to:
-```js
-patient.read().then(...).catch(...).finally(...)
-```
+// FRONTEND 
+import { authorize } from "fhirclient/browser"; // for ESM/TS projects
+const { authorize } = require("fhirclient/browser"); // for CommonJS projects
 
-#### Other read requests
-Other requests should be convertible to `client.request()`. We can't
-cover every possible scenario, but we can provide an example for one use case
-that seems to be very common - fetching patient observations.
-```js
-FHIR.oauth2.ready()
+// BACKEND
+import { authorize } from "fhirclient/node"; // for Node.js / Express integration using ESM/TS
+import { authorize } from "fhirclient/hapi"; // for HAPI integration using ESM/TS
+const { authorize } = require("fhirclient/node"); // for Node.js / Express integration using CommonJS
+const { authorize } = require("fhirclient/hapi"); // for HAPI integration using CommonJS
 
-    .then(client => {
-
-        const query = new URLSearchParams();
-        query.set("patient", client.patient.id);
-        query.set("_count", 100); // fetch fewer pages if the server supports it
-        query.set("code", [
-            'http://loinc.org|29463-7', // weight
-            'http://loinc.org|3141-9' , // weight
-            'http://loinc.org|8302-2' , // Body height
-            'http://loinc.org|8306-3' , // Body height - lying
-            'http://loinc.org|8287-5' , // headC
-            'http://loinc.org|39156-5', // BMI
-            'http://loinc.org|18185-9', // gestAge
-            'http://loinc.org|37362-1', // bone age
-            'http://loinc.org|11884-4'  // gestAge
-        ].join(","));
-
-        return client.request("Observation?" + query, {
-            pageLimit: 0,   // get all pages
-            flat     : true // return flat array of Observation resources
-        }).then(observations => {
-            const getObservations = client.byCodes(observations, "code");
-            console.log("height", getObservations("8302-2", "8306-3"));
-            console.log("weight", getObservations("29463-7", "3141-9"));
-            // ...
-        });
-    })
-    
-    .catch(console.error);
-```
-See [this](./fhirjs-equivalents) for other examples.
-
-#### Common write requests
-The v2 client includes convenience wrappers for FHIR create, update, delete operations.
-
-For example:
-```js
-client.api.update({resource: resource})
-```
-can be changed to:
-```js
-client.update(resource)
+// WRONG - will not work
+import { authorize } from "fhirclient"; // will not work
+const { authorize } = require("fhirclient"); // will not work
 ```
 
-Here are examples for create and delete:
-```js
-client.create(resource)
-```
-```js
-client.delete("Patient/123")
-```
-
-#### Other write requests
-Other write requests should be converted to `client.request()`.
-See [this](./fhirjs-equivalents) for examples.
+No more polyfills and old browsers
+--------------------------------
+- The library now targets modern browsers (ES6+). This means that if you need
+  to support older browsers (like IE11) you will need to include polyfills in
+  your app.
+- The library no longer includes polyfills for `fetch`, `AbortController`,
+  `Request`, `Response`, `Headers`, and `WebCrypto`.
 
 ### Other Changes
 
