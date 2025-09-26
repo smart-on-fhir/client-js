@@ -3777,15 +3777,27 @@ describe("FHIR.client", () => {
     describe("create", () => {
         crossPlatformTest(async (env) => {
             const client = new Client(env, mockUrl);
+
+            client.state.tokenResponse = { access_token: "TEST.ACCESS.TOKEN" };
+
             const resource = { resourceType: "Patient" };
 
             let result: any;
 
             // Passing the includeResponse option
             mockServer.mock({
-                status: 200,
-                body: resource,
-                headers: { "content-type": "application/json" }
+                handler: (req, res, next) => {
+                    try {
+                        expect(req.headers.authorization).to.equal("Bearer TEST.ACCESS.TOKEN");
+                        expect(req.headers["content-type"]).to.equal("application/json");
+                        expect(req.method).to.equal("POST");
+                        expect(req.url).to.equal("/Patient");
+                        expect(req.body).to.equal(resource);
+                        res.json(resource);
+                    } catch (ex) {
+                        next(ex);
+                    }
+                }
             });
             result = await client.create(resource, { includeResponse: true });
             expect(result.body).to.equal(resource);
@@ -3856,14 +3868,24 @@ describe("FHIR.client", () => {
     describe("update", () => {
         crossPlatformTest(async (env) => {
             const client = new Client(env, mockUrl);
+            client.state.tokenResponse = { access_token: "TEST.ACCESS.TOKEN" };
             const resource = { resourceType: "Patient", id: "2" };
             let result: any;
 
             // Passing the includeResponse option
             mockServer.mock({
-                status: 200,
-                body: resource,
-                headers: { "content-type": "application/json" }
+                handler: (req, res, next) => {
+                    try {
+                        expect(req.headers.authorization).to.equal("Bearer TEST.ACCESS.TOKEN");
+                        expect(req.headers["content-type"]).to.equal("application/json");
+                        expect(req.method).to.equal("PUT");
+                        expect(req.url).to.equal("/Patient/2");
+                        expect(req.body).to.equal(resource);
+                        res.json(resource);
+                    } catch (ex) {
+                        next(ex);
+                    }
+                }
             });
             result = await client.update(resource, { includeResponse: true });
             expect(result.body).to.equal(resource);
@@ -4015,14 +4037,21 @@ describe("FHIR.client", () => {
     describe("delete", () => {
         crossPlatformTest(async (env) => {
             const client = new Client(env, mockUrl);
-            
+            client.state.tokenResponse = { access_token: "TEST.ACCESS.TOKEN" };
             let result: any;
 
             // Passing the includeResponse option
             mockServer.mock({
-                status: 200,
-                body: { result: "success" },
-                headers: { "content-type": "application/json" }
+                handler: (req, res, next) => {
+                    try {
+                        expect(req.headers.authorization).to.equal("Bearer TEST.ACCESS.TOKEN");
+                        expect(req.method).to.equal("DELETE");
+                        expect(req.url).to.equal("/Patient/2");
+                        res.json({ result: "success" });
+                    } catch (ex) {
+                        next(ex);
+                    }
+                }
             });
             
             result = await client.delete("Patient/2", { includeResponse: true });
@@ -4070,14 +4099,23 @@ describe("FHIR.client", () => {
     describe("patch", () => {
         crossPlatformTest(async (env) => {
             const client = new Client(env, mockUrl);
-            
+            client.state.tokenResponse = { access_token: "TEST.ACCESS.TOKEN" };
             let result: any;
 
             // Standard usage
             mockServer.mock({
-                status: 200,
-                body: { result: "success" },
-                headers: { "content-type": "application/json" }
+                handler: (req, res, next) => {
+                    try {
+                        expect(req.headers.authorization).to.equal("Bearer TEST.ACCESS.TOKEN");
+                        expect(req.headers["content-type"]).to.equal("application/json-patch+json; charset=UTF-8");
+                        expect(req.headers.prefer).to.equal("return=presentation");
+                        expect(req.method).to.equal("PATCH");
+                        expect(req.url).to.equal("/Patient/2");
+                        res.json({ result: "success" });
+                    } catch (ex) {
+                        next(ex);
+                    }
+                },
             });
             
             result = await client.patch("Patient/2", [{ op: "remove", path: "/x" }], { includeResponse: true });

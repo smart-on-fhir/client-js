@@ -962,32 +962,32 @@ function contextualize(_x, _x2) {
  * ```
  */
 function _contextualize() {
-  _contextualize = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee8(requestOptions, client) {
+  _contextualize = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee9(requestOptions, client) {
     var base, contextualURL, _contextualURL;
-    return _regenerator.default.wrap(function _callee8$(_context8) {
-      while (1) switch (_context8.prev = _context8.next) {
+    return _regenerator.default.wrap(function _callee9$(_context9) {
+      while (1) switch (_context9.prev = _context9.next) {
         case 0:
           _contextualURL = function _contextualURL3() {
-            _contextualURL = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee7(_url) {
+            _contextualURL = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee8(_url) {
               var resourceType, conformance, searchParam;
-              return _regenerator.default.wrap(function _callee7$(_context7) {
-                while (1) switch (_context7.prev = _context7.next) {
+              return _regenerator.default.wrap(function _callee8$(_context8) {
+                while (1) switch (_context8.prev = _context8.next) {
                   case 0:
                     resourceType = _url.pathname.split("/").pop();
                     (0, lib_1.assert)(resourceType, "Invalid url \"".concat(_url, "\""));
                     (0, lib_1.assert)(settings_1.patientCompartment.indexOf(resourceType) > -1, "Cannot filter \"".concat(resourceType, "\" resources by patient"));
-                    _context7.next = 5;
+                    _context8.next = 5;
                     return (0, lib_1.fetchConformanceStatement)(client.state.serverUrl);
                   case 5:
-                    conformance = _context7.sent;
+                    conformance = _context8.sent;
                     searchParam = (0, lib_1.getPatientParam)(conformance, resourceType);
                     _url.searchParams.set(searchParam, client.patient.id);
-                    return _context7.abrupt("return", _url.href);
+                    return _context8.abrupt("return", _url.href);
                   case 9:
                   case "end":
-                    return _context7.stop();
+                    return _context8.stop();
                 }
-              }, _callee7);
+              }, _callee8);
             }));
             return _contextualURL.apply(this, arguments);
           };
@@ -996,27 +996,27 @@ function _contextualize() {
           };
           base = (0, lib_1.absolute)("/", client.state.serverUrl);
           if (!(typeof requestOptions == "string" || requestOptions instanceof URL)) {
-            _context8.next = 8;
+            _context9.next = 8;
             break;
           }
-          _context8.next = 6;
+          _context9.next = 6;
           return contextualURL(new URL(requestOptions + "", base));
         case 6:
-          _context8.t0 = _context8.sent;
-          return _context8.abrupt("return", {
-            url: _context8.t0
+          _context9.t0 = _context9.sent;
+          return _context9.abrupt("return", {
+            url: _context9.t0
           });
         case 8:
-          _context8.next = 10;
+          _context9.next = 10;
           return contextualURL(new URL(requestOptions.url + "", base));
         case 10:
-          requestOptions.url = _context8.sent;
-          return _context8.abrupt("return", requestOptions);
+          requestOptions.url = _context9.sent;
+          return _context9.abrupt("return", requestOptions);
         case 12:
         case "end":
-          return _context8.stop();
+          return _context9.stop();
       }
-    }, _callee8);
+    }, _callee9);
   }));
   return _contextualize.apply(this, arguments);
 }
@@ -1352,6 +1352,35 @@ var Client = /*#__PURE__*/function (_FhirClient_1$default) {
       return _clearState;
     }()
     /**
+     * Default request options to be used for every request.
+     */
+    )
+  }, {
+    key: "getRequestDefaults",
+    value: (function () {
+      var _getRequestDefaults = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee3() {
+        var authHeader;
+        return _regenerator.default.wrap(function _callee3$(_context3) {
+          while (1) switch (_context3.prev = _context3.next) {
+            case 0:
+              authHeader = this.getAuthorizationHeader();
+              return _context3.abrupt("return", {
+                headers: _objectSpread({}, authHeader ? {
+                  authorization: authHeader
+                } : {})
+              });
+            case 2:
+            case "end":
+              return _context3.stop();
+          }
+        }, _callee3, this);
+      }));
+      function getRequestDefaults() {
+        return _getRequestDefaults.apply(this, arguments);
+      }
+      return getRequestDefaults;
+    }()
+    /**
      * @param requestOptions Can be a string URL (relative to the serviceUrl),
      * or an object which will be passed to fetch()
      * @param fhirOptions Additional options to control the behavior
@@ -1362,7 +1391,7 @@ var Client = /*#__PURE__*/function (_FhirClient_1$default) {
   }, {
     key: "request",
     value: (function () {
-      var _request = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee6(requestOptions) {
+      var _request = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee7(requestOptions) {
         var _this2 = this;
         var fhirOptions,
           _resolvedRefs,
@@ -1373,12 +1402,12 @@ var Client = /*#__PURE__*/function (_FhirClient_1$default) {
           signal,
           authHeader,
           response,
-          _args6 = arguments;
-        return _regenerator.default.wrap(function _callee6$(_context6) {
-          while (1) switch (_context6.prev = _context6.next) {
+          _args7 = arguments;
+        return _regenerator.default.wrap(function _callee7$(_context7) {
+          while (1) switch (_context7.prev = _context7.next) {
             case 0:
-              fhirOptions = _args6.length > 1 && _args6[1] !== undefined ? _args6[1] : {};
-              _resolvedRefs = _args6.length > 2 && _args6[2] !== undefined ? _args6[2] : {};
+              fhirOptions = _args7.length > 1 && _args7[1] !== undefined ? _args7[1] : {};
+              _resolvedRefs = _args7.length > 2 && _args7[2] !== undefined ? _args7[2] : {};
               debugRequest = lib_1.debug.extend("client:request");
               (0, lib_1.assert)(requestOptions, "request requires an url or request options as argument");
               // url -----------------------------------------------------------------
@@ -1400,10 +1429,10 @@ var Client = /*#__PURE__*/function (_FhirClient_1$default) {
               };
               signal = requestOptions.signal || undefined; // Refresh the access token if needed
               if (!options.useRefreshToken) {
-                _context6.next = 11;
+                _context7.next = 11;
                 break;
               }
-              _context6.next = 11;
+              _context7.next = 11;
               return this.refreshIfNeeded({
                 signal: signal
               });
@@ -1417,7 +1446,7 @@ var Client = /*#__PURE__*/function (_FhirClient_1$default) {
                 });
               }
               debugRequest("%s, options: %O, fhirOptions: %O", url, requestOptions, options);
-              return _context6.abrupt("return", _superPropGet(Client, "fhirRequest", this, 3)([url, requestOptions]).then(function (result) {
+              return _context7.abrupt("return", _superPropGet(Client, "fhirRequest", this, 3)([url, requestOptions]).then(function (result) {
                 if (requestOptions.includeResponse) {
                   response = result.response;
                   return result.body;
@@ -1426,27 +1455,27 @@ var Client = /*#__PURE__*/function (_FhirClient_1$default) {
               })
               // Handle 401 ----------------------------------------------------------
               .catch(/*#__PURE__*/function () {
-                var _ref3 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee3(error) {
-                  return _regenerator.default.wrap(function _callee3$(_context3) {
-                    while (1) switch (_context3.prev = _context3.next) {
+                var _ref3 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee4(error) {
+                  return _regenerator.default.wrap(function _callee4$(_context4) {
+                    while (1) switch (_context4.prev = _context4.next) {
                       case 0:
                         if (!(error.status == 401)) {
-                          _context3.next = 15;
+                          _context4.next = 15;
                           break;
                         }
                         if (_this2.getState("tokenResponse.access_token")) {
-                          _context3.next = 4;
+                          _context4.next = 4;
                           break;
                         }
                         error.message += "\nThis app cannot be accessed directly. Please launch it as SMART app!";
                         throw error;
                       case 4:
                         if (options.useRefreshToken) {
-                          _context3.next = 10;
+                          _context4.next = 10;
                           break;
                         }
                         debugRequest("Your session has expired and the useRefreshToken option is set to false. Please re-launch the app.");
-                        _context3.next = 8;
+                        _context4.next = 8;
                         return _this2._clearState();
                       case 8:
                         error.message += "\n" + strings_1.default.expired;
@@ -1458,7 +1487,7 @@ var Client = /*#__PURE__*/function (_FhirClient_1$default) {
                         // otherwise -> auto-refresh failed. Session expired.
                         // Need to re-launch. Clear state to start over!
                         debugRequest("Auto-refresh failed! Please re-launch the app.");
-                        _context3.next = 13;
+                        _context4.next = 13;
                         return _this2._clearState();
                       case 13:
                         error.message += "\n" + strings_1.default.expired;
@@ -1467,9 +1496,9 @@ var Client = /*#__PURE__*/function (_FhirClient_1$default) {
                         throw error;
                       case 16:
                       case "end":
-                        return _context3.stop();
+                        return _context4.stop();
                     }
-                  }, _callee3);
+                  }, _callee4);
                 }));
                 return function (_x4) {
                   return _ref3.apply(this, arguments);
@@ -1482,38 +1511,38 @@ var Client = /*#__PURE__*/function (_FhirClient_1$default) {
                 }
                 throw error;
               }).then(/*#__PURE__*/function () {
-                var _ref4 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee5(data) {
-                  return _regenerator.default.wrap(function _callee5$(_context5) {
-                    while (1) switch (_context5.prev = _context5.next) {
+                var _ref4 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee6(data) {
+                  return _regenerator.default.wrap(function _callee6$(_context6) {
+                    while (1) switch (_context6.prev = _context6.next) {
                       case 0:
                         if (!(!data || typeof data == "string" || data instanceof Response)) {
-                          _context5.next = 4;
+                          _context6.next = 4;
                           break;
                         }
                         if (!requestOptions.includeResponse) {
-                          _context5.next = 3;
+                          _context6.next = 3;
                           break;
                         }
-                        return _context5.abrupt("return", {
+                        return _context6.abrupt("return", {
                           body: data,
                           response: response
                         });
                       case 3:
-                        return _context5.abrupt("return", data);
+                        return _context6.abrupt("return", data);
                       case 4:
-                        _context5.next = 6;
+                        _context6.next = 6;
                         return _this2.fetchReferences(data, options.resolveReferences, options.graph, _resolvedRefs, requestOptions);
                       case 6:
-                        return _context5.abrupt("return", Promise.resolve(data)
+                        return _context6.abrupt("return", Promise.resolve(data)
                         // Pagination ------------------------------------------------------
                         .then(/*#__PURE__*/function () {
-                          var _ref5 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee4(_data) {
+                          var _ref5 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee5(_data) {
                             var links, next, nextPage;
-                            return _regenerator.default.wrap(function _callee4$(_context4) {
-                              while (1) switch (_context4.prev = _context4.next) {
+                            return _regenerator.default.wrap(function _callee5$(_context5) {
+                              while (1) switch (_context5.prev = _context5.next) {
                                 case 0:
                                   if (!(_data && _data.resourceType == "Bundle")) {
-                                    _context4.next = 19;
+                                    _context5.next = 19;
                                     break;
                                   }
                                   links = _data.link || [];
@@ -1523,14 +1552,14 @@ var Client = /*#__PURE__*/function (_FhirClient_1$default) {
                                     });
                                   }
                                   if (!options.onPage) {
-                                    _context4.next = 6;
+                                    _context5.next = 6;
                                     break;
                                   }
-                                  _context4.next = 6;
+                                  _context5.next = 6;
                                   return options.onPage(_data, _objectSpread({}, _resolvedRefs));
                                 case 6:
                                   if (! --options.pageLimit) {
-                                    _context4.next = 19;
+                                    _context5.next = 19;
                                     break;
                                   }
                                   next = links.find(function (l) {
@@ -1538,10 +1567,10 @@ var Client = /*#__PURE__*/function (_FhirClient_1$default) {
                                   });
                                   _data = (0, lib_1.makeArray)(_data);
                                   if (!(next && next.url)) {
-                                    _context4.next = 19;
+                                    _context5.next = 19;
                                     break;
                                   }
-                                  _context4.next = 12;
+                                  _context5.next = 12;
                                   return _this2.request({
                                     url: next.url,
                                     // Aborting the main request (even after it is complete)
@@ -1551,28 +1580,28 @@ var Client = /*#__PURE__*/function (_FhirClient_1$default) {
                                     signal: signal
                                   }, options, _resolvedRefs);
                                 case 12:
-                                  nextPage = _context4.sent;
+                                  nextPage = _context5.sent;
                                   if (!options.onPage) {
-                                    _context4.next = 15;
+                                    _context5.next = 15;
                                     break;
                                   }
-                                  return _context4.abrupt("return", null);
+                                  return _context5.abrupt("return", null);
                                 case 15:
                                   if (!options.resolveReferences.length) {
-                                    _context4.next = 18;
+                                    _context5.next = 18;
                                     break;
                                   }
                                   Object.assign(_resolvedRefs, nextPage.references);
-                                  return _context4.abrupt("return", _data.concat((0, lib_1.makeArray)(nextPage.data || nextPage)));
+                                  return _context5.abrupt("return", _data.concat((0, lib_1.makeArray)(nextPage.data || nextPage)));
                                 case 18:
-                                  return _context4.abrupt("return", _data.concat((0, lib_1.makeArray)(nextPage)));
+                                  return _context5.abrupt("return", _data.concat((0, lib_1.makeArray)(nextPage)));
                                 case 19:
-                                  return _context4.abrupt("return", _data);
+                                  return _context5.abrupt("return", _data);
                                 case 20:
                                 case "end":
-                                  return _context4.stop();
+                                  return _context5.stop();
                               }
-                            }, _callee4);
+                            }, _callee5);
                           }));
                           return function (_x6) {
                             return _ref5.apply(this, arguments);
@@ -1600,9 +1629,9 @@ var Client = /*#__PURE__*/function (_FhirClient_1$default) {
                         }));
                       case 7:
                       case "end":
-                        return _context5.stop();
+                        return _context6.stop();
                     }
-                  }, _callee5);
+                  }, _callee6);
                 }));
                 return function (_x5) {
                   return _ref4.apply(this, arguments);
@@ -1610,9 +1639,9 @@ var Client = /*#__PURE__*/function (_FhirClient_1$default) {
               }()));
             case 15:
             case "end":
-              return _context6.stop();
+              return _context7.stop();
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
       function request(_x3) {
         return _request.apply(this, arguments);
@@ -1889,21 +1918,45 @@ var FhirClient = /*#__PURE__*/function () {
     this.fhirBaseUrl = fhirBaseUrl;
   }
   /**
-   * Creates a new resource in a server-assigned location
-   * @see http://hl7.org/fhir/http.html#create
-   * @param resource A FHIR resource to be created
-   * @param [requestOptions] Any options to be passed to the fetch call.
-   * Note that `method` and `body` will be ignored.
-   * @category Request
+   * Default request options to be used for every request. This method can be
+   * overridden in subclasses to provide custom default options.
    */
   return (0, _createClass2.default)(FhirClient, [{
-    key: "create",
+    key: "getRequestDefaults",
     value: (function () {
-      var _create = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee(resource, requestOptions) {
+      var _getRequestDefaults = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee() {
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
-              return _context.abrupt("return", this.fhirRequest(resource.resourceType, _objectSpread(_objectSpread({}, requestOptions), {}, {
+              return _context.abrupt("return", {});
+            case 1:
+            case "end":
+              return _context.stop();
+          }
+        }, _callee);
+      }));
+      function getRequestDefaults() {
+        return _getRequestDefaults.apply(this, arguments);
+      }
+      return getRequestDefaults;
+    }()
+    /**
+     * Creates a new resource in a server-assigned location
+     * @see http://hl7.org/fhir/http.html#create
+     * @param resource A FHIR resource to be created
+     * @param [requestOptions] Any options to be passed to the fetch call.
+     * Note that `method` and `body` will be ignored.
+     * @category Request
+     */
+    )
+  }, {
+    key: "create",
+    value: (function () {
+      var _create = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee2(resource, requestOptions) {
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) switch (_context2.prev = _context2.next) {
+            case 0:
+              return _context2.abrupt("return", this.fhirRequest(resource.resourceType, _objectSpread(_objectSpread({}, requestOptions), {}, {
                 method: "POST",
                 body: JSON.stringify(resource),
                 headers: _objectSpread({
@@ -1912,9 +1965,9 @@ var FhirClient = /*#__PURE__*/function () {
               })));
             case 1:
             case "end":
-              return _context.stop();
+              return _context2.stop();
           }
-        }, _callee, this);
+        }, _callee2, this);
       }));
       function create(_x, _x2) {
         return _create.apply(this, arguments);
@@ -1934,11 +1987,11 @@ var FhirClient = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: (function () {
-      var _update = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee2(resource, requestOptions) {
-        return _regenerator.default.wrap(function _callee2$(_context2) {
-          while (1) switch (_context2.prev = _context2.next) {
+      var _update = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee3(resource, requestOptions) {
+        return _regenerator.default.wrap(function _callee3$(_context3) {
+          while (1) switch (_context3.prev = _context3.next) {
             case 0:
-              return _context2.abrupt("return", this.fhirRequest("".concat(resource.resourceType, "/").concat(resource.id), _objectSpread(_objectSpread({}, requestOptions), {}, {
+              return _context3.abrupt("return", this.fhirRequest("".concat(resource.resourceType, "/").concat(resource.id), _objectSpread(_objectSpread({}, requestOptions), {}, {
                 method: "PUT",
                 body: JSON.stringify(resource),
                 headers: _objectSpread({
@@ -1947,9 +2000,9 @@ var FhirClient = /*#__PURE__*/function () {
               })));
             case 1:
             case "end":
-              return _context2.stop();
+              return _context3.stop();
           }
-        }, _callee2, this);
+        }, _callee3, this);
       }));
       function update(_x3, _x4) {
         return _update.apply(this, arguments);
@@ -1969,21 +2022,21 @@ var FhirClient = /*#__PURE__*/function () {
   }, {
     key: "delete",
     value: (function () {
-      var _delete2 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee3(url) {
+      var _delete2 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee4(url) {
         var requestOptions,
-          _args3 = arguments;
-        return _regenerator.default.wrap(function _callee3$(_context3) {
-          while (1) switch (_context3.prev = _context3.next) {
+          _args4 = arguments;
+        return _regenerator.default.wrap(function _callee4$(_context4) {
+          while (1) switch (_context4.prev = _context4.next) {
             case 0:
-              requestOptions = _args3.length > 1 && _args3[1] !== undefined ? _args3[1] : {};
-              return _context3.abrupt("return", this.fhirRequest(url, _objectSpread(_objectSpread({}, requestOptions), {}, {
+              requestOptions = _args4.length > 1 && _args4[1] !== undefined ? _args4[1] : {};
+              return _context4.abrupt("return", this.fhirRequest(url, _objectSpread(_objectSpread({}, requestOptions), {}, {
                 method: "DELETE"
               })));
             case 2:
             case "end":
-              return _context3.stop();
+              return _context4.stop();
           }
-        }, _callee3, this);
+        }, _callee4, this);
       }));
       function _delete(_x5) {
         return _delete2.apply(this, arguments);
@@ -2012,15 +2065,15 @@ var FhirClient = /*#__PURE__*/function () {
   }, {
     key: "patch",
     value: (function () {
-      var _patch2 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee4(url, _patch) {
+      var _patch2 = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee5(url, _patch) {
         var requestOptions,
-          _args4 = arguments;
-        return _regenerator.default.wrap(function _callee4$(_context4) {
-          while (1) switch (_context4.prev = _context4.next) {
+          _args5 = arguments;
+        return _regenerator.default.wrap(function _callee5$(_context5) {
+          while (1) switch (_context5.prev = _context5.next) {
             case 0:
-              requestOptions = _args4.length > 2 && _args4[2] !== undefined ? _args4[2] : {};
+              requestOptions = _args5.length > 2 && _args5[2] !== undefined ? _args5[2] : {};
               (0, lib_1.assertJsonPatch)(_patch);
-              return _context4.abrupt("return", this.fhirRequest(url, _objectSpread(_objectSpread({}, requestOptions), {}, {
+              return _context5.abrupt("return", this.fhirRequest(url, _objectSpread(_objectSpread({}, requestOptions), {}, {
                 method: "PATCH",
                 body: JSON.stringify(_patch),
                 headers: _objectSpread({
@@ -2030,9 +2083,9 @@ var FhirClient = /*#__PURE__*/function () {
               })));
             case 3:
             case "end":
-              return _context4.stop();
+              return _context5.stop();
           }
-        }, _callee4, this);
+        }, _callee5, this);
       }));
       function patch(_x6, _x7) {
         return _patch2.apply(this, arguments);
@@ -2042,23 +2095,23 @@ var FhirClient = /*#__PURE__*/function () {
   }, {
     key: "resolveRef",
     value: function () {
-      var _resolveRef = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee5(obj, path, graph, cache) {
+      var _resolveRef = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee6(obj, path, graph, cache) {
         var _this3 = this;
         var requestOptions,
           node,
           isArray,
-          _args5 = arguments;
-        return _regenerator.default.wrap(function _callee5$(_context5) {
-          while (1) switch (_context5.prev = _context5.next) {
+          _args6 = arguments;
+        return _regenerator.default.wrap(function _callee6$(_context6) {
+          while (1) switch (_context6.prev = _context6.next) {
             case 0:
-              requestOptions = _args5.length > 4 && _args5[4] !== undefined ? _args5[4] : {};
+              requestOptions = _args6.length > 4 && _args6[4] !== undefined ? _args6[4] : {};
               node = (0, lib_1.getPath)(obj, path);
               if (!node) {
-                _context5.next = 5;
+                _context6.next = 5;
                 break;
               }
               isArray = Array.isArray(node);
-              return _context5.abrupt("return", Promise.all((0, lib_1.makeArray)(node).filter(Boolean).map(function (item, i) {
+              return _context6.abrupt("return", Promise.all((0, lib_1.makeArray)(node).filter(Boolean).map(function (item, i) {
                 var ref = item.reference;
                 if (ref) {
                   return _this3.fhirRequest(ref, _objectSpread(_objectSpread({}, requestOptions), {}, {
@@ -2087,9 +2140,9 @@ var FhirClient = /*#__PURE__*/function () {
               })));
             case 5:
             case "end":
-              return _context5.stop();
+              return _context6.stop();
           }
-        }, _callee5);
+        }, _callee6);
       }));
       function resolveRef(_x8, _x9, _x10, _x11) {
         return _resolveRef.apply(this, arguments);
@@ -2103,20 +2156,20 @@ var FhirClient = /*#__PURE__*/function () {
   }, {
     key: "resolveReferences",
     value: (function () {
-      var _resolveReferences = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee6(resource, references) {
+      var _resolveReferences = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee7(resource, references) {
         var requestOptions,
-          _args6 = arguments;
-        return _regenerator.default.wrap(function _callee6$(_context6) {
-          while (1) switch (_context6.prev = _context6.next) {
+          _args7 = arguments;
+        return _regenerator.default.wrap(function _callee7$(_context7) {
+          while (1) switch (_context7.prev = _context7.next) {
             case 0:
-              requestOptions = _args6.length > 2 && _args6[2] !== undefined ? _args6[2] : {};
-              _context6.next = 3;
+              requestOptions = _args7.length > 2 && _args7[2] !== undefined ? _args7[2] : {};
+              _context7.next = 3;
               return this.fetchReferences(resource, references, true, {}, requestOptions);
             case 3:
             case "end":
-              return _context6.stop();
+              return _context7.stop();
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
       function resolveReferences(_x12, _x13) {
         return _resolveReferences.apply(this, arguments);
@@ -2126,7 +2179,7 @@ var FhirClient = /*#__PURE__*/function () {
   }, {
     key: "fetchReferences",
     value: function () {
-      var _fetchReferences = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee7(resource, references, graph) {
+      var _fetchReferences = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee8(resource, references, graph) {
         var _this4 = this;
         var cache,
           requestOptions,
@@ -2136,47 +2189,47 @@ var FhirClient = /*#__PURE__*/function () {
           paths,
           groups,
           task,
-          _args7 = arguments;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
-          while (1) switch (_context7.prev = _context7.next) {
+          _args8 = arguments;
+        return _regenerator.default.wrap(function _callee8$(_context8) {
+          while (1) switch (_context8.prev = _context8.next) {
             case 0:
-              cache = _args7.length > 3 && _args7[3] !== undefined ? _args7[3] : {};
-              requestOptions = _args7.length > 4 && _args7[4] !== undefined ? _args7[4] : {};
+              cache = _args8.length > 3 && _args8[3] !== undefined ? _args8[3] : {};
+              requestOptions = _args8.length > 4 && _args8[4] !== undefined ? _args8[4] : {};
               if (!(resource.resourceType == "Bundle")) {
-                _context7.next = 22;
+                _context8.next = 22;
                 break;
               }
               _iterator2 = _createForOfIteratorHelper(resource.entry || []);
-              _context7.prev = 4;
+              _context8.prev = 4;
               _iterator2.s();
             case 6:
               if ((_step2 = _iterator2.n()).done) {
-                _context7.next = 13;
+                _context8.next = 13;
                 break;
               }
               item = _step2.value;
               if (!item.resource) {
-                _context7.next = 11;
+                _context8.next = 11;
                 break;
               }
-              _context7.next = 11;
+              _context8.next = 11;
               return this.fetchReferences(item.resource, references, graph, cache, requestOptions);
             case 11:
-              _context7.next = 6;
+              _context8.next = 6;
               break;
             case 13:
-              _context7.next = 18;
+              _context8.next = 18;
               break;
             case 15:
-              _context7.prev = 15;
-              _context7.t0 = _context7["catch"](4);
-              _iterator2.e(_context7.t0);
+              _context8.prev = 15;
+              _context8.t0 = _context8["catch"](4);
+              _iterator2.e(_context8.t0);
             case 18:
-              _context7.prev = 18;
+              _context8.prev = 18;
               _iterator2.f();
-              return _context7.finish(18);
+              return _context8.finish(18);
             case 21:
-              return _context7.abrupt("return", cache);
+              return _context8.abrupt("return", cache);
             case 22:
               // 1. Sanitize paths, remove any invalid ones
               paths = references.map(function (path) {
@@ -2192,10 +2245,10 @@ var FhirClient = /*#__PURE__*/function () {
               }, []);
               // 3. Early exit if no valid paths are found
               if (paths.length) {
-                _context7.next = 26;
+                _context8.next = 26;
                 break;
               }
-              return _context7.abrupt("return", Promise.resolve(cache));
+              return _context8.abrupt("return", Promise.resolve(cache));
             case 26:
               // 4. Group the paths by depth so that child refs are looked up
               // after their parents!
@@ -2218,15 +2271,15 @@ var FhirClient = /*#__PURE__*/function () {
                   }));
                 });
               });
-              _context7.next = 32;
+              _context8.next = 32;
               return task;
             case 32:
-              return _context7.abrupt("return", cache);
+              return _context8.abrupt("return", cache);
             case 33:
             case "end":
-              return _context7.stop();
+              return _context8.stop();
           }
-        }, _callee7, this, [[4, 15, 18, 21]]);
+        }, _callee8, this, [[4, 15, 18, 21]]);
       }));
       function fetchReferences(_x14, _x15, _x16) {
         return _fetchReferences.apply(this, arguments);
@@ -2239,41 +2292,41 @@ var FhirClient = /*#__PURE__*/function () {
   }, {
     key: "getReferences",
     value: (function () {
-      var _getReferences = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee8(resource, references) {
+      var _getReferences = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee9(resource, references) {
         var requestOptions,
           refs,
           out,
           key,
-          _args8 = arguments;
-        return _regenerator.default.wrap(function _callee8$(_context8) {
-          while (1) switch (_context8.prev = _context8.next) {
+          _args9 = arguments;
+        return _regenerator.default.wrap(function _callee9$(_context9) {
+          while (1) switch (_context9.prev = _context9.next) {
             case 0:
-              requestOptions = _args8.length > 2 && _args8[2] !== undefined ? _args8[2] : {};
-              _context8.next = 3;
+              requestOptions = _args9.length > 2 && _args9[2] !== undefined ? _args9[2] : {};
+              _context9.next = 3;
               return this.fetchReferences(resource, references, false, {}, requestOptions);
             case 3:
-              refs = _context8.sent;
+              refs = _context9.sent;
               out = {};
-              _context8.t0 = _regenerator.default.keys(refs);
+              _context9.t0 = _regenerator.default.keys(refs);
             case 6:
-              if ((_context8.t1 = _context8.t0()).done) {
-                _context8.next = 13;
+              if ((_context9.t1 = _context9.t0()).done) {
+                _context9.next = 13;
                 break;
               }
-              key = _context8.t1.value;
-              _context8.next = 10;
+              key = _context9.t1.value;
+              _context9.next = 10;
               return refs[key];
             case 10:
-              out[key] = _context8.sent;
-              _context8.next = 6;
+              out[key] = _context9.sent;
+              _context9.next = 6;
               break;
             case 13:
-              return _context8.abrupt("return", out);
+              return _context9.abrupt("return", out);
             case 14:
             case "end":
-              return _context8.stop();
+              return _context9.stop();
           }
-        }, _callee8, this);
+        }, _callee9, this);
       }));
       function getReferences(_x17, _x18) {
         return _getReferences.apply(this, arguments);
@@ -2290,93 +2343,93 @@ var FhirClient = /*#__PURE__*/function () {
     key: "resources",
     value: function resources(bundleOrUrl, options) {
       var _this = this;
-      return (0, _wrapAsyncGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee9() {
+      return (0, _wrapAsyncGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee10() {
         var count, _iteratorAbruptCompletion, _didIteratorError, _iteratorError, _iterator, _step, page, _iterator3, _step3, entry;
-        return _regenerator.default.wrap(function _callee9$(_context9) {
-          while (1) switch (_context9.prev = _context9.next) {
+        return _regenerator.default.wrap(function _callee10$(_context10) {
+          while (1) switch (_context10.prev = _context10.next) {
             case 0:
               count = 0;
               _iteratorAbruptCompletion = false;
               _didIteratorError = false;
-              _context9.prev = 3;
+              _context10.prev = 3;
               _iterator = _asyncIterator(_this.pages(bundleOrUrl, options));
             case 5:
-              _context9.next = 7;
+              _context10.next = 7;
               return (0, _awaitAsyncGenerator2.default)(_iterator.next());
             case 7:
-              if (!(_iteratorAbruptCompletion = !(_step = _context9.sent).done)) {
-                _context9.next = 31;
+              if (!(_iteratorAbruptCompletion = !(_step = _context10.sent).done)) {
+                _context10.next = 31;
                 break;
               }
               page = _step.value;
               _iterator3 = _createForOfIteratorHelper(page.entry || []);
-              _context9.prev = 10;
+              _context10.prev = 10;
               _iterator3.s();
             case 12:
               if ((_step3 = _iterator3.n()).done) {
-                _context9.next = 20;
+                _context10.next = 20;
                 break;
               }
               entry = _step3.value;
               if (!((options === null || options === void 0 ? void 0 : options.limit) && ++count > options.limit)) {
-                _context9.next = 16;
+                _context10.next = 16;
                 break;
               }
-              return _context9.abrupt("return");
+              return _context10.abrupt("return");
             case 16:
-              _context9.next = 18;
+              _context10.next = 18;
               return entry.resource;
             case 18:
-              _context9.next = 12;
+              _context10.next = 12;
               break;
             case 20:
-              _context9.next = 25;
+              _context10.next = 25;
               break;
             case 22:
-              _context9.prev = 22;
-              _context9.t0 = _context9["catch"](10);
-              _iterator3.e(_context9.t0);
+              _context10.prev = 22;
+              _context10.t0 = _context10["catch"](10);
+              _iterator3.e(_context10.t0);
             case 25:
-              _context9.prev = 25;
+              _context10.prev = 25;
               _iterator3.f();
-              return _context9.finish(25);
+              return _context10.finish(25);
             case 28:
               _iteratorAbruptCompletion = false;
-              _context9.next = 5;
+              _context10.next = 5;
               break;
             case 31:
-              _context9.next = 37;
+              _context10.next = 37;
               break;
             case 33:
-              _context9.prev = 33;
-              _context9.t1 = _context9["catch"](3);
+              _context10.prev = 33;
+              _context10.t1 = _context10["catch"](3);
               _didIteratorError = true;
-              _iteratorError = _context9.t1;
+              _iteratorError = _context10.t1;
             case 37:
-              _context9.prev = 37;
-              _context9.prev = 38;
+              _context10.prev = 37;
+              _context10.prev = 38;
               if (!(_iteratorAbruptCompletion && _iterator.return != null)) {
-                _context9.next = 42;
+                _context10.next = 42;
                 break;
               }
-              _context9.next = 42;
+              _context10.next = 42;
               return (0, _awaitAsyncGenerator2.default)(_iterator.return());
             case 42:
-              _context9.prev = 42;
+              _context10.prev = 42;
               if (!_didIteratorError) {
-                _context9.next = 45;
+                _context10.next = 45;
                 break;
               }
               throw _iteratorError;
             case 45:
-              return _context9.finish(42);
+              return _context10.finish(42);
             case 46:
-              return _context9.finish(37);
+              return _context10.finish(37);
             case 47:
             case "end":
-              return _context9.stop();
+              return _context10.stop();
           }
-        }, _callee9, null, [[3, 33, 37, 47], [10, 22, 25, 28], [38,, 42, 46]]);
+        }, _callee10, null, [[3, 33, 37, 47], [10, 22, 25, 28], [38,, 42, 46]]);
       }))();
     }
     /**
@@ -2389,65 +2442,65 @@ var FhirClient = /*#__PURE__*/function () {
     key: "pages",
     value: function pages(bundleOrUrl, requestOptions) {
       var _this2 = this;
-      return (0, _wrapAsyncGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee10() {
+      return (0, _wrapAsyncGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee11() {
         var _a, _b, _ref, limit, options, fetchPage, page, count, nextLink;
-        return _regenerator.default.wrap(function _callee10$(_context10) {
-          while (1) switch (_context10.prev = _context10.next) {
+        return _regenerator.default.wrap(function _callee11$(_context11) {
+          while (1) switch (_context11.prev = _context11.next) {
             case 0:
               _ref = requestOptions || {}, limit = _ref.limit, options = (0, _objectWithoutProperties2.default)(_ref, _excluded);
               fetchPage = function fetchPage(url) {
                 return _this2.fhirRequest(url, options);
               };
               if (!(typeof bundleOrUrl === "string" || bundleOrUrl instanceof URL)) {
-                _context10.next = 8;
+                _context11.next = 8;
                 break;
               }
-              _context10.next = 5;
+              _context11.next = 5;
               return (0, _awaitAsyncGenerator2.default)(fetchPage(bundleOrUrl));
             case 5:
-              _context10.t0 = _context10.sent;
-              _context10.next = 9;
+              _context11.t0 = _context11.sent;
+              _context11.next = 9;
               break;
             case 8:
-              _context10.t0 = bundleOrUrl;
+              _context11.t0 = bundleOrUrl;
             case 9:
-              page = _context10.t0;
+              page = _context11.t0;
               count = 0;
             case 11:
               if (!(page && page.resourceType === "Bundle" && (!limit || ++count <= limit))) {
-                _context10.next = 24;
+                _context11.next = 24;
                 break;
               }
-              _context10.next = 14;
+              _context11.next = 14;
               return page;
             case 14:
               if (!((_a = options === null || options === void 0 ? void 0 : options.signal) === null || _a === void 0 ? void 0 : _a.aborted)) {
-                _context10.next = 16;
+                _context11.next = 16;
                 break;
               }
-              return _context10.abrupt("break", 24);
+              return _context11.abrupt("break", 24);
             case 16:
               // Find the "next" link
               nextLink = ((_b = page.link) !== null && _b !== void 0 ? _b : []).find(function (l) {
                 return l.relation === 'next' && typeof l.url === 'string';
               });
               if (nextLink) {
-                _context10.next = 19;
+                _context11.next = 19;
                 break;
               }
-              return _context10.abrupt("break", 24);
+              return _context11.abrupt("break", 24);
             case 19:
-              _context10.next = 21;
+              _context11.next = 21;
               return (0, _awaitAsyncGenerator2.default)(fetchPage(nextLink.url));
             case 21:
-              page = _context10.sent;
-              _context10.next = 11;
+              page = _context11.sent;
+              _context11.next = 11;
               break;
             case 24:
             case "end":
-              return _context10.stop();
+              return _context11.stop();
           }
-        }, _callee10);
+        }, _callee11);
       }))();
     }
     /**
@@ -2456,22 +2509,31 @@ var FhirClient = /*#__PURE__*/function () {
   }, {
     key: "fhirRequest",
     value: (function () {
-      var _fhirRequest = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee11(uri) {
+      var _fhirRequest = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee12(uri) {
         var options,
+          getRequestDefaults,
           path,
           url,
+          _options,
           cacheMap,
-          _args11 = arguments;
-        return _regenerator.default.wrap(function _callee11$(_context11) {
-          while (1) switch (_context11.prev = _context11.next) {
+          _args12 = arguments;
+        return _regenerator.default.wrap(function _callee12$(_context12) {
+          while (1) switch (_context12.prev = _context12.next) {
             case 0:
-              options = _args11.length > 1 && _args11[1] !== undefined ? _args11[1] : {};
+              options = _args12.length > 1 && _args12[1] !== undefined ? _args12[1] : {};
               (0, lib_1.assert)(options, "fhirRequest requires a uri as first argument");
+              _context12.next = 4;
+              return this.getRequestDefaults();
+            case 4:
+              getRequestDefaults = _context12.sent;
+              options = _objectSpread(_objectSpread(_objectSpread({}, getRequestDefaults), options), {}, {
+                headers: _objectSpread(_objectSpread({}, getRequestDefaults.headers || {}), options.headers || {})
+              });
               path = uri + "";
               url = (0, lib_1.absolute)(path, this.fhirBaseUrl);
-              cacheMap = options.cacheMap;
+              _options = options, cacheMap = _options.cacheMap;
               if (!cacheMap) {
-                _context11.next = 8;
+                _context12.next = 12;
                 break;
               }
               if (!(path in cacheMap)) {
@@ -2483,14 +2545,14 @@ var FhirClient = /*#__PURE__*/function () {
                   throw error;
                 });
               }
-              return _context11.abrupt("return", cacheMap[path]);
-            case 8:
-              return _context11.abrupt("return", (0, lib_1.request)(url, options));
-            case 9:
+              return _context12.abrupt("return", cacheMap[path]);
+            case 12:
+              return _context12.abrupt("return", (0, lib_1.request)(url, options));
+            case 13:
             case "end":
-              return _context11.stop();
+              return _context12.stop();
           }
-        }, _callee11, this);
+        }, _callee12, this);
       }));
       function fhirRequest(_x19) {
         return _fhirRequest.apply(this, arguments);
@@ -2505,18 +2567,18 @@ var FhirClient = /*#__PURE__*/function () {
   }, {
     key: "getFhirVersion",
     value: (function () {
-      var _getFhirVersion = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee12() {
-        return _regenerator.default.wrap(function _callee12$(_context12) {
-          while (1) switch (_context12.prev = _context12.next) {
+      var _getFhirVersion = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee13() {
+        return _regenerator.default.wrap(function _callee13$(_context13) {
+          while (1) switch (_context13.prev = _context13.next) {
             case 0:
-              return _context12.abrupt("return", (0, lib_1.fetchConformanceStatement)(this.fhirBaseUrl).then(function (metadata) {
+              return _context13.abrupt("return", (0, lib_1.fetchConformanceStatement)(this.fhirBaseUrl).then(function (metadata) {
                 return metadata.fhirVersion;
               }));
             case 1:
             case "end":
-              return _context12.stop();
+              return _context13.stop();
           }
-        }, _callee12, this);
+        }, _callee13, this);
       }));
       function getFhirVersion() {
         return _getFhirVersion.apply(this, arguments);
@@ -2534,19 +2596,19 @@ var FhirClient = /*#__PURE__*/function () {
   }, {
     key: "getFhirRelease",
     value: (function () {
-      var _getFhirRelease = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee13() {
-        return _regenerator.default.wrap(function _callee13$(_context13) {
-          while (1) switch (_context13.prev = _context13.next) {
+      var _getFhirRelease = (0, _asyncToGenerator2.default)(/*#__PURE__*/_regenerator.default.mark(function _callee14() {
+        return _regenerator.default.wrap(function _callee14$(_context14) {
+          while (1) switch (_context14.prev = _context14.next) {
             case 0:
-              return _context13.abrupt("return", this.getFhirVersion().then(function (v) {
+              return _context14.abrupt("return", this.getFhirVersion().then(function (v) {
                 var _a;
                 return (_a = settings_1.fhirVersions[v]) !== null && _a !== void 0 ? _a : 0;
               }));
             case 1:
             case "end":
-              return _context13.stop();
+              return _context14.stop();
           }
-        }, _callee13, this);
+        }, _callee14, this);
       }));
       function getFhirRelease() {
         return _getFhirRelease.apply(this, arguments);

@@ -341,6 +341,19 @@ class Client extends FhirClient_1.default {
     this.state.tokenResponse = {};
   }
   /**
+   * Default request options to be used for every request.
+   */
+  async getRequestDefaults() {
+    const authHeader = this.getAuthorizationHeader();
+    return {
+      headers: {
+        ...(authHeader ? {
+          authorization: authHeader
+        } : {})
+      }
+    };
+  }
+  /**
    * @param requestOptions Can be a string URL (relative to the serviceUrl),
    * or an object which will be passed to fetch()
    * @param fhirOptions Additional options to control the behavior
@@ -710,6 +723,13 @@ class FhirClient {
     this.fhirBaseUrl = fhirBaseUrl;
   }
   /**
+   * Default request options to be used for every request. This method can be
+   * overridden in subclasses to provide custom default options.
+   */
+  async getRequestDefaults() {
+    return {};
+  }
+  /**
    * Creates a new resource in a server-assigned location
    * @see http://hl7.org/fhir/http.html#create
    * @param resource A FHIR resource to be created
@@ -944,6 +964,15 @@ class FhirClient {
    */
   async fhirRequest(uri, options = {}) {
     (0, lib_1.assert)(options, "fhirRequest requires a uri as first argument");
+    const getRequestDefaults = await this.getRequestDefaults();
+    options = {
+      ...getRequestDefaults,
+      ...options,
+      headers: {
+        ...(getRequestDefaults.headers || {}),
+        ...(options.headers || {})
+      }
+    };
     const path = uri + "";
     const url = (0, lib_1.absolute)(path, this.fhirBaseUrl);
     const {

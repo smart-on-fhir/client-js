@@ -12,6 +12,8 @@ interface App extends Application {
 const app: App = express();
 export default app;
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const mocks: any[] = [];
 
@@ -39,11 +41,11 @@ app.all("*", (req, res, next) => {
         }
 
         if (settings.body) {
-            res.send(
-                settings.body && typeof settings.body == "object" ?
-                    JSON.stringify(settings.body) :
-                    settings.body
-            );
+            if (settings.body && typeof settings.body == "object") {
+                res.json(settings.body);
+            } else {
+                res.send(settings.body);
+            }
         }
 
         if (settings.file) {
