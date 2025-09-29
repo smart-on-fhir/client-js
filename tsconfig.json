@@ -7,9 +7,9 @@
         "alwaysStrict" : true,
         "module"       : "CommonJS",
         "target"       : "es2024",
-        "importHelpers": true,
+        "importHelpers": false,
         "esModuleInterop": true,
-        "noEmitHelpers": true,
+        "noEmitHelpers": false,
         "allowSyntheticDefaultImports": true,
         "types"        : ["mocha"]
     },
