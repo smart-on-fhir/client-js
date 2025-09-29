@@ -34,24 +34,21 @@ export default class NodeAdapter implements fhirclient.Adapter
     /**
      * @param options Environment-specific options
      */
-    constructor(options: NodeAdapterOptions)
-    {
+    constructor(options: NodeAdapterOptions) {
         this.options = { ...options };
     }
 
     /**
      * Given a relative path, returns an absolute url using the instance base URL
      */
-    relative(path: string): string
-    {
+    relative(path: string): string {
         return new URL(path, this.getUrl().href).href;
     }
 
     /**
      * Returns the protocol of the current request ("http" or "https")
      */
-    getProtocol(): string
-    {
+    getProtocol(): string {
         const req = this.options.request;
         const proto = (req.socket as TLSSocket).encrypted ? "https" : "http";
         return req.headers["x-forwarded-proto"] as string || proto;
@@ -61,8 +58,7 @@ export default class NodeAdapter implements fhirclient.Adapter
      * Given the current environment, this method must return the current url
      * as URL instance. In Node we might be behind a proxy!
      */
-    getUrl(): URL
-    {
+    getUrl(): URL {
         const req = this.options.request;
 
         let host = req.headers.host;
@@ -83,8 +79,7 @@ export default class NodeAdapter implements fhirclient.Adapter
      * path
      * @param location The path to redirect to
      */
-    redirect(location: string): void
-    {
+    redirect(location: string): void {
         this.options.response.writeHead(302, { location });
         this.options.response.end();
     }
@@ -111,26 +106,22 @@ export default class NodeAdapter implements fhirclient.Adapter
     /**
      * Base64 to ASCII string
      */
-    btoa(str: string): string
-    {
+    btoa(str: string): string {
         return Buffer.from(str).toString("base64");
     }
 
     /**
      * ASCII string to Base64
      */
-    atob(str: string): string
-    {
+    atob(str: string): string {
         return Buffer.from(str, "base64").toString("ascii");
     }
 
-    base64urlencode(input: string | Uint8Array)
-    {
+    base64urlencode(input: string | Uint8Array) {
         return base64url.encode(input);
     }
 
-    base64urldecode(input: string)
-    {
+    base64urldecode(input: string) {
         return base64url.decode(input).toString();
     }
 
@@ -141,8 +132,7 @@ export default class NodeAdapter implements fhirclient.Adapter
      * arguments. For example in node we will need a request, a response and
      * optionally a storage or storage factory function.
      */
-    getSmartApi(): fhirclient.SMART
-    {
+    getSmartApi(): fhirclient.SMART {
         return {
             ready    : (...args: any[]) => ready(this, ...args),
             authorize: options => authorize(this, options),
