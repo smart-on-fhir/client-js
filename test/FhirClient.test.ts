@@ -2,14 +2,12 @@
 import { expect } from "@hapi/code";
 import * as Lab   from "@hapi/lab";
 import { Bundle } from "fhir/r4";
-import mockDebug  from "./mocks/mockDebug";
 import mockServer from "./mocks/mockServer";
 import FhirClient from "../src/FhirClient";
 
+
 export const lab = Lab.script();
 const { it, describe, before, after, afterEach } = lab;
-
-const clientDebug = mockDebug.instances.find(instance => instance.namespace === "FHIR:FhirClient");
 
 let mockDataServer: any, mockUrl: string;
 
@@ -44,7 +42,6 @@ after(() => {
 
 afterEach(() => {
     mockServer.clear();
-    clientDebug._calls.length = 0;
     delete (global as any).sessionStorage;
 });
 

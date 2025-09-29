@@ -3,7 +3,7 @@ import { fhirVersions }                      from './settings'
 import { fhirclient }                        from './types'
 import {
     absolute,
-    debug as _debug,
+    debug,
     getPath,
     setPath,
     makeArray,
@@ -13,8 +13,6 @@ import {
     assert
 } from "./lib";
 
-
-const debug = _debug.extend("FhirClient");
 
 export interface RequestOptions extends RequestInit {
     /**

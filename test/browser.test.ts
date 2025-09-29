@@ -1,6 +1,3 @@
-// import "../src/types";
-
-require("./mocks/mockDebug");
 import { URL }    from "url";
 import { expect } from "@hapi/code";
 import * as Lab   from "@hapi/lab";

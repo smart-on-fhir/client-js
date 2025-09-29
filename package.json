@@ -39,8 +39,6 @@
     "dev": "npm run clean && npm run build && npm run test && npm run doc"
   },
   "dependencies": {
-    "@types/fhir": "^0.0.41",
-    "debug": "^4.1.1",
     "jose": "^4.15.5",
     "js-base64": "^3.7.2"
   },
@@ -51,6 +49,7 @@
     "@types/chai-as-promised": "^8.0.2",
     "@types/debug": "^4.1.5",
     "@types/express": "^5.0.3",
+    "@types/fhir": "^0.0.41",
     "@types/hapi": "^18.0.3",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/mocha": "^10.0.10",
