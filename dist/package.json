@@ -14,7 +14,6 @@
     "Client"
   ],
   "license": "Apache-2.0",
-
   "exports": {
     ".": {
       "types": "./index.d.ts"
@@ -41,7 +40,6 @@
     }
   },
   "dependencies": {
-    "debug": "^4.1.1",
     "jose": "^4.15.5",
     "js-base64": "^3.7.2"
   },
