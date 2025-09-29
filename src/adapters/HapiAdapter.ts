@@ -1,12 +1,11 @@
 import NodeAdapter from "./NodeAdapter";
 import ServerStorage from "../storage/ServerStorage";
-import { fhirclient } from "../types";
 import { ResponseToolkit, Request, ResponseObject } from "hapi";
 
 export interface HapiAdapterOptions {
     request: Request;
     responseToolkit: ResponseToolkit;
-    storage?: fhirclient.Storage | fhirclient.storageFactory;
+    storage?: ServerStorage | ((options: { request: any }) => ServerStorage);
 }
 
 export default class HapiAdapter extends NodeAdapter
@@ -18,7 +17,7 @@ export default class HapiAdapter extends NodeAdapter
     /**
      * Holds the Storage instance associated with this instance
      */
-    protected _storage: fhirclient.Storage | null = null;
+    protected _storage: ServerStorage | null = null;
 
     /**
      * @param options Environment-specific options
@@ -38,12 +37,12 @@ export default class HapiAdapter extends NodeAdapter
     /**
      * Returns a ServerStorage instance
      */
-    getStorage(): fhirclient.Storage
+    getStorage(): ServerStorage
     {
         if (!this._storage) {
             if (this.options.storage) {
                 if (typeof this.options.storage == "function") {
-                    this._storage = this.options.storage({ request: this._request });
+                    this._storage = this.options.storage({ request: this._request as any });
                 } else {
                     this._storage = this.options.storage;
                 }
@@ -51,7 +50,7 @@ export default class HapiAdapter extends NodeAdapter
                 this._storage = new ServerStorage(this._request as any);
             }
         }
-        return this._storage as fhirclient.Storage;
+        return this._storage;
     }
 
     /**
@@ -84,7 +83,7 @@ export default class HapiAdapter extends NodeAdapter
     static smart(
         request: Request,
         h: ResponseToolkit,
-        storage?: fhirclient.Storage | fhirclient.storageFactory
+        storage?: ServerStorage | ((options?: Record<string, any>) => ServerStorage)
     )
     {
         return new HapiAdapter({

@@ -1,4 +1,4 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { fhirclient } from "../types";
+import ServerStorage from "../storage/ServerStorage";
 export { default as FhirClient } from "../FhirClient";
-export declare function smart(request: IncomingMessage, response: ServerResponse, storage?: fhirclient.Storage | fhirclient.storageFactory): fhirclient.SMART;
+export declare function smart(request: IncomingMessage, response: ServerResponse, storage?: ServerStorage | ((options?: Record<string, any>) => ServerStorage)): import("../types").fhirclient.SMART;

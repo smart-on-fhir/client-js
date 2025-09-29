@@ -9,21 +9,26 @@ import { base64url } from "jose";
 export default class NodeAdapter {
     /**
      * Holds the Storage instance associated with this instance
+     * @type {ServerStorage | null}
      */
     _storage = null;
     /**
      * Environment-specific options
      */
     options;
+    /**
+     * Security-related methods
+     */
     security = security;
     /**
-     * @param options Environment-specific options
+     * @param {any} options Environment-specific options
      */
     constructor(options) {
         this.options = { ...options };
     }
     /**
      * Given a relative path, returns an absolute url using the instance base URL
+     * @param {string} path The path to convert to absolute
      */
     relative(path) {
         return new URL(path, this.getUrl().href).href;
@@ -56,7 +61,7 @@ export default class NodeAdapter {
     /**
      * Given the current environment, this method must redirect to the given
      * path
-     * @param location The path to redirect to
+     * @param {string} location The path to redirect to
      */
     redirect(location) {
         this.options.response.writeHead(302, { location });
@@ -82,20 +87,32 @@ export default class NodeAdapter {
         return this._storage;
     }
     /**
-     * Base64 to ASCII string
+     * ASCII string to Base64
+     * @param {string} str The ascii string
      */
     btoa(str) {
         return Buffer.from(str).toString("base64");
     }
     /**
-     * ASCII string to Base64
+     * Base64 to ASCII string
+     * @param {string} str The base64 encoded string
      */
     atob(str) {
         return Buffer.from(str, "base64").toString("ascii");
     }
+    /**
+     * Encodes a string or Uint8Array to Base64 URL format
+     * @param {string | Uint8Array} input The input string or Uint8Array
+     * @returns The Base64 URL encoded string
+     */
     base64urlencode(input) {
         return base64url.encode(input);
     }
+    /**
+     * Decodes a Base64 URL encoded string
+     * @param {string} input The Base64 URL encoded string
+     * @returns The decoded string
+     */
     base64urldecode(input) {
         return base64url.decode(input).toString();
     }

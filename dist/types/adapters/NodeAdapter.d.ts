@@ -1,10 +1,13 @@
 import { fhirclient } from "../types";
+import ServerStorage from "../storage/ServerStorage";
 import { IncomingMessage, ServerResponse } from "http";
 import * as security from "../security/server";
 export interface NodeAdapterOptions {
     request: IncomingMessage;
     response: ServerResponse;
-    storage?: fhirclient.Storage | fhirclient.storageFactory;
+    storage?: ServerStorage | ((options: {
+        request: IncomingMessage;
+    }) => ServerStorage);
 }
 /**
  * Node Adapter - works with native NodeJS and with Express
@@ -12,19 +15,24 @@ export interface NodeAdapterOptions {
 export default class NodeAdapter implements fhirclient.Adapter {
     /**
      * Holds the Storage instance associated with this instance
+     * @type {ServerStorage | null}
      */
-    protected _storage: fhirclient.Storage | null;
+    protected _storage: ServerStorage | null;
     /**
      * Environment-specific options
      */
     options: NodeAdapterOptions;
+    /**
+     * Security-related methods
+     */
     security: typeof security;
     /**
-     * @param options Environment-specific options
+     * @param {any} options Environment-specific options
      */
     constructor(options: NodeAdapterOptions);
     /**
      * Given a relative path, returns an absolute url using the instance base URL
+     * @param {string} path The path to convert to absolute
      */
     relative(path: string): string;
     /**
@@ -39,22 +47,34 @@ export default class NodeAdapter implements fhirclient.Adapter {
     /**
      * Given the current environment, this method must redirect to the given
      * path
-     * @param location The path to redirect to
+     * @param {string} location The path to redirect to
      */
     redirect(location: string): void;
     /**
      * Returns a ServerStorage instance
      */
-    getStorage(): fhirclient.Storage;
+    getStorage(): ServerStorage;
     /**
-     * Base64 to ASCII string
+     * ASCII string to Base64
+     * @param {string} str The ascii string
      */
     btoa(str: string): string;
     /**
-     * ASCII string to Base64
+     * Base64 to ASCII string
+     * @param {string} str The base64 encoded string
      */
     atob(str: string): string;
+    /**
+     * Encodes a string or Uint8Array to Base64 URL format
+     * @param {string | Uint8Array} input The input string or Uint8Array
+     * @returns The Base64 URL encoded string
+     */
     base64urlencode(input: string | Uint8Array): string;
+    /**
+     * Decodes a Base64 URL encoded string
+     * @param {string} input The Base64 URL encoded string
+     * @returns The decoded string
+     */
     base64urldecode(input: string): string;
     /**
      * Creates and returns adapter-aware SMART api. Not that while the shape of

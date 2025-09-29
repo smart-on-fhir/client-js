@@ -1,8 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const tslib_1 = require("tslib");
-const NodeAdapter_1 = tslib_1.__importDefault(require("./NodeAdapter"));
-const ServerStorage_1 = tslib_1.__importDefault(require("../storage/ServerStorage"));
+const NodeAdapter_1 = __importDefault(require("./NodeAdapter"));
+const ServerStorage_1 = __importDefault(require("../storage/ServerStorage"));
 class HapiAdapter extends NodeAdapter_1.default {
     _responseToolkit;
     _request;

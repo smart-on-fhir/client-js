@@ -2,13 +2,13 @@ import {
   base64url,
   KeyLike,
   SignJWT,
-  importJWK as joseImportJWK
+  importJWK as joseImportJWK,
+  JWK
 } from "jose"
 import {
   randomBytes,
   createHash
 } from "crypto"
-import { fhirclient } from "../types";
 
 
 export interface PkcePair {
@@ -39,7 +39,7 @@ export async function generatePKCEChallenge(entropy = 96): Promise<PkcePair> {
     return { codeChallenge, codeVerifier }
 }
 
-export async function importJWK(jwk: fhirclient.JWK): Promise<CryptoKey> {
+export async function importJWK(jwk: JWK): Promise<CryptoKey> {
     // alg is optional in JWK but we need it here!
     if (!jwk.alg) {
         throw new Error('The "alg" property of the JWK must be set to "ES384" or "RS384"')

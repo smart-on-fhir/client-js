@@ -1,7 +1,17 @@
 import { fhirclient } from "./types";
-import debug from "debug";
-declare const _debug: debug.Debugger;
-export { _debug as debug };
+/**
+ * A simple debug function that will print messages to the console if the
+ * `DEBUG` environment variable is set to `*` or contains the word `FHIR`.
+ * If the `NODE_ENV` environment variable is set to `test`, this function
+ * becomes a no-op.
+ * In browser environments, this function always prints the messages but using
+ * `console.debug` instead of `console.log`. This means that in browsers
+ * that support it (most modern browsers) the messages will be hidden by
+ * default and can be enabled from the dev tools.
+ * @param message The message to print
+ * @param optionalParams Any other parameters to print
+ */
+export declare function debug(message?: any, ...optionalParams: any[]): void;
 /**
  * A namespace with functions for converting between different measurement units
  */

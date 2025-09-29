@@ -1,11 +1,14 @@
-import { fhirclient } from "../types";
+import { IncomingMessage } from "http";
+interface RequestWithSession extends IncomingMessage {
+    session: Record<string, any>;
+}
 export default class ServerStorage {
-    request: fhirclient.RequestWithSession;
+    request: RequestWithSession;
     /**
      * @param request The HTTP request that is expected to have a
      * "session" object property.
      */
-    constructor(request: fhirclient.RequestWithSession);
+    constructor(request: IncomingMessage);
     /**
      * Gets the value at `key`. Returns a promise that will be resolved
      * with that value (or undefined for missing keys).
@@ -23,3 +26,4 @@ export default class ServerStorage {
      */
     unset(key: string): Promise<boolean>;
 }
+export {};

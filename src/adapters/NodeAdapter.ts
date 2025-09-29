@@ -11,7 +11,7 @@ import { base64url } from "jose"
 export interface NodeAdapterOptions {
     request: IncomingMessage;
     response: ServerResponse;
-    storage?: fhirclient.Storage | fhirclient.storageFactory;
+    storage?: ServerStorage | ((options: { request: IncomingMessage }) => ServerStorage);
 }
 
 /**
@@ -21,18 +21,22 @@ export default class NodeAdapter implements fhirclient.Adapter
 {
     /**
      * Holds the Storage instance associated with this instance
+     * @type {ServerStorage | null}
      */
-    protected _storage: fhirclient.Storage | null = null;
+    protected _storage: ServerStorage | null = null;
 
     /**
      * Environment-specific options
      */
     options: NodeAdapterOptions;
 
+    /**
+     * Security-related methods
+     */
     security = security;
 
     /**
-     * @param options Environment-specific options
+     * @param {any} options Environment-specific options
      */
     constructor(options: NodeAdapterOptions) {
         this.options = { ...options };
@@ -40,6 +44,7 @@ export default class NodeAdapter implements fhirclient.Adapter
 
     /**
      * Given a relative path, returns an absolute url using the instance base URL
+     * @param {string} path The path to convert to absolute
      */
     relative(path: string): string {
         return new URL(path, this.getUrl().href).href;
@@ -77,7 +82,7 @@ export default class NodeAdapter implements fhirclient.Adapter
     /**
      * Given the current environment, this method must redirect to the given
      * path
-     * @param location The path to redirect to
+     * @param {string} location The path to redirect to
      */
     redirect(location: string): void {
         this.options.response.writeHead(302, { location });
@@ -87,8 +92,7 @@ export default class NodeAdapter implements fhirclient.Adapter
     /**
      * Returns a ServerStorage instance
      */
-    getStorage(): fhirclient.Storage
-    {
+    getStorage(): ServerStorage {
         if (!this._storage) {
             if (this.options.storage) {
                 if (typeof this.options.storage == "function") {
@@ -97,31 +101,43 @@ export default class NodeAdapter implements fhirclient.Adapter
                     this._storage = this.options.storage;
                 }
             } else {
-                this._storage = new ServerStorage(this.options.request as fhirclient.RequestWithSession);
+                this._storage = new ServerStorage(this.options.request);
             }
         }
         return this._storage;
     }
 
     /**
-     * Base64 to ASCII string
+     * ASCII string to Base64
+     * @param {string} str The ascii string
      */
     btoa(str: string): string {
         return Buffer.from(str).toString("base64");
     }
 
     /**
-     * ASCII string to Base64
+     * Base64 to ASCII string
+     * @param {string} str The base64 encoded string
      */
     atob(str: string): string {
         return Buffer.from(str, "base64").toString("ascii");
     }
 
-    base64urlencode(input: string | Uint8Array) {
+    /**
+     * Encodes a string or Uint8Array to Base64 URL format
+     * @param {string | Uint8Array} input The input string or Uint8Array
+     * @returns The Base64 URL encoded string
+     */
+    base64urlencode(input: string | Uint8Array): string {
         return base64url.encode(input);
     }
 
-    base64urldecode(input: string) {
+    /**
+     * Decodes a Base64 URL encoded string
+     * @param {string} input The Base64 URL encoded string
+     * @returns The decoded string
+     */
+    base64urldecode(input: string): string {
         return base64url.decode(input).toString();
     }
 

@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.KEY = void 0;
 exports.fetchWellKnownJson = fetchWellKnownJson;
@@ -10,13 +13,11 @@ exports.onMessage = onMessage;
 exports.ready = ready;
 exports.buildTokenRequest = buildTokenRequest;
 exports.init = init;
-const tslib_1 = require("tslib");
 /* global window */
 const lib_1 = require("./lib");
-const Client_1 = tslib_1.__importDefault(require("./Client"));
+const Client_1 = __importDefault(require("./Client"));
 const settings_1 = require("./settings");
 Object.defineProperty(exports, "KEY", { enumerable: true, get: function () { return settings_1.SMART_KEY; } });
-const debug = lib_1.debug.extend("oauth2");
 function isBrowser() {
     return typeof window === "object";
 }
@@ -160,7 +161,7 @@ async function authorize(env, params = {}) {
             "`fhirServiceUrl` parameter");
     }
     if (iss) {
-        debug("Making %s launch...", launch ? "EHR" : "standalone");
+        (0, lib_1.debug)("Making %s launch...", launch ? "EHR" : "standalone");
     }
     // append launch scope if needed
     if (launch && !scope.match(/launch/)) {
@@ -223,7 +224,7 @@ async function authorize(env, params = {}) {
     let redirectUrl = redirectUri + "?state=" + encodeURIComponent(stateKey);
     // bypass oauth if fhirServiceUrl is used (but iss takes precedence)
     if (fhirServiceUrl && !iss) {
-        debug("Making fake launch...");
+        (0, lib_1.debug)("Making fake launch...");
         await storage.set(stateKey, state);
         if (noRedirect) {
             return redirectUrl;
@@ -389,7 +390,7 @@ async function ready(env, options = {}) {
             authErrorDescription
         ].filter(Boolean).join(": "));
     }
-    debug("key: %s, code: %s", key, code);
+    (0, lib_1.debug)("key: %s, code: %s", key, code);
     // key might be coming from the page url so it might be empty or missing
     (0, lib_1.assert)(key, "No 'state' parameter found. Please (re)launch the app.");
     // Check if we have a previous state
@@ -430,7 +431,7 @@ async function ready(env, options = {}) {
         // every load!
         if (code) {
             params.delete("code");
-            debug("Removed code parameter from the url.");
+            (0, lib_1.debug)("Removed code parameter from the url.");
         }
         // If we have `fullSessionStorageSupport` it means we no longer
         // need the `state` key. It will be stored to a well know
@@ -440,7 +441,7 @@ async function ready(env, options = {}) {
         // MUST keep the `state` url parameter.
         if (hasState && fullSessionStorageSupport) {
             params.delete("state");
-            debug("Removed state parameter from the url.");
+            (0, lib_1.debug)("Removed state parameter from the url.");
         }
         // If the browser does not support the replaceState method for the
         // History Web API, the "code" parameter cannot be removed. As a
@@ -461,19 +462,19 @@ async function ready(env, options = {}) {
     // Otherwise, we have to complete the code flow
     if (!authorized && state.tokenUri) {
         (0, lib_1.assert)(code, "'code' url parameter is required");
-        debug("Preparing to exchange the code for access token...");
+        (0, lib_1.debug)("Preparing to exchange the code for access token...");
         const requestOptions = await buildTokenRequest(env, {
             code,
             state,
             clientPublicKeySetUrl: options.clientPublicKeySetUrl,
             privateKey: options.privateKey || state.clientPrivateJwk
         });
-        debug("Token request options: %O", requestOptions);
+        (0, lib_1.debug)("Token request options: %O", requestOptions);
         // The EHR authorization server SHALL return a JSON structure that
         // includes an access token or a message indicating that the
         // authorization request has been denied.
         const tokenResponse = await (0, lib_1.request)(state.tokenUri, requestOptions);
-        debug("Token response: %O", tokenResponse);
+        (0, lib_1.debug)("Token response: %O", tokenResponse);
         (0, lib_1.assert)(tokenResponse.access_token, "Failed to obtain access token.");
         // Now we need to determine when is this authorization going to expire
         state.expiresAt = (0, lib_1.getAccessTokenExpiration)(tokenResponse, env);
@@ -481,10 +482,10 @@ async function ready(env, options = {}) {
         // every page reload
         state = { ...state, tokenResponse };
         await Storage.set(key, state);
-        debug("Authorization successful!");
+        (0, lib_1.debug)("Authorization successful!");
     }
     else {
-        debug(state.tokenResponse?.access_token ?
+        (0, lib_1.debug)(state.tokenResponse?.access_token ?
             "Already authorized" :
             "No authorization needed");
     }
@@ -492,7 +493,7 @@ async function ready(env, options = {}) {
         await Storage.set(settings_1.SMART_KEY, key);
     }
     const client = new Client_1.default(env, state);
-    debug("Created client instance: %O", client);
+    (0, lib_1.debug)("Created client instance: %O", client);
     return client;
 }
 /**
@@ -518,7 +519,7 @@ async function buildTokenRequest(env, { code, state, clientPublicKeySetUrl, priv
     // client_id and the password is the app’s client_secret (see example).
     if (clientSecret) {
         requestOptions.headers.authorization = "Basic " + env.btoa(clientId + ":" + clientSecret);
-        debug("Using state.clientSecret to construct the authorization header: %s", requestOptions.headers.authorization);
+        (0, lib_1.debug)("Using state.clientSecret to construct the authorization header: %s", requestOptions.headers.authorization);
     }
     // Asymmetric auth
     else if (privateKey) {
@@ -540,15 +541,15 @@ async function buildTokenRequest(env, { code, state, clientPublicKeySetUrl, priv
         const clientAssertion = await env.security.signCompactJws(privateKey.alg, pk, jwtHeaders, jwtClaims);
         requestOptions.body += `&client_assertion_type=${encodeURIComponent("urn:ietf:params:oauth:client-assertion-type:jwt-bearer")}`;
         requestOptions.body += `&client_assertion=${encodeURIComponent(clientAssertion)}`;
-        debug("Using state.clientPrivateJwk to add a client_assertion to the POST body");
+        (0, lib_1.debug)("Using state.clientPrivateJwk to add a client_assertion to the POST body");
     }
     // Public client
     else {
-        debug("Public client detected; adding state.clientId to the POST body");
+        (0, lib_1.debug)("Public client detected; adding state.clientId to the POST body");
         requestOptions.body += `&client_id=${encodeURIComponent(clientId)}`;
     }
     if (codeVerifier) {
-        debug("Found state.codeVerifier, adding to the POST body");
+        (0, lib_1.debug)("Found state.codeVerifier, adding to the POST body");
         // Note that the codeVerifier is ALREADY encoded properly  
         requestOptions.body += "&code_verifier=" + codeVerifier;
     }

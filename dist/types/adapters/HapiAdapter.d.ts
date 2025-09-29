@@ -1,10 +1,12 @@
 import NodeAdapter from "./NodeAdapter";
-import { fhirclient } from "../types";
+import ServerStorage from "../storage/ServerStorage";
 import { ResponseToolkit, Request, ResponseObject } from "hapi";
 export interface HapiAdapterOptions {
     request: Request;
     responseToolkit: ResponseToolkit;
-    storage?: fhirclient.Storage | fhirclient.storageFactory;
+    storage?: ServerStorage | ((options: {
+        request: any;
+    }) => ServerStorage);
 }
 export default class HapiAdapter extends NodeAdapter {
     private _responseToolkit;
@@ -12,7 +14,7 @@ export default class HapiAdapter extends NodeAdapter {
     /**
      * Holds the Storage instance associated with this instance
      */
-    protected _storage: fhirclient.Storage | null;
+    protected _storage: ServerStorage | null;
     /**
      * @param options Environment-specific options
      */
@@ -20,7 +22,7 @@ export default class HapiAdapter extends NodeAdapter {
     /**
      * Returns a ServerStorage instance
      */
-    getStorage(): fhirclient.Storage;
+    getStorage(): ServerStorage;
     /**
      * Given the current environment, this method must redirect to the given
      * path
@@ -33,5 +35,5 @@ export default class HapiAdapter extends NodeAdapter {
      * @param h The hapi response toolkit
      * @param storage Custom storage instance or a storage factory function
      */
-    static smart(request: Request, h: ResponseToolkit, storage?: fhirclient.Storage | fhirclient.storageFactory): fhirclient.SMART;
+    static smart(request: Request, h: ResponseToolkit, storage?: ServerStorage | ((options?: Record<string, any>) => ServerStorage)): import("../types").fhirclient.SMART;
 }

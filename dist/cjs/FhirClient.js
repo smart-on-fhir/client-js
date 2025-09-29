@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const settings_1 = require("./settings");
 const lib_1 = require("./lib");
-const debug = lib_1.debug.extend("FhirClient");
 /**
  * This is a basic FHIR client for making basic FHIR API calls
  */
@@ -164,7 +163,7 @@ class FhirClient {
         // 2. Remove duplicates
         paths = paths.reduce((prev, cur) => {
             if (prev.includes(cur)) {
-                debug("Duplicated reference path \"%s\"", cur);
+                (0, lib_1.debug)("Duplicated reference path \"%s\"", cur);
             }
             else {
                 prev.push(cur);

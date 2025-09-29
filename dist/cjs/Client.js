@@ -1,11 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const tslib_1 = require("tslib");
 const lib_1 = require("./lib");
-const strings_1 = tslib_1.__importDefault(require("./strings"));
+const strings_1 = __importDefault(require("./strings"));
 const settings_1 = require("./settings");
-const FhirClient_1 = tslib_1.__importDefault(require("./FhirClient"));
-const debug = lib_1.debug.extend("client");
+const FhirClient_1 = __importDefault(require("./FhirClient"));
 /**
  * Adds patient context to requestOptions object to be used with [[Client.request]]
  * @param requestOptions Can be a string URL (relative to the serviceUrl), or an
@@ -151,21 +152,21 @@ class Client extends FhirClient_1.default {
             // the patient. This should be a scope issue.
             if (!tokenResponse.patient) {
                 if (!(this.state.scope || "").match(/\blaunch(\/patient)?\b/)) {
-                    debug(strings_1.default.noScopeForId, "patient", "patient");
+                    (0, lib_1.debug)(strings_1.default.noScopeForId, "patient", "patient");
                 }
                 else {
                     // The server should have returned the patient!
-                    debug("The ID of the selected patient is not available. Please check if your server supports that.");
+                    (0, lib_1.debug)("The ID of the selected patient is not available. Please check if your server supports that.");
                 }
                 return null;
             }
             return tokenResponse.patient;
         }
         if (this.state.authorizeUri) {
-            debug(strings_1.default.noIfNoAuth, "the ID of the selected patient");
+            (0, lib_1.debug)(strings_1.default.noIfNoAuth, "the ID of the selected patient");
         }
         else {
-            debug(strings_1.default.noFreeContext, "selected patient");
+            (0, lib_1.debug)(strings_1.default.noFreeContext, "selected patient");
         }
         return null;
     }
@@ -182,21 +183,21 @@ class Client extends FhirClient_1.default {
             // the encounter. This should be a scope issue.
             if (!tokenResponse.encounter) {
                 if (!(this.state.scope || "").match(/\blaunch(\/encounter)?\b/)) {
-                    debug(strings_1.default.noScopeForId, "encounter", "encounter");
+                    (0, lib_1.debug)(strings_1.default.noScopeForId, "encounter", "encounter");
                 }
                 else {
                     // The server should have returned the encounter!
-                    debug("The ID of the selected encounter is not available. Please check if your server supports that, and that the selected patient has any recorded encounters.");
+                    (0, lib_1.debug)("The ID of the selected encounter is not available. Please check if your server supports that, and that the selected patient has any recorded encounters.");
                 }
                 return null;
             }
             return tokenResponse.encounter;
         }
         if (this.state.authorizeUri) {
-            debug(strings_1.default.noIfNoAuth, "the ID of the selected encounter");
+            (0, lib_1.debug)(strings_1.default.noIfNoAuth, "the ID of the selected encounter");
         }
         else {
-            debug(strings_1.default.noFreeContext, "selected encounter");
+            (0, lib_1.debug)(strings_1.default.noFreeContext, "selected encounter");
         }
         return null;
     }
@@ -217,24 +218,24 @@ class Client extends FhirClient_1.default {
                 const hasProfile = scope.match(/\bprofile\b/);
                 const hasFhirUser = scope.match(/\bfhirUser\b/);
                 if (!hasOpenid || !(hasFhirUser || hasProfile)) {
-                    debug("You are trying to get the id_token but you are not " +
+                    (0, lib_1.debug)("You are trying to get the id_token but you are not " +
                         "using the right scopes. Please add 'openid' and " +
                         "'fhirUser' or 'profile' to the scopes you are " +
                         "requesting.");
                 }
                 else {
                     // The server should have returned the id_token!
-                    debug("The id_token is not available. Please check if your server supports that.");
+                    (0, lib_1.debug)("The id_token is not available. Please check if your server supports that.");
                 }
                 return null;
             }
             return (0, lib_1.jwtDecode)(idToken, this.environment);
         }
         if (this.state.authorizeUri) {
-            debug(strings_1.default.noIfNoAuth, "the id_token");
+            (0, lib_1.debug)(strings_1.default.noIfNoAuth, "the id_token");
         }
         else {
-            debug(strings_1.default.noFreeContext, "id_token");
+            (0, lib_1.debug)(strings_1.default.noFreeContext, "id_token");
         }
         return null;
     }
@@ -323,7 +324,6 @@ class Client extends FhirClient_1.default {
      * @category Request
      */
     async request(requestOptions, fhirOptions = {}, _resolvedRefs = {}) {
-        const debugRequest = lib_1.debug.extend("client:request");
         (0, lib_1.assert)(requestOptions, "request requires an url or request options as argument");
         // url -----------------------------------------------------------------
         let url;
@@ -359,7 +359,7 @@ class Client extends FhirClient_1.default {
                 authorization: authHeader
             };
         }
-        debugRequest("%s, options: %O, fhirOptions: %O", url, requestOptions, options);
+        (0, lib_1.debug)("client:request: %s, options: %O, fhirOptions: %O", url, requestOptions, options);
         let response;
         return super.fhirRequest(url, requestOptions).then(result => {
             if (requestOptions.includeResponse) {
@@ -379,7 +379,7 @@ class Client extends FhirClient_1.default {
                 // auto-refresh not enabled and Session expired.
                 // Need to re-launch. Clear state to start over!
                 if (!options.useRefreshToken) {
-                    debugRequest("Your session has expired and the useRefreshToken option is set to false. Please re-launch the app.");
+                    (0, lib_1.debug)("client:request: Your session has expired and the useRefreshToken option is set to false. Please re-launch the app.");
                     await this._clearState();
                     error.message += "\n" + strings_1.default.expired;
                     throw error;
@@ -389,7 +389,7 @@ class Client extends FhirClient_1.default {
                 // the access token has just been revoked.
                 // otherwise -> auto-refresh failed. Session expired.
                 // Need to re-launch. Clear state to start over!
-                debugRequest("Auto-refresh failed! Please re-launch the app.");
+                (0, lib_1.debug)("client:request: Auto-refresh failed! Please re-launch the app.");
                 await this._clearState();
                 error.message += "\n" + strings_1.default.expired;
                 throw error;
@@ -399,7 +399,7 @@ class Client extends FhirClient_1.default {
             // Handle 403 ----------------------------------------------------------
             .catch((error) => {
             if (error.status == 403) {
-                debugRequest("Permission denied! Please make sure that you have requested the proper scopes.");
+                (0, lib_1.debug)("client:request: Permission denied! Please make sure that you have requested the proper scopes.");
             }
             throw error;
         })
@@ -510,8 +510,7 @@ class Client extends FhirClient_1.default {
      * @category Request
      */
     refresh(requestOptions = {}) {
-        const debugRefresh = lib_1.debug.extend("client:refresh");
-        debugRefresh("Attempting to refresh with refresh_token...");
+        (0, lib_1.debug)("client:refresh: Attempting to refresh with refresh_token...");
         const refreshToken = this.state?.tokenResponse?.refresh_token;
         (0, lib_1.assert)(refreshToken, "Unable to refresh. No refresh_token found.");
         const tokenUri = this.state.tokenUri;
@@ -551,14 +550,14 @@ class Client extends FhirClient_1.default {
             this._refreshTask = (0, lib_1.request)(tokenUri, refreshRequestOptions)
                 .then(data => {
                 (0, lib_1.assert)(data.access_token, "No access token received");
-                debugRefresh("Received new access token response %O", data);
+                (0, lib_1.debug)("client:refresh: Received new access token response %O", data);
                 this.state.tokenResponse = { ...this.state.tokenResponse, ...data };
                 this.state.expiresAt = (0, lib_1.getAccessTokenExpiration)(data, this.environment);
                 return this.state;
             })
                 .catch((error) => {
                 if (this.state?.tokenResponse?.refresh_token) {
-                    debugRefresh("Deleting the expired or invalid refresh token.");
+                    (0, lib_1.debug)("client:refresh: Deleting the expired or invalid refresh token.");
                     delete this.state.tokenResponse.refresh_token;
                 }
                 throw error;
@@ -570,7 +569,7 @@ class Client extends FhirClient_1.default {
                     this.environment.getStorage().set(key, this.state);
                 }
                 else {
-                    debugRefresh("No 'key' found in Clint.state. Cannot persist the instance.");
+                    (0, lib_1.debug)("client:refresh: No 'key' found in Clint.state. Cannot persist the instance.");
                 }
             });
         }

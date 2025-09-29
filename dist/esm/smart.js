@@ -1,8 +1,7 @@
 /* global window */
-import { debug as _debug, request, getPath, getTimeInFuture, randomString, getAndCache, fetchConformanceStatement, getAccessTokenExpiration, getTargetWindow, assert } from "./lib";
+import { debug, request, getPath, getTimeInFuture, randomString, getAndCache, fetchConformanceStatement, getAccessTokenExpiration, getTargetWindow, assert } from "./lib";
 import Client from "./Client";
 import { SMART_KEY } from "./settings";
-const debug = _debug.extend("oauth2");
 export { SMART_KEY as KEY };
 function isBrowser() {
     return typeof window === "object";
@@ -263,7 +262,7 @@ export async function authorize(env, params = {}) {
                 win.sessionStorage.setItem(stateKey, JSON.stringify(state));
             }
             catch (ex) {
-                _debug(`Failed to modify window.sessionStorage. Perhaps it is from different origin?. Failing back to "_self". %s`, ex);
+                debug(`Failed to modify window.sessionStorage. Perhaps it is from different origin?. Failing back to "_self". %s`, ex);
                 win = self;
             }
         }
@@ -273,7 +272,7 @@ export async function authorize(env, params = {}) {
                 self.addEventListener("message", onMessage);
             }
             catch (ex) {
-                _debug(`Failed to modify window.location. Perhaps it is from different origin?. Failing back to "_self". %s`, ex);
+                debug(`Failed to modify window.location. Perhaps it is from different origin?. Failing back to "_self". %s`, ex);
                 self.location.href = redirectUrl;
             }
         }

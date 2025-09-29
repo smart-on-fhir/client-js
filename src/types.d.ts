@@ -1,13 +1,8 @@
 /// <reference lib="dom" />
 
 import Client from "./Client";
-import { IncomingMessage } from "http";
 
 declare namespace fhirclient {
-
-    interface RequestWithSession extends IncomingMessage {
-        session: fhirclient.JsonObject;
-    }
 
     interface SMART {
         options: BrowserFHIRSettings;
@@ -227,8 +222,6 @@ declare namespace fhirclient {
     type WindowTarget = WindowTargetVariable | typeof WindowTargetFunction;
 
     type PkceMode = 'ifSupported' | 'required' | 'disabled' | 'unsafeV1';
-
-    type storageFactory = (options?: Record<string, any>) => Storage;
 
     interface IncludeResponseHint {
         includeResponse?: boolean

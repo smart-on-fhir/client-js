@@ -1,12 +1,28 @@
-/*
- * This file contains some shared functions. They are used by other modules, but
- * are defined here so that tests can import this library and test them.
- */
 import HttpError from "./HttpError";
 import { patientParams } from "./settings";
-import debug from "debug";
-const _debug = debug("FHIR");
-export { _debug as debug };
+/**
+ * A simple debug function that will print messages to the console if the
+ * `DEBUG` environment variable is set to `*` or contains the word `FHIR`.
+ * If the `NODE_ENV` environment variable is set to `test`, this function
+ * becomes a no-op.
+ * In browser environments, this function always prints the messages but using
+ * `console.debug` instead of `console.log`. This means that in browsers
+ * that support it (most modern browsers) the messages will be hidden by
+ * default and can be enabled from the dev tools.
+ * @param message The message to print
+ * @param optionalParams Any other parameters to print
+ */
+export function debug(message, ...optionalParams) {
+    if (globalThis?.process?.env?.NODE_ENV === "test") {
+        return;
+    }
+    const flag = String(globalThis?.process?.env?.DEBUG || "");
+    let enabled = typeof window !== "undefined" ? true : (flag === "*" || !!flag.match(/\bFHIR\b/));
+    if (enabled) {
+        typeof message === "string" && (message = "[fhirclient] " + message);
+        console.debug(message, ...optionalParams);
+    }
+}
 /**
  * The cache for the `getAndCache` function
  */
@@ -414,7 +430,7 @@ export async function getTargetWindow(target, width = 800, height = 720) {
     }
     // At this point target must be a string
     if (typeof target != "string") {
-        _debug("Invalid target type '%s'. Failing back to '_self'.", typeof target);
+        debug("Invalid target type '%s'. Failing back to '_self'.", typeof target);
         return self;
     }
     // Current window
@@ -442,7 +458,7 @@ export async function getTargetWindow(target, width = 800, height = 720) {
             error = e;
         }
         if (!targetWindow) {
-            _debug("Cannot open window. Failing back to '_self'. %s", error);
+            debug("Cannot open window. Failing back to '_self'. %s", error);
             return self;
         }
         else {
@@ -471,7 +487,7 @@ export async function getTargetWindow(target, width = 800, height = 720) {
             error = e;
         }
         if (!targetWindow) {
-            _debug("Cannot open window. Failing back to '_self'. %s", error);
+            debug("Cannot open window. Failing back to '_self'. %s", error);
             return self;
         }
         else {
@@ -483,7 +499,7 @@ export async function getTargetWindow(target, width = 800, height = 720) {
     if (winOrFrame) {
         return winOrFrame;
     }
-    _debug("Unknown target '%s'. Failing back to '_self'.", target);
+    debug("Unknown target '%s'. Failing back to '_self'.", target);
     return self;
 }
 export function assert(condition, message) {

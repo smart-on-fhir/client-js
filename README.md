@@ -1,42 +1,111 @@
+
 SMART on FHIR JavaScript Library
 ================================
 
-This is a JavaScript library for connecting SMART apps to Fhir servers.
-It works both in browsers (including IE11+) and on the server (NodeJS).
+This is a JavaScript library for connecting SMART apps to FHIR servers.
+It works both in modern browsers and on the server (Node 18+).
+
+<br/>
+<br/>
 
 ## Installation
 
-Install from npm:
+### From NPM
 ```sh
 npm i fhirclient
 ```
+### From CDN
+Include it with a `script` tag from one of the following locations:
 
-<br/>
+From NPM (latest version):
+- https://cdn.jsdelivr.net/npm/fhirclient/bundle/fhir-client.js
+- https://cdn.jsdelivr.net/npm/fhirclient/bundle/fhir-client.min.js
 
-## Documentation
-The documentation for the upcoming release is available at [http://docs.smarthealthit.org/client-js/](http://docs.smarthealthit.org/client-js/).
+From NPM (specific version):
+- https://cdn.jsdelivr.net/npm/fhirclient@3.0.0/bundle/fhir-client.js
+- https://cdn.jsdelivr.net/npm/fhirclient@3.0.0/bundle/fhir-client.min.js
 
-Check out [what's new in v2](http://docs.smarthealthit.org/client-js/v2.html)!
 
+## Browser Usage
 
-<br/>
+In the browser you typically have to create two separate pages that correspond to your
+`launch_uri` (Launch Page) and `redirect_uri` (Index Page).
 
-## Contributing and Development
+### As Library
 
-### NPM Scripts
+```html
+<!-- launch.html -->
+<script src="https://cdn.jsdelivr.net/npm/fhirclient/bundle/fhir-client.min.js"></script>
+<script>
+FHIR.oauth2.authorize({
+    "client_id": "my_web_app",
+    "scope": "patient/*.read"
+});
+</script>
 
-After you `cd` into to the project folder and run `npm i`, you can use npm scripts to handle any project-related task:
-
-```sh
-# run tests
-npm test
-
-# Build everything
-npm run build
-
-# Build the CommonJS modules (for Node and bundlers)
-npm run build:module
+<!-- index.html -->
+<script src="https://cdn.jsdelivr.net/npm/fhirclient/bundle/fhir-client.min.js"></script>
+<script>
+FHIR.oauth2.ready()
+    .then(client => client.request("Patient"))
+    .then(console.log)
+    .catch(console.error);
+</script>
 ```
+
+### As Module
+
+```js
+// Frontend Usage:
+// -----------------------------------------------------------
+
+// Frontend - ESM Module or TypeScript
+import { authorize, ready } from "fhirclient/browser"
+
+// Frontend - CommonJS Module
+const { authorize, ready } = require("fhirclient/browser")
+
+// Launch page or route
+authorize({
+    "client_id": "my_web_app",
+    "scope": "patient/*.read"
+});
+
+// Redirect page or route
+ready()
+.then(client => client.request("Patient"))
+.then(console.log, console.error);
+
+
+// Backend Usage:
+// -----------------------------------------------------------
+// Backend - ESM Module or TypeScript
+import { smart } from "fhirclient/node"
+
+// Backend - CommonJS Module
+const { smart } = require("fhirclient/node")
+
+// Your launch url route
+app.get("/launch", (req, res) => {
+    smart(req, res).authorize({
+        "client_id": "my_web_app",
+        "scope": "patient/*.read"
+    });
+});
+
+// Your redirect url route
+app.get("/", (req, res, next) => {
+    smart(req, res).ready()
+        .then(client => client.request("Patient"))
+        .then(res.json)
+        .catch(next);
+});
+```
+
+
+### [Read the full documentation](http://docs.smarthealthit.org/client-js/).
+
+<br/>
 
 ## License
 Apache 2.0

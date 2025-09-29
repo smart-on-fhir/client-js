@@ -1,8 +1,7 @@
-import { absolute, debug as _debug, getPath, jwtDecode, makeArray, request, byCode, byCodes, units, getPatientParam, fetchConformanceStatement, getAccessTokenExpiration, assert } from "./lib";
+import { absolute, debug, getPath, jwtDecode, makeArray, request, byCode, byCodes, units, getPatientParam, fetchConformanceStatement, getAccessTokenExpiration, assert } from "./lib";
 import str from "./strings";
 import { SMART_KEY, patientCompartment } from "./settings";
 import FhirClient from "./FhirClient";
-const debug = _debug.extend("client");
 /**
  * Adds patient context to requestOptions object to be used with [[Client.request]]
  * @param requestOptions Can be a string URL (relative to the serviceUrl), or an
@@ -320,7 +319,6 @@ export default class Client extends FhirClient {
      * @category Request
      */
     async request(requestOptions, fhirOptions = {}, _resolvedRefs = {}) {
-        const debugRequest = _debug.extend("client:request");
         assert(requestOptions, "request requires an url or request options as argument");
         // url -----------------------------------------------------------------
         let url;
@@ -356,7 +354,7 @@ export default class Client extends FhirClient {
                 authorization: authHeader
             };
         }
-        debugRequest("%s, options: %O, fhirOptions: %O", url, requestOptions, options);
+        debug("client:request: %s, options: %O, fhirOptions: %O", url, requestOptions, options);
         let response;
         return super.fhirRequest(url, requestOptions).then(result => {
             if (requestOptions.includeResponse) {
@@ -376,7 +374,7 @@ export default class Client extends FhirClient {
                 // auto-refresh not enabled and Session expired.
                 // Need to re-launch. Clear state to start over!
                 if (!options.useRefreshToken) {
-                    debugRequest("Your session has expired and the useRefreshToken option is set to false. Please re-launch the app.");
+                    debug("client:request: Your session has expired and the useRefreshToken option is set to false. Please re-launch the app.");
                     await this._clearState();
                     error.message += "\n" + str.expired;
                     throw error;
@@ -386,7 +384,7 @@ export default class Client extends FhirClient {
                 // the access token has just been revoked.
                 // otherwise -> auto-refresh failed. Session expired.
                 // Need to re-launch. Clear state to start over!
-                debugRequest("Auto-refresh failed! Please re-launch the app.");
+                debug("client:request: Auto-refresh failed! Please re-launch the app.");
                 await this._clearState();
                 error.message += "\n" + str.expired;
                 throw error;
@@ -396,7 +394,7 @@ export default class Client extends FhirClient {
             // Handle 403 ----------------------------------------------------------
             .catch((error) => {
             if (error.status == 403) {
-                debugRequest("Permission denied! Please make sure that you have requested the proper scopes.");
+                debug("client:request: Permission denied! Please make sure that you have requested the proper scopes.");
             }
             throw error;
         })
@@ -507,8 +505,7 @@ export default class Client extends FhirClient {
      * @category Request
      */
     refresh(requestOptions = {}) {
-        const debugRefresh = _debug.extend("client:refresh");
-        debugRefresh("Attempting to refresh with refresh_token...");
+        debug("client:refresh: Attempting to refresh with refresh_token...");
         const refreshToken = this.state?.tokenResponse?.refresh_token;
         assert(refreshToken, "Unable to refresh. No refresh_token found.");
         const tokenUri = this.state.tokenUri;
@@ -548,14 +545,14 @@ export default class Client extends FhirClient {
             this._refreshTask = request(tokenUri, refreshRequestOptions)
                 .then(data => {
                 assert(data.access_token, "No access token received");
-                debugRefresh("Received new access token response %O", data);
+                debug("client:refresh: Received new access token response %O", data);
                 this.state.tokenResponse = { ...this.state.tokenResponse, ...data };
                 this.state.expiresAt = getAccessTokenExpiration(data, this.environment);
                 return this.state;
             })
                 .catch((error) => {
                 if (this.state?.tokenResponse?.refresh_token) {
-                    debugRefresh("Deleting the expired or invalid refresh token.");
+                    debug("client:refresh: Deleting the expired or invalid refresh token.");
                     delete this.state.tokenResponse.refresh_token;
                 }
                 throw error;
@@ -567,7 +564,7 @@ export default class Client extends FhirClient {
                     this.environment.getStorage().set(key, this.state);
                 }
                 else {
-                    debugRefresh("No 'key' found in Clint.state. Cannot persist the instance.");
+                    debug("client:refresh: No 'key' found in Clint.state. Cannot persist the instance.");
                 }
             });
         }

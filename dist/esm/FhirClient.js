@@ -1,6 +1,5 @@
 import { fhirVersions } from './settings';
-import { absolute, debug as _debug, getPath, setPath, makeArray, request, fetchConformanceStatement, assertJsonPatch, assert } from "./lib";
-const debug = _debug.extend("FhirClient");
+import { absolute, debug, getPath, setPath, makeArray, request, fetchConformanceStatement, assertJsonPatch, assert } from "./lib";
 /**
  * This is a basic FHIR client for making basic FHIR API calls
  */

@@ -1,10 +1,10 @@
 "use strict";
-/*
- * This file contains some shared functions. They are used by other modules, but
- * are defined here so that tests can import this library and test them.
- */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.units = exports.debug = void 0;
+exports.units = void 0;
+exports.debug = debug;
 exports.checkResponse = checkResponse;
 exports.responseToJSON = responseToJSON;
 exports.loweCaseKeys = loweCaseKeys;
@@ -25,12 +25,31 @@ exports.getPatientParam = getPatientParam;
 exports.getTargetWindow = getTargetWindow;
 exports.assert = assert;
 exports.assertJsonPatch = assertJsonPatch;
-const tslib_1 = require("tslib");
-const HttpError_1 = tslib_1.__importDefault(require("./HttpError"));
+const HttpError_1 = __importDefault(require("./HttpError"));
 const settings_1 = require("./settings");
-const debug_1 = tslib_1.__importDefault(require("debug"));
-const _debug = (0, debug_1.default)("FHIR");
-exports.debug = _debug;
+/**
+ * A simple debug function that will print messages to the console if the
+ * `DEBUG` environment variable is set to `*` or contains the word `FHIR`.
+ * If the `NODE_ENV` environment variable is set to `test`, this function
+ * becomes a no-op.
+ * In browser environments, this function always prints the messages but using
+ * `console.debug` instead of `console.log`. This means that in browsers
+ * that support it (most modern browsers) the messages will be hidden by
+ * default and can be enabled from the dev tools.
+ * @param message The message to print
+ * @param optionalParams Any other parameters to print
+ */
+function debug(message, ...optionalParams) {
+    if (globalThis?.process?.env?.NODE_ENV === "test") {
+        return;
+    }
+    const flag = String(globalThis?.process?.env?.DEBUG || "");
+    let enabled = typeof window !== "undefined" ? true : (flag === "*" || !!flag.match(/\bFHIR\b/));
+    if (enabled) {
+        typeof message === "string" && (message = "[fhirclient] " + message);
+        console.debug(message, ...optionalParams);
+    }
+}
 /**
  * The cache for the `getAndCache` function
  */
@@ -438,7 +457,7 @@ async function getTargetWindow(target, width = 800, height = 720) {
     }
     // At this point target must be a string
     if (typeof target != "string") {
-        _debug("Invalid target type '%s'. Failing back to '_self'.", typeof target);
+        debug("Invalid target type '%s'. Failing back to '_self'.", typeof target);
         return self;
     }
     // Current window
@@ -466,7 +485,7 @@ async function getTargetWindow(target, width = 800, height = 720) {
             error = e;
         }
         if (!targetWindow) {
-            _debug("Cannot open window. Failing back to '_self'. %s", error);
+            debug("Cannot open window. Failing back to '_self'. %s", error);
             return self;
         }
         else {
@@ -495,7 +514,7 @@ async function getTargetWindow(target, width = 800, height = 720) {
             error = e;
         }
         if (!targetWindow) {
-            _debug("Cannot open window. Failing back to '_self'. %s", error);
+            debug("Cannot open window. Failing back to '_self'. %s", error);
             return self;
         }
         else {
@@ -507,7 +526,7 @@ async function getTargetWindow(target, width = 800, height = 720) {
     if (winOrFrame) {
         return winOrFrame;
     }
-    _debug("Unknown target '%s'. Failing back to '_self'.", target);
+    debug("Unknown target '%s'. Failing back to '_self'.", target);
     return self;
 }
 function assert(condition, message) {
