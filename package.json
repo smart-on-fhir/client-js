@@ -57,7 +57,7 @@
     "@types/node": "^24.5.2",
     "chai": "^6.0.1",
     "chai-as-promised": "^8.0.2",
-    "chromedriver": "^140.0.3",
+    "chromedriver": "^143.0.3",
     "cors": "^2.8.5",
     "cross-fetch": "^4.1.0",
     "esbuild": "^0.25.10",
