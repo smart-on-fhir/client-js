@@ -15,3 +15,4 @@ post-launch/index.html
 coverage
 .nyc_output
 tests_output
+client-js.code-workspace
