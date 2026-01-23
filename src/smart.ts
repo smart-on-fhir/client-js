@@ -305,11 +305,16 @@ export async function authorize(
     }
 
     // Get oauth endpoints and add them to the state
-    const extensions = await getSecurityExtensions(
-        serverUrl,
-        params.wellKnownRequestOptions,
-        params.conformanceRequestOptions
-    );
+    let extensions: Partial<fhirclient.OAuthSecurityExtensions> = {};
+    try {
+        extensions = await getSecurityExtensions(
+            serverUrl,
+            params.wellKnownRequestOptions,
+            params.conformanceRequestOptions
+        );
+    } catch (e) {
+        console.error((e as Error).stack);
+    }
     Object.assign(state, extensions);
     await storage.set(stateKey, state);
 
@@ -336,7 +341,7 @@ export async function authorize(
         redirectParams.push("launch=" + encodeURIComponent(launch));
     }
 
-    if (shouldIncludeChallenge(extensions.codeChallengeMethods.includes('S256'), pkceMode)) {
+    if (shouldIncludeChallenge(extensions.codeChallengeMethods?.includes('S256') ?? false, pkceMode)) {
         let codes = await env.security.generatePKCEChallenge()
         Object.assign(state, codes);
         await storage.set(stateKey, state);
