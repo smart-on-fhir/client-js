@@ -328,6 +328,12 @@ declare namespace fhirclient {
     interface OAuthSecurityExtensions {
 
         /**
+         * The authorization server's issuer identifier (RFC 8414 / RFC 9207).
+         * If known, used to validate the `iss` callback parameter.
+         */
+        issuer?: string;
+
+        /**
          * You could register new SMART client at this endpoint (if the server
          * supports dynamic client registration)
          */
@@ -360,6 +366,13 @@ declare namespace fhirclient {
          * at authorization time from request query params of from config options.
          */
         serverUrl: string;
+
+        /**
+         * The authorization server's issuer identifier (RFC 8414 / RFC 9207).
+         * Discovered from `.well-known/smart-configuration` during authorize.
+         * Used to validate the `iss` parameter on OAuth callbacks.
+         */
+        issuer?: string;
 
         /**
          * The client_id that you should have obtained while registering your
@@ -923,6 +936,12 @@ declare namespace fhirclient {
     type permissions = "permission-offline" | "permission-patient" | "permission-user";
 
     interface WellKnownSmartConfiguration {
+        /**
+         * The authorization server's issuer identifier (RFC 8414 / RFC 9207).
+         * Used to validate the `iss` parameter on OAuth callbacks.
+         */
+        issuer?: string;
+
         /**
          * URL to the OAuth2 authorization endpoint.
          */
