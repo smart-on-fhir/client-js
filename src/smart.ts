@@ -47,6 +47,7 @@ async function getSecurityExtensionsFromWellKnownJson(baseUrl = "/", requestOpti
             throw new Error("Invalid wellKnownJson");
         }
         return {
+            issuer              : meta.issuer,
             registrationUri     : meta.registration_endpoint  || "",
             authorizeUri        : meta.authorization_endpoint,
             tokenUri            : meta.token_endpoint,
@@ -126,6 +127,18 @@ export async function authorize(
 
     // Multiple config for EHR launches ---------------------------------------
     if (Array.isArray(params)) {
+
+        // If `code` is present this is an OAuth callback, not a launch.
+        // Any `iss` on the URL is the RFC 9207 authorization-server issuer,
+        // NOT the SMART FHIR server base URL — do not use it for config
+        // selection. In this case, call ready() instead.
+        if (url.searchParams.has("code")) {
+            throw new Error(
+                'authorize() called with multiple configurations during an ' +
+                'OAuth callback (URL contains "code"). Use init() or ' +
+                'ready() to complete the authorization flow.'
+            );
+        }
         const urlISS = url.searchParams.get("iss") || url.searchParams.get("fhirServiceUrl");
         if (!urlISS) {
             throw new Error(
@@ -184,9 +197,14 @@ export async function authorize(
 
     const storage = env.getStorage();
 
+    // If `code` is present this is an OAuth callback, not a launch.
+    // Any `iss` on the URL would be the RFC 9207 authorization-server issuer
+    // (not the SMART FHIR server base URL), so we must not read it here.
+    const isCallback = url.searchParams.has("code");
+
     // For these, a url param takes precedence over inline option
-    iss            = url.searchParams.get("iss")            || iss;
-    fhirServiceUrl = url.searchParams.get("fhirServiceUrl") || fhirServiceUrl;
+    iss            = (!isCallback && url.searchParams.get("iss"))            || iss;
+    fhirServiceUrl = (!isCallback && url.searchParams.get("fhirServiceUrl")) || fhirServiceUrl;
     launch         = url.searchParams.get("launch")         || launch;
     patientId      = url.searchParams.get("patientId")      || patientId;
     clientId       = url.searchParams.get("clientId")       || clientId;
@@ -525,6 +543,22 @@ export async function ready(env: fhirclient.Adapter, options: fhirclient.ReadyOp
 
     url.searchParams.delete("complete");
 
+    // RFC 9207: If the callback URL contains an `iss` parameter and we know
+    // the expected authorization server issuer from discovery, validate them.
+    // A mismatch indicates a mix-up attack or misconfiguration.
+    // This runs before URL cleanup so we can still read the `iss` param.
+    if (code && state) {
+        const callbackIss = params.get("iss");
+        if (callbackIss && state.issuer) {
+            assert(
+                callbackIss === state.issuer,
+                `RFC 9207 issuer mismatch: callback "iss" is "${callbackIss}" ` +
+                `but the expected issuer is "${state.issuer}"`
+            );
+            debug("RFC 9207 issuer validated successfully: %s", callbackIss);
+        }
+    }
+
     // Do we have to remove the `code` and `state` params from the URL?
     const hasState = params.has("state") || options.stateKey ? true : false;
 
@@ -535,6 +569,16 @@ export async function ready(env: fhirclient.Adapter, options: fhirclient.ReadyOp
         if (code) {
             params.delete("code");
             debug("Removed code parameter from the url.");
+
+            // In callback mode, `iss` (if present) is the RFC 9207
+            // authorization-server issuer — NOT the SMART FHIR server
+            // base URL. Remove it so it does not leak into any subsequent
+            // authorize() call on the same page (e.g. init() flows).
+            // Validation against discovery metadata happens above.
+            if (params.has("iss")) {
+                params.delete("iss");
+                debug("Removed iss parameter from the url (RFC 9207 issuer, not FHIR server URL).");
+            }
         }
 
         // If we have `fullSessionStorageSupport` it means we no longer

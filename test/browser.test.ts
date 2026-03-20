@@ -301,6 +301,247 @@ describe("Browser tests", () => {
             expect(client.getUserType()).to.equal("Practitioner");
         });
 
+        // RFC 9207 iss collision tests -------------------------------------------
+
+        it ("callback with code and RFC 9207 iss does not treat iss as FHIR server URL", async () => {
+
+            const env = new BrowserEnv();
+            const Storage = env.getStorage();
+
+            // mock our oauth endpoints
+            mockServer.mock({
+                headers: { "content-type": "application/json" },
+                status: 200,
+                body: {
+                    authorization_endpoint: mockUrl,
+                    token_endpoint: mockUrl
+                }
+            });
+
+            // 1. authorize (launch mode) — iss is the FHIR server
+            await smart.authorize(env, {
+                iss: mockUrl,
+                launch: "123",
+                scope: "my_scope",
+                client_id: "my_client_id"
+            });
+
+            const redirect = env.getUrl();
+            const state = redirect.searchParams.get("state");
+            expect(await Storage.get(state)).to.exist();
+
+            // Verify that the stored serverUrl is the FHIR server (mockUrl)
+            const storedState = await Storage.get(state);
+            expect(storedState.serverUrl).to.equal(mockUrl);
+
+            // mock access token response
+            mockServer.mock({
+                headers: { "content-type": "application/json" },
+                status: 200,
+                body: {
+                    "patient": "test-patient-1",
+                    "token_type": "bearer",
+                    "expires_in": 3600,
+                    "access_token": "test-access-token",
+                    state
+                }
+            });
+
+            // 2. Simulate callback with code, state, AND a RFC 9207 iss
+            //    that is an auth server URL (different from the FHIR server)
+            env.redirect(
+                "http://localhost/?code=abc&state=" + state +
+                "&iss=" + encodeURIComponent("https://auth.example.com/realms/test")
+            );
+            const client = await smart.ready(env);
+
+            // The client should use the stored FHIR server URL, NOT the
+            // RFC 9207 iss from the callback
+            expect(client.state.serverUrl).to.equal(mockUrl);
+
+            // iss should have been stripped from the browser URL
+            expect(window.history._location).to.not.contain("iss=");
+        });
+
+        it ("callback with code and no iss still works", async () => {
+
+            const env = new BrowserEnv();
+            const Storage = env.getStorage();
+
+            mockServer.mock({
+                headers: { "content-type": "application/json" },
+                status: 200,
+                body: {
+                    authorization_endpoint: mockUrl,
+                    token_endpoint: mockUrl
+                }
+            });
+
+            await smart.authorize(env, {
+                iss: mockUrl,
+                launch: "123",
+                scope: "my_scope",
+                client_id: "my_client_id"
+            });
+
+            const redirect = env.getUrl();
+            const state = redirect.searchParams.get("state");
+
+            mockServer.mock({
+                headers: { "content-type": "application/json" },
+                status: 200,
+                body: {
+                    "patient": "test-patient-1",
+                    "token_type": "bearer",
+                    "expires_in": 3600,
+                    "access_token": "test-access-token",
+                    state
+                }
+            });
+
+            // Callback with code and state but NO iss
+            env.redirect("http://localhost/?code=abc&state=" + state);
+            const client = await smart.ready(env);
+
+            expect(client.state.serverUrl).to.equal(mockUrl);
+        });
+
+        it ("launch URL with iss and no code reads iss as FHIR server URL", async () => {
+
+            const env = new BrowserEnv();
+
+            // Point the browser at a launch URL with iss
+            env.redirect("http://localhost/launch?iss=" + encodeURIComponent(mockUrl) + "&launch=xyz");
+
+            mockServer.mock({
+                headers: { "content-type": "application/json" },
+                status: 200,
+                body: {
+                    authorization_endpoint: mockUrl + "/authorize",
+                    token_endpoint: mockUrl + "/token"
+                }
+            });
+
+            const redirectUrl = await smart.authorize(env, {
+                client_id: "my_client_id",
+                scope: "my_scope",
+                noRedirect: true
+            });
+
+            // The redirect should have aud=<FHIR server URL>
+            const redirectParsed = new URL(redirectUrl as string);
+            // The state was stored; check that serverUrl came from iss
+            const stateKey = redirectParsed.searchParams.get("state");
+            const Storage = env.getStorage();
+            const storedState = await Storage.get(stateKey);
+            expect(storedState.serverUrl).to.equal(mockUrl);
+        });
+
+        it ("authorize with multi-config ignores iss when code is present", async () => {
+
+            const env = new BrowserEnv();
+
+            // Simulate a callback URL that has code + RFC 9207 iss
+            env.redirect(
+                "http://localhost/?code=abc&state=test123" +
+                "&iss=" + encodeURIComponent("https://auth.example.com/realms/test")
+            );
+
+            // Multi-config authorize should fail because code is present
+            // (this is a callback, not a launch)
+            await expect(smart.authorize(env, [
+                { issMatch: "https://auth.example.com/realms/test" },
+                { issMatch: mockUrl }
+            ])).to.reject(/authorize\(\) called with multiple configurations during an OAuth callback.*Use init\(\) or ready\(\)/);
+        });
+
+        it ("RFC 9207 issuer validation passes when iss matches discovered issuer", async () => {
+
+            const env = new BrowserEnv();
+            const Storage = env.getStorage();
+            const authIssuer = "https://auth.example.com/realms/test";
+
+            // Mock well-known with an issuer field
+            mockServer.mock({
+                headers: { "content-type": "application/json" },
+                status: 200,
+                body: {
+                    issuer: authIssuer,
+                    authorization_endpoint: mockUrl + "/authorize",
+                    token_endpoint: mockUrl + "/token"
+                }
+            });
+
+            await smart.authorize(env, {
+                iss: mockUrl,
+                launch: "123",
+                scope: "my_scope",
+                client_id: "my_client_id"
+            });
+
+            const redirect = env.getUrl();
+            const state = redirect.searchParams.get("state");
+
+            // Verify issuer was stored
+            const storedState = await Storage.get(state);
+            expect(storedState.issuer).to.equal(authIssuer);
+
+            mockServer.mock({
+                headers: { "content-type": "application/json" },
+                status: 200,
+                body: {
+                    "token_type": "bearer",
+                    "expires_in": 3600,
+                    "access_token": "test-access-token",
+                    state
+                }
+            });
+
+            // Callback with matching issuer — should succeed
+            env.redirect(
+                "http://localhost/?code=abc&state=" + state +
+                "&iss=" + encodeURIComponent(authIssuer)
+            );
+            const client = await smart.ready(env);
+            expect(client.state.serverUrl).to.equal(mockUrl);
+        });
+
+        it ("RFC 9207 issuer validation fails on mismatch", async () => {
+
+            const env = new BrowserEnv();
+            const Storage = env.getStorage();
+            const authIssuer = "https://auth.example.com/realms/test";
+
+            mockServer.mock({
+                headers: { "content-type": "application/json" },
+                status: 200,
+                body: {
+                    issuer: authIssuer,
+                    authorization_endpoint: mockUrl + "/authorize",
+                    token_endpoint: mockUrl + "/token"
+                }
+            });
+
+            await smart.authorize(env, {
+                iss: mockUrl,
+                launch: "123",
+                scope: "my_scope",
+                client_id: "my_client_id"
+            });
+
+            const redirect = env.getUrl();
+            const state = redirect.searchParams.get("state");
+
+            // Callback with WRONG issuer — should fail
+            env.redirect(
+                "http://localhost/?code=abc&state=" + state +
+                "&iss=" + encodeURIComponent("https://evil.example.com/realms/fake")
+            );
+            await expect(smart.ready(env)).to.reject(/RFC 9207 issuer mismatch/);
+        });
+
+        // -----------------------------------------------------------------
+
         it ("refresh an authorized page", async () => {
 
             const env = new BrowserEnv();
@@ -697,6 +938,7 @@ describe("Browser tests", () => {
 
                 const result = await smart.getSecurityExtensions(mockUrl);
                 expect(result).to.equal({
+                    issuer              : undefined,
                     registrationUri     : "https://my-register-uri",
                     authorizeUri        : "https://my-authorize-uri",
                     tokenUri            : "https://my-token-uri",
@@ -718,6 +960,7 @@ describe("Browser tests", () => {
 
               const result = await smart.getSecurityExtensions(mockUrl);
               expect(result).to.equal({
+                  issuer              : undefined,
                   registrationUri     : "https://my-register-uri",
                   authorizeUri        : "https://my-authorize-uri",
                   tokenUri            : "https://my-token-uri",
@@ -1480,6 +1723,61 @@ describe("Browser tests", () => {
                 expect(client.getEncounterId()).to.equal("e3ec2d15-4c27-4607-a45c-2f84962b0700");
                 expect(client.getUserId()).to.equal("smart-Practitioner-71482713");
                 expect(client.getUserType()).to.equal("Practitioner");
+            });
+
+            it ("init() handles RFC 9207 iss on callback without treating it as FHIR server URL", async () => {
+                const authIssuer = "https://auth.example.com/realms/test";
+
+                mockServer.mock({
+                    headers: { "content-type": "application/json" },
+                    status: 200,
+                    body: {
+                        issuer: authIssuer,
+                        authorization_endpoint: mockUrl,
+                        token_endpoint: mockUrl
+                    }
+                });
+
+                mockServer.mock({
+                    headers: { "content-type": "application/json" },
+                    status: 200,
+                    body: {
+                        "patient": "test-patient-1",
+                        "token_type": "bearer",
+                        "expires_in": 3600,
+                        "access_token": "test-access-token"
+                    }
+                });
+
+                const env = new BrowserEnv();
+
+                const client = await new Promise<any>((resolve, reject) => {
+
+                    env.once("redirect", async () => {
+                        // Simulate callback with code, state, AND RFC 9207 iss
+                        const stateKey = env.getUrl().searchParams.get("state");
+                        env.redirect(
+                            "http://localhost/?code=123&state=" + stateKey +
+                            "&iss=" + encodeURIComponent(authIssuer)
+                        );
+                        smart.init(env, {
+                            client_id : "my_web_app",
+                            scope     : "launch/patient",
+                            iss       : mockUrl
+                        }).then(resolve).catch(reject);
+                    });
+
+                    smart.init(env, {
+                        client_id : "my_web_app",
+                        scope     : "launch/patient",
+                        iss       : mockUrl
+                    }).catch(reject);
+                });
+
+                // Should use the stored FHIR server URL, not the RFC 9207 iss
+                expect(client.state.serverUrl).to.equal(mockUrl);
+                // iss should have been stripped from the browser URL
+                expect(window.history._location).to.not.contain("iss=");
             });
         });
     });
