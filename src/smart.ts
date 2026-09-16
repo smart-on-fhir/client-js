@@ -1,6 +1,6 @@
 /* global window */
 import {
-    debug as _debug,
+    debug,
     request,
     getPath,
     getTimeInFuture,
@@ -15,7 +15,6 @@ import Client from "./Client";
 import { SMART_KEY } from "./settings";
 import { fhirclient } from "./types";
 
-const debug = _debug.extend("oauth2");
 
 export { SMART_KEY as KEY };
 
@@ -362,7 +361,7 @@ export async function authorize(
                 win.sessionStorage.removeItem(oldKey);
                 win.sessionStorage.setItem(stateKey, JSON.stringify(state));
             } catch (ex) {
-                _debug(`Failed to modify window.sessionStorage. Perhaps it is from different origin?. Failing back to "_self". %s`, ex);
+                debug(`Failed to modify window.sessionStorage. Perhaps it is from different origin?. Failing back to "_self". %s`, ex);
                 win = self;
             }
         }
@@ -372,7 +371,7 @@ export async function authorize(
                 win.location.href = redirectUrl;
                 self.addEventListener("message", onMessage);
             } catch (ex) {
-                _debug(`Failed to modify window.location. Perhaps it is from different origin?. Failing back to "_self". %s`, ex);
+                debug(`Failed to modify window.location. Perhaps it is from different origin?. Failing back to "_self". %s`, ex);
                 self.location.href = redirectUrl;
             }
         } else {

@@ -1,15 +1,12 @@
 import NodeAdapter from "../adapters/NodeAdapter";
 import { IncomingMessage, ServerResponse } from "http";
-import { fhirclient } from "../types";
-import { AbortController as Controller } from "abortcontroller-polyfill/dist/cjs-ponyfill";
-import FhirClient from "../FhirClient";
+import ServerStorage from "../storage/ServerStorage";
+export { default as FhirClient } from "../FhirClient";
 
-type storageFactory = (options?: Record<string, any>) => fhirclient.Storage;
-
-function smart(
+export function smart(
     request: IncomingMessage,
     response: ServerResponse,
-    storage?: fhirclient.Storage | storageFactory
+    storage?: ServerStorage | ((options?: Record<string, any>) => ServerStorage)
 )
 {
     return new NodeAdapter({
@@ -18,8 +15,3 @@ function smart(
         storage
     }).getSmartApi();
 }
-
-smart.AbortController = Controller as typeof AbortController;
-smart.FhirClient = FhirClient;
-
-export = smart;

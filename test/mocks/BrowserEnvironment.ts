@@ -1,8 +1,7 @@
 /* global fhir */
-const EventEmitter = require("events");
+import { EventEmitter }    from "node:events";
 import BrowserStorage      from "../../src/storage/BrowserStorage";
 import { fhirclient }      from "../../src/types";
-import { AbortController } from "abortcontroller-polyfill/dist/cjs-ponyfill";
 import * as security       from "../../src/security/server"
 import { base64url }       from "jose"
 
@@ -76,10 +75,5 @@ export default class BrowserEnvironment extends EventEmitter implements fhirclie
     base64urldecode(input: string)
     {
         return base64url.decode(input).toString();
-    }
-
-    getAbortController()
-    {
-        return AbortController as any;
     }
 }

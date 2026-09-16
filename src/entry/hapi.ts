@@ -1,24 +1,16 @@
 import HapiAdapter from "../adapters/HapiAdapter";
-import FhirClient from "../FhirClient";
-import { fhirclient } from "../types";
-import { AbortController } from "abortcontroller-polyfill/dist/cjs-ponyfill";
+import ServerStorage from "../storage/ServerStorage";
 import { ResponseToolkit, Request } from "hapi";
+export { default as FhirClient } from "../FhirClient";
 
-
-function smart(
+export function smart(
     request: Request,
     h: ResponseToolkit,
-    storage?: fhirclient.Storage | fhirclient.storageFactory
-)
-{
+    storage?: ServerStorage | ((options?: Record<string, any>) => ServerStorage)
+) {
     return new HapiAdapter({
         request,
         responseToolkit: h,
         storage
     }).getSmartApi();
 }
-
-smart.AbortController = AbortController;
-smart.FhirClient = FhirClient;
-
-export = smart;

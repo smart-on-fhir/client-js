@@ -1,0 +1,24 @@
+{
+  "name": "FHIRClient",
+  "entryPoints": ["./src"],
+  "entryPointStrategy": "expand",
+  "out": "./docs/typedoc",
+  "readme": "./README.md",
+  "externalSymbolLinkMappings": {
+    "@types/node": {
+      "\"http\".request": "https://nodejs.org/api/http.html#httprequestoptions-callback",
+      "\"http\".createServer": "https://nodejs.org/api/http.html#httpcreateserveroptions-requestlistener",
+      "\"http\".Server": "https://nodejs.org/api/http.html#class-httpserver",
+      "\"http\".ClientRequest": "https://nodejs.org/api/http.html#class-httpclientrequest",
+      "EventEmitter.defaultMaxListeners": "https://nodejs.org/api/events.html#eventseventmitterdefaultmaxlisteners"
+    }
+  },
+  "highlightLanguages": ["typescript", "javascript", "json", "http", "html", "bash", "shell", "console"],
+  "validation": {
+    "notExported": false,
+    "invalidLink": true,
+    "notDocumented": false
+  },
+  "logLevel": "Warn",
+  "includeVersion": true
+}

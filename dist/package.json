@@ -1,6 +1,6 @@
 {
   "name": "fhirclient",
-  "version": "2.6.3",
+  "version": "3.0.0-beta.2",
   "description": "JavaScript client for Fast Healthcare Interoperability Resources",
   "author": "SMART Health IT <support@smarthealthit.org> (https://smarthealthit.org/)",
   "contributors": [
@@ -14,16 +14,32 @@
     "Client"
   ],
   "license": "Apache-2.0",
-  "main": "lib/entry/node.js",
-  "browser": "lib/entry/browser.js",
-  "modules.root": "lib",
-  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts"
+    },
+    "./browser": {
+      "import": "./esm/entry/browser.js",
+      "require": "./cjs/entry/browser.js",
+      "types": "./types/entry/browser.d.ts"
+    },
+    "./node": {
+      "import": "./esm/entry/node.js",
+      "require": "./cjs/entry/node.js",
+      "types": "./types/entry/node.d.ts"
+    },
+    "./hapi": {
+      "import": "./esm/entry/hapi.js",
+      "require": "./cjs/entry/hapi.js",
+      "types": "./types/entry/hapi.d.ts"
+    },
+    "./*": {
+      "import": "./esm/*.js",
+      "require": "./cjs/*.js",
+      "types": "./types/*.d.ts"
+    }
+  },
   "dependencies": {
-    "abortcontroller-polyfill": "^1.5.0",
-    "core-js": "^3.23.4",
-    "cross-fetch": "^3.0.5",
-    "debug": "^4.1.1",
-    "isomorphic-webcrypto": "^2.3.8",
     "jose": "^4.15.5",
     "js-base64": "^3.7.2"
   },
@@ -34,17 +50,14 @@
   "peerDependenciesMeta": {
     "@types/hapi": {
       "optional": true
+    },
+    "@types/node": {
+      "optional": true
     }
   },
   "engines": {
     "node": ">=18"
   },
-  "browserslist": [
-    "last 2 Chrome versions",
-    "last 2 firefox versions",
-    "last 2 Edge versions",
-    "ie 11"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/smart-on-fhir/client-js.git"

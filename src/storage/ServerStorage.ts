@@ -1,17 +1,20 @@
-import { fhirclient } from "../types";
+import { IncomingMessage } from "http";
 
+interface RequestWithSession extends IncomingMessage {
+    session: Record<string, any>;
+}
 
 export default class ServerStorage
 {
-    request: fhirclient.RequestWithSession;
+    request: RequestWithSession;
 
     /**
      * @param request The HTTP request that is expected to have a
      * "session" object property.
      */
-    constructor(request: fhirclient.RequestWithSession)
+    constructor(request: IncomingMessage)
     {
-        this.request = request;
+        this.request = request as RequestWithSession;
     }
 
     /**

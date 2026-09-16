@@ -3,7 +3,7 @@ import { fhirVersions }                      from './settings'
 import { fhirclient }                        from './types'
 import {
     absolute,
-    debug as _debug,
+    debug,
     getPath,
     setPath,
     makeArray,
@@ -14,9 +14,7 @@ import {
 } from "./lib";
 
 
-const debug = _debug.extend("FhirClient");
-
-interface RequestOptions extends RequestInit {
+export interface RequestOptions extends RequestInit {
     /**
      * If the `includeResponse` option is `true` we can expect a
      * `CombinedFetchResult` where the `response` property is the `Response`
@@ -53,8 +51,7 @@ export default class FhirClient
     readonly fhirBaseUrl: string;
 
     /**
-     * Validates the parameters, creates an instance and tries to connect it to
-     * FhirJS, if one is available globally.
+     * Validates the parameters and creates an instance.
      */
     constructor(fhirBaseUrl: string)
     {

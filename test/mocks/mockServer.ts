@@ -1,8 +1,7 @@
 import { Application, Request, Response } from "express";
 import { AddressInfo } from "net";
-
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import cors    from "cors";
 
 interface App extends Application {
     mock: (mock: any) => number;
@@ -21,7 +20,7 @@ app.mock = mock => mocks.push(mock);
 app.clear = () => mocks.splice(0, mocks.length);
 
 
-app.all("*", (req, res, next) => {
+app.use((req, res, next) => {
     if (!mocks.length) {
         return next(new Error("No mocks defined for this request"));
     }

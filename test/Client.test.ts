@@ -8,7 +8,6 @@ import mockDebug      from "./mocks/mockDebug";
 import mockServer     from "./mocks/mockServer";
 import ServerEnv      from "./mocks/ServerEnvironment";
 import BrowserEnv     from "./mocks/BrowserEnvironment";
-import BrowserEnvFhir from "./mocks/BrowserEnvironmentWithFhirJs";
 import Window         from "./mocks/Window";
 import str            from "../src/strings";
 import Client         from "../src/Client";
@@ -17,10 +16,10 @@ import Adapter        from "../src/adapters/BrowserAdapter";
 import { fhirclient } from "../src/types";
 import FhirClient     from "../src/FhirClient";
 
+
 export const lab = Lab.script();
 const { it, describe, before, after, afterEach } = lab;
 
-const clientDebug = mockDebug.instances.find(instance => instance.namespace === "FHIR:client");
 
 let mockDataServer: any, mockUrl: string;
 
@@ -44,7 +43,6 @@ after(() => {
     if (mockDataServer && mockDataServer.listening) {
         return new Promise((resolve, reject) => {
             mockUrl = "";
-            delete (global as any).fetch;
             mockDataServer.close((error: Error) => {
                 if (error) {
                     reject(new Error("Error shutting down the mock-data server: " + error));
@@ -58,7 +56,7 @@ after(() => {
 
 afterEach(() => {
     mockServer.clear();
-    clientDebug._calls.length = 0;
+    mockDebug._calls.length = 0;
     delete (global as any).sessionStorage;
 });
 
@@ -133,13 +131,10 @@ describe("FHIR.client", () => {
                     _delay: 10
                 });
 
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const task = client.patient.read({ signal: abortController.signal });
                 abortController.abort();
-                await expect(task).to.reject(
-                    Error, "The user aborted a request."
-                );
+                await expect(task).to.reject(Error, /abort/i);
             });
         });
 
@@ -480,13 +475,10 @@ describe("FHIR.client", () => {
                     _delay: 10
                 });
 
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const task = client.patient.request({ url: "Observation", signal: abortController.signal });
                 abortController.abort();
-                await expect(task).to.reject(
-                    Error, "The user aborted a request."
-                );
+                await expect(task).to.reject(Error, /abort/i);
             });
         });
 
@@ -649,13 +641,10 @@ describe("FHIR.client", () => {
                     _delay: 10
                 });
 
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const task = client.encounter.read({ signal: abortController.signal });
                 abortController.abort();
-                await expect(task).to.reject(
-                    Error, "The user aborted a request."
-                );
+                await expect(task).to.reject(Error, /abort/i);
             });
         });
 
@@ -744,13 +733,10 @@ describe("FHIR.client", () => {
                     _delay: 10
                 });
 
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const task = client.user.read({ signal: abortController.signal });
                 abortController.abort();
-                await expect(task).to.reject(
-                    Error, "The user aborted a request."
-                );
+                await expect(task).to.reject(Error, /abort/i);
             });
         });
 
@@ -775,87 +761,6 @@ describe("FHIR.client", () => {
                 expect(result.body).to.equal({ resourceType: "Patient", id: "user-id" });
                 expect(result.response.status).to.equal(200);
             });
-        });
-    });
-
-    describe("fhir.js api", { timeout: 5000 }, () => {
-        it ("does not work without fhir.js", async () => {
-            const env    = new BrowserEnv();
-            // @ts-ignore
-            const client = new Client(env, {
-                serverUrl: "https://r2.smarthealthit.org",
-                tokenResponse: {
-                    patient: "bd7cb541-732b-4e39-ab49-ae507aa49326"
-                }
-            });
-            expect(client.api).to.be.undefined();
-            expect(client.patient.api).to.be.undefined();
-        });
-
-        it ("works in the browser", async () => {
-            const env    = new BrowserEnvFhir();
-            // @ts-ignore
-            const client = new Client(env, {
-                serverUrl: "https://r2.smarthealthit.org",
-                tokenResponse: {
-                    patient: "bd7cb541-732b-4e39-ab49-ae507aa49326"
-                }
-            });
-            await (client.api as any).read({ type: "Patient", id: "bd7cb541-732b-4e39-ab49-ae507aa49326" });
-            await (client.api as any).search({ type: "Patient" });
-            await (client.patient.api as any).read({ type: "Patient", id: "bd7cb541-732b-4e39-ab49-ae507aa49326" });
-        });
-    });
-
-    describe("client.connect", () => {
-        it ("works as expected", () => {
-            const env    = new BrowserEnv();
-            // @ts-ignore
-            const client = new Client(env, {
-                serverUrl: "https://r2.smarthealthit.org",
-                tokenResponse: {
-                    access_token: "my access token"
-                }
-            });
-
-            let _passedOptions: any = {};
-
-            const fhirJs = (options: any) => {
-                _passedOptions = options;
-                return options;
-            };
-
-            client.connect(fhirJs);
-
-            expect(_passedOptions.baseUrl).to.equal("https://r2.smarthealthit.org");
-            expect(_passedOptions.auth).to.equal({ token: "my access token" });
-
-            (client.state.tokenResponse as any).access_token = null;
-            client.connect(fhirJs);
-            expect(_passedOptions.auth).to.be.undefined();
-            expect(client.patient.api).to.be.undefined();
-
-            client.state.username = "my username";
-            client.connect(fhirJs);
-            expect(_passedOptions.auth).to.be.undefined();
-
-            client.state.password = "my password";
-            client.connect(fhirJs);
-            expect(_passedOptions.auth).to.equal({
-                user: "my username",
-                pass: "my password"
-            });
-
-            client.state.password = "my password";
-            client.connect(fhirJs);
-            expect(_passedOptions.auth).to.equal({
-                user: "my username",
-                pass: "my password"
-            });
-
-            (client.state.tokenResponse as any).patient = "bd7cb541-732b-4e39-ab49-ae507aa49326";
-            client.connect(fhirJs);
-            expect(client.patient.api).to.not.be.undefined();
         });
     });
 
@@ -2742,13 +2647,10 @@ describe("FHIR.client", () => {
                 it (name, async () => {
                     const client = new Client(tests[name], { serverUrl: mockUrl });
                     mockServer.mock(mock);
-                    const AbortController = tests[name].getAbortController();
                     const abortController = new AbortController();
                     const task = client.request({ url: "/Patient/patient-id", signal: abortController.signal });
                     abortController.abort();
-                    await expect(task).to.reject(
-                        Error, "The user aborted a request."
-                    );
+                    await expect(task).to.reject(Error, /abort/i);
                 });
             }
         });
@@ -2757,7 +2659,6 @@ describe("FHIR.client", () => {
             crossPlatformTest(async (env) => {
                 const client = new Client(env, { serverUrl: mockUrl });
                 const pages: any[] = [];
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
                 const onPage = (page: any) => {
                     if (pages.push(page) == 2) {
@@ -2818,7 +2719,7 @@ describe("FHIR.client", () => {
                     onPage
                 });
 
-                await expect(task).to.reject(Error, "The user aborted a request.");
+                await expect(task).to.reject(Error, /abort/i);
                 expect(pages.length, "onPage should be called twice").to.equal(2);
                 expect(pages[0]).to.include({ pageId: 1 });
                 expect(pages[1]).to.include({ pageId: 2 });
@@ -2828,7 +2729,6 @@ describe("FHIR.client", () => {
         describe ("aborts nested reference requests", () => {
             crossPlatformTest(async (env) => {
                 const client = new Client(env, { serverUrl: mockUrl });
-                const AbortController = env.getAbortController();
                 const abortController = new AbortController();
 
                 // Page 1
@@ -2875,7 +2775,7 @@ describe("FHIR.client", () => {
                 // rejected with abort error.
                 setTimeout(() => abortController.abort(), 30);
 
-                await expect(task).to.reject(Error, "The user aborted a request.");
+                await expect(task).to.reject(Error, /abort/i);
             });
         });
 
@@ -3418,7 +3318,7 @@ describe("FHIR.client", () => {
         crossPlatformTest(async (env) => {
             const client = new Client(env, mockUrl);
             expect(client.getPatientId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noFreeContext, "selected patient"]]);
+            expect(mockDebug._calls).to.equal([[str.noFreeContext, "selected patient"]]);
         });
     });
 
@@ -3429,7 +3329,7 @@ describe("FHIR.client", () => {
                 authorizeUri: "whatever"
             });
             expect(client.getPatientId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noIfNoAuth, "the ID of the selected patient"]]);
+            expect(mockDebug._calls).to.equal([[str.noIfNoAuth, "the ID of the selected patient"]]);
         });
     });
 
@@ -3440,7 +3340,7 @@ describe("FHIR.client", () => {
                 tokenResponse: {}
             });
             expect(client.getPatientId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noScopeForId, "patient", "patient"]]);
+            expect(mockDebug._calls).to.equal([[str.noScopeForId, "patient", "patient"]]);
         });
     });
 
@@ -3452,7 +3352,7 @@ describe("FHIR.client", () => {
                 tokenResponse: {}
             });
             expect(client.getPatientId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[
+            expect(mockDebug._calls).to.equal([[
                 "The ID of the selected patient is not available. " +
                 "Please check if your server supports that."
             ]]);
@@ -3463,7 +3363,7 @@ describe("FHIR.client", () => {
         crossPlatformTest(async (env) => {
             const client = new Client(env, mockUrl);
             expect(client.getEncounterId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noFreeContext, "selected encounter"]]);
+            expect(mockDebug._calls).to.equal([[str.noFreeContext, "selected encounter"]]);
         });
     });
 
@@ -3474,7 +3374,7 @@ describe("FHIR.client", () => {
                 authorizeUri: "whatever"
             });
             expect(client.getEncounterId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noIfNoAuth, "the ID of the selected encounter"]]);
+            expect(mockDebug._calls).to.equal([[str.noIfNoAuth, "the ID of the selected encounter"]]);
         });
     });
 
@@ -3485,7 +3385,7 @@ describe("FHIR.client", () => {
                 tokenResponse: {}
             });
             expect(client.getEncounterId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noScopeForId, "encounter", "encounter"]]);
+            expect(mockDebug._calls).to.equal([[str.noScopeForId, "encounter", "encounter"]]);
         });
     });
 
@@ -3497,7 +3397,7 @@ describe("FHIR.client", () => {
                 tokenResponse: {}
             });
             expect(client.getEncounterId()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[
+            expect(mockDebug._calls).to.equal([[
                 "The ID of the selected encounter is not available. " +
                 "Please check if your server supports that, and that " +
                 "the selected patient has any recorded encounters."
@@ -3509,7 +3409,7 @@ describe("FHIR.client", () => {
         crossPlatformTest(async (env) => {
             const client = new Client(env, mockUrl);
             expect(client.getIdToken()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noFreeContext, "id_token"]]);
+            expect(mockDebug._calls).to.equal([[str.noFreeContext, "id_token"]]);
         });
     });
 
@@ -3520,7 +3420,7 @@ describe("FHIR.client", () => {
                 authorizeUri: "whatever"
             });
             expect(client.getIdToken()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[str.noIfNoAuth, "the id_token"]]);
+            expect(mockDebug._calls).to.equal([[str.noIfNoAuth, "the id_token"]]);
         });
     });
 
@@ -3532,7 +3432,7 @@ describe("FHIR.client", () => {
                 tokenResponse: {}
             });
             expect(client.getIdToken()).to.equal(null);
-            expect(clientDebug._calls).to.equal([["You are trying to get the id_token but you are not using the right scopes. Please add 'openid' and 'fhirUser' or 'profile' to the scopes you are requesting."]]);
+            expect(mockDebug._calls).to.equal([["You are trying to get the id_token but you are not using the right scopes. Please add 'openid' and 'fhirUser' or 'profile' to the scopes you are requesting."]]);
         });
     });
 
@@ -3544,7 +3444,7 @@ describe("FHIR.client", () => {
                 tokenResponse: {}
             });
             expect(client.getIdToken()).to.equal(null);
-            expect(clientDebug._calls).to.equal([[
+            expect(mockDebug._calls).to.equal([[
                 "The id_token is not available. Please check if your " +
                 "server supports that."
             ]]);
@@ -3616,8 +3516,8 @@ describe("FHIR.client", () => {
     describe("byCode", () => {
         crossPlatformTest(async (env) => {
             const client = new Client(env, "http://localhost");
-            const observation1 = require("./mocks/Observation-1.json");
-            const observation2 = require("./mocks/Observation-2.json");
+            const observation1 = (await import("./mocks/Observation-1.json")).default;
+            const observation2 = (await import("./mocks/Observation-2.json")).default;
 
             const resources = [
                 observation1,

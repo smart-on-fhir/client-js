@@ -2,17 +2,16 @@ import { fhirclient } from "../types";
 import { ready, authorize, init } from "../smart";
 import Client from "../Client";
 import ServerStorage from "../storage/ServerStorage";
-import { AbortController } from "abortcontroller-polyfill/dist/cjs-ponyfill";
 import { IncomingMessage, ServerResponse } from "http";
 import { TLSSocket } from "tls";
 import * as security from "../security/server"
 import { base64url } from "jose"
 
 
-interface NodeAdapterOptions {
+export interface NodeAdapterOptions {
     request: IncomingMessage;
     response: ServerResponse;
-    storage?: fhirclient.Storage | fhirclient.storageFactory;
+    storage?: ServerStorage | ((options: { request: IncomingMessage }) => ServerStorage);
 }
 
 /**
@@ -22,37 +21,39 @@ export default class NodeAdapter implements fhirclient.Adapter
 {
     /**
      * Holds the Storage instance associated with this instance
+     * @type {ServerStorage | null}
      */
-    protected _storage: fhirclient.Storage | null = null;
+    protected _storage: ServerStorage | null = null;
 
     /**
      * Environment-specific options
      */
     options: NodeAdapterOptions;
 
+    /**
+     * Security-related methods
+     */
     security = security;
 
     /**
-     * @param options Environment-specific options
+     * @param {any} options Environment-specific options
      */
-    constructor(options: NodeAdapterOptions)
-    {
+    constructor(options: NodeAdapterOptions) {
         this.options = { ...options };
     }
 
     /**
      * Given a relative path, returns an absolute url using the instance base URL
+     * @param {string} path The path to convert to absolute
      */
-    relative(path: string): string
-    {
+    relative(path: string): string {
         return new URL(path, this.getUrl().href).href;
     }
 
     /**
      * Returns the protocol of the current request ("http" or "https")
      */
-    getProtocol(): string
-    {
+    getProtocol(): string {
         const req = this.options.request;
         const proto = (req.socket as TLSSocket).encrypted ? "https" : "http";
         return req.headers["x-forwarded-proto"] as string || proto;
@@ -62,8 +63,7 @@ export default class NodeAdapter implements fhirclient.Adapter
      * Given the current environment, this method must return the current url
      * as URL instance. In Node we might be behind a proxy!
      */
-    getUrl(): URL
-    {
+    getUrl(): URL {
         const req = this.options.request;
 
         let host = req.headers.host;
@@ -82,10 +82,9 @@ export default class NodeAdapter implements fhirclient.Adapter
     /**
      * Given the current environment, this method must redirect to the given
      * path
-     * @param location The path to redirect to
+     * @param {string} location The path to redirect to
      */
-    redirect(location: string): void
-    {
+    redirect(location: string): void {
         this.options.response.writeHead(302, { location });
         this.options.response.end();
     }
@@ -93,8 +92,7 @@ export default class NodeAdapter implements fhirclient.Adapter
     /**
      * Returns a ServerStorage instance
      */
-    getStorage(): fhirclient.Storage
-    {
+    getStorage(): ServerStorage {
         if (!this._storage) {
             if (this.options.storage) {
                 if (typeof this.options.storage == "function") {
@@ -103,49 +101,44 @@ export default class NodeAdapter implements fhirclient.Adapter
                     this._storage = this.options.storage;
                 }
             } else {
-                this._storage = new ServerStorage(this.options.request as fhirclient.RequestWithSession);
+                this._storage = new ServerStorage(this.options.request);
             }
         }
         return this._storage;
     }
 
     /**
-     * Base64 to ASCII string
+     * ASCII string to Base64
+     * @param {string} str The ascii string
      */
-    btoa(str: string): string
-    {
-        // The "global." makes Webpack understand that it doesn't have to
-        // include the Buffer code in the bundle
-        return global.Buffer.from(str).toString("base64");
+    btoa(str: string): string {
+        return Buffer.from(str).toString("base64");
     }
 
     /**
-     * ASCII string to Base64
+     * Base64 to ASCII string
+     * @param {string} str The base64 encoded string
      */
-    atob(str: string): string
-    {
-        // The "global." makes Webpack understand that it doesn't have to
-        // include the Buffer code in the bundle
-        return global.Buffer.from(str, "base64").toString("ascii");
+    atob(str: string): string {
+        return Buffer.from(str, "base64").toString("ascii");
     }
 
-    base64urlencode(input: string | Uint8Array)
-    {
+    /**
+     * Encodes a string or Uint8Array to Base64 URL format
+     * @param {string | Uint8Array} input The input string or Uint8Array
+     * @returns The Base64 URL encoded string
+     */
+    base64urlencode(input: string | Uint8Array): string {
         return base64url.encode(input);
     }
 
-    base64urldecode(input: string)
-    {
-        return base64url.decode(input).toString();
-    }
-
     /**
-     * Returns a reference to the AbortController constructor. In browsers,
-     * AbortController will always be available as global (native or polyfilled)
+     * Decodes a Base64 URL encoded string
+     * @param {string} input The Base64 URL encoded string
+     * @returns The decoded string
      */
-    getAbortController()
-    {
-        return AbortController;
+    base64urldecode(input: string): string {
+        return base64url.decode(input).toString();
     }
 
     /**
@@ -155,8 +148,7 @@ export default class NodeAdapter implements fhirclient.Adapter
      * arguments. For example in node we will need a request, a response and
      * optionally a storage or storage factory function.
      */
-    getSmartApi(): fhirclient.SMART
-    {
+    getSmartApi(): fhirclient.SMART {
         return {
             ready    : (...args: any[]) => ready(this, ...args),
             authorize: options => authorize(this, options),

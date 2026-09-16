@@ -1,22 +1,11 @@
-require("debug");
-require.cache[require.resolve("debug")].exports = createDebug;
+require("../../src/lib");
 
-function extend(namespace, delimiter = ":") {
-    const newDebug = createDebug(this.namespace + (typeof delimiter === "undefined" ? ":" : delimiter) + namespace);
-    newDebug.log = this.log;
-    return newDebug;
+export default function debug(...args: any[]) {
+    debug._calls.push(args);
 }
 
-export default function createDebug(namespace) {
-    const debug = (...args) => {
-        debug._calls.push(args);
-    };
-    Object.assign(debug, {
-        namespace,
-        extend,
-        _calls: []
-    });
-    createDebug.instances.push(debug);
-    return debug;
-}
-createDebug.instances = [];
+// @ts-ignore
+debug._calls = []
+
+require.cache[require.resolve("../../src/lib")]!.exports.debug = debug;
+

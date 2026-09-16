@@ -6,12 +6,24 @@ If you are working in a browser, the SMART API is automatically created, and ava
 with a http request and response objects, and will return the same SMART API as in the browser. 
 
 ```js
-// BROWSER
+// BROWSER (via script tag - FHIR is global variable!)
 const smart = FHIR.oauth2;
 smart.authorize(options);
 
-// SERVER
-const smart = require("fhirclient");
+// BROWSER (bundler in ESM/TS project)
+import { smart } from "fhirclient/browser";
+smart.authorize(options);
+
+// BROWSER (bundler in CommonJS project)
+const { smart } = require("fhirclient/browser");
+smart.authorize(options);
+
+// SERVER (CommonJS syntax)
+const { smart } = require("fhirclient/node");
+smart(request, response).authorize(options);
+
+// SERVER (ESM syntax)
+import { smart } from "fhirclient/node";
 smart(request, response).authorize(options);
 ```
 
@@ -99,7 +111,8 @@ authorize(options).then(() => ready(readyOptions))
 
 Example:
 ```js
-FHIR.oauth2.init({
+import { init } from "fhirclient/browser";
+init({
     client_id: "my_web_app",
     scope    : "patient/*.read"
 }).then(client => /* initialize my app */);

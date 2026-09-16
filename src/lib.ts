@@ -1,20 +1,30 @@
-/*
- * This file contains some shared functions. They are used by other modules, but
- * are defined here so that tests can import this library and test them.
- */
-
 import HttpError from "./HttpError";
 import { patientParams } from "./settings";
 import { fhirclient } from "./types";
-const debug = require("debug");
 
-// $lab:coverage:off$
-// @ts-ignore
-const { fetch } = typeof FHIRCLIENT_PURE !== "undefined" ? window : require("cross-fetch");
-// $lab:coverage:on$
-
-const _debug     = debug("FHIR");
-export { _debug as debug };
+/**
+ * A simple debug function that will print messages to the console if the
+ * `DEBUG` environment variable is set to `*` or contains the word `FHIR`.
+ * If the `NODE_ENV` environment variable is set to `test`, this function
+ * becomes a no-op.
+ * In browser environments, this function always prints the messages but using
+ * `console.debug` instead of `console.log`. This means that in browsers
+ * that support it (most modern browsers) the messages will be hidden by
+ * default and can be enabled from the dev tools.
+ * @param message The message to print
+ * @param optionalParams Any other parameters to print
+ */
+export function debug(message?: any, ...optionalParams: any[]): void {
+    if (globalThis?.process?.env?.NODE_ENV === "test") {
+        return;
+    }
+    const flag = String(globalThis?.process?.env?.DEBUG || "");
+    let enabled = typeof window !== "undefined" ? true : (flag === "*" || !!flag.match(/\bFHIR\b/));
+    if (enabled) {
+        typeof message === "string" && (message = "[fhirclient] " + message);
+        console.debug(message, ...optionalParams);
+    }
+}
 
 /**
  * The cache for the `getAndCache` function
@@ -112,7 +122,7 @@ export function loweCaseKeys<T=Record<string, any> | any[] | undefined>(obj: T):
  * - If the response is text return the result text
  * - Otherwise return the response object on which we call stuff like `.blob()`
  */
-export function request<T = fhirclient.FetchResult>(
+export async function request<T = fhirclient.FetchResult>(
     url: string | Request,
     requestOptions: fhirclient.FetchOptions = {}
 ): Promise<T>
@@ -145,23 +155,25 @@ export function request<T = fhirclient.FetchResult>(
         if (!body && res.status == 201) {
             const location = res.headers.get("location");
             if (location) {
-                return request(location, { ...options, method: "GET", body: null, includeResponse });
+                // The recursive call will have the same generic type T
+                return request<T>(location, { ...options, method: "GET", body: null, includeResponse });
             }
         }
 
         if (includeResponse) {
-            return { body, response: res };
+            // This cast is safe because when includeResponse is true, the return type is CombinedFetchResult
+            return { body, response: res } as unknown as T;
         }
 
         // For any non-text and non-json response return the Response object.
         // This to let users decide if they want to call text(), blob() or
         // something else on it
         if (body === undefined) {
-            return res;
+            return res as unknown as T;
         }
 
         // Otherwise just return the parsed body (can also be "" or null)
-        return body;
+        return body as unknown as T;
     });
 }
 
@@ -230,7 +242,7 @@ export function getPath(obj: Record<string, any>, path = ""): any {
 }
 
 /**
- * Like getPath, but if the node is found, its value is set to @value
+ * Like getPath, but if the node is found, its value is set to the value param.
  * @param obj The object (or Array) to walk through
  * @param path The path (eg. "a.b.4.c")
  * @param value The value to set
@@ -481,7 +493,7 @@ export async function getTargetWindow(target: fhirclient.WindowTarget, width: nu
 
     // At this point target must be a string
     if (typeof target != "string") {
-        _debug("Invalid target type '%s'. Failing back to '_self'.", typeof target);
+        debug("Invalid target type '%s'. Failing back to '_self'.", typeof target);
         return self;
     }
 
@@ -513,7 +525,7 @@ export async function getTargetWindow(target: fhirclient.WindowTarget, width: nu
         }
 
         if (!targetWindow) {
-            _debug("Cannot open window. Failing back to '_self'. %s", error);
+            debug("Cannot open window. Failing back to '_self'. %s", error);
             return self;
         } else {
             return targetWindow;
@@ -542,7 +554,7 @@ export async function getTargetWindow(target: fhirclient.WindowTarget, width: nu
         }
 
         if (!targetWindow) {
-            _debug("Cannot open window. Failing back to '_self'. %s", error);
+            debug("Cannot open window. Failing back to '_self'. %s", error);
             return self;
         } else {
             return targetWindow;
@@ -555,7 +567,7 @@ export async function getTargetWindow(target: fhirclient.WindowTarget, width: nu
         return winOrFrame;
     }
 
-    _debug("Unknown target '%s'. Failing back to '_self'.", target);
+    debug("Unknown target '%s'. Failing back to '_self'.", target);
     return self;
 }
 

@@ -12,8 +12,7 @@ old
 trash
 test
 docs
-.babelrc                    
-.eslintignore               
-.eslintrc.js                
-.labrc.js                   
-webpack.config.js
+esbuild.config.js
+.eslintignore
+.eslintrc.js
+.labrc.js

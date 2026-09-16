@@ -1,6 +1,6 @@
 import {
     absolute,
-    debug as _debug,
+    debug,
     getPath,
     jwtDecode,
     makeArray,
@@ -17,16 +17,9 @@ import {
 import str from "./strings";
 import { SMART_KEY, patientCompartment } from "./settings";
 import HttpError from "./HttpError";
-import BrowserAdapter from "./adapters/BrowserAdapter";
 import { fhirclient } from "./types";
 import FhirClient from "./FhirClient";
 
-// $lab:coverage:off$
-// @ts-ignore
-const { Response } = typeof FHIRCLIENT_PURE !== "undefined" ? window : require("cross-fetch");
-// $lab:coverage:on$
-
-const debug = _debug.extend("client");
 
 /**
  * Adds patient context to requestOptions object to be used with [[Client.request]]
@@ -188,14 +181,14 @@ export default class Client extends FhirClient
          * user is not available. This is a string having the shape
          * `{user type}/{user id}`. For example `Practitioner/abc` or
          * `Patient/xyz`.
-         * @alias client.getFhirUser()
+         * @see client.getFhirUser()
          */
         fhirUser: string | null
 
         /**
          * Returns the type of the logged-in user or null. The result can be
          * `Practitioner`, `Patient` or `RelatedPerson`.
-         * @alias client.getUserType()
+         * @see client.getUserType()
          */
         resourceType: string | null
     };
@@ -214,8 +207,7 @@ export default class Client extends FhirClient
     private _refreshTask: Promise<any> | null;
 
     /**
-     * Validates the parameters, creates an instance and tries to connect it to
-     * FhirJS, if one is available globally.
+     * Validates the parameters and creates an instance.
      */
     constructor(environment: fhirclient.Adapter, state: fhirclient.ClientState | string)
     {
@@ -279,51 +271,6 @@ export default class Client extends FhirClient
                     Promise.reject(new Error("User is not available"));
             }
         };
-
-        // fhir.js api (attached automatically in browser)
-        // ---------------------------------------------------------------------
-        this.connect((environment as BrowserAdapter).fhir);
-    }
-
-    /**
-     * This method is used to make the "link" between the `fhirclient` and the
-     * `fhir.js`, if one is available.
-     * **Note:** This is called by the constructor. If fhir.js is available in
-     * the global scope as `fhir`, it will automatically be linked to any [[Client]]
-     * instance. You should only use this method to connect to `fhir.js` which
-     * is not global.
-     */
-    connect(fhirJs?: (options: Record<string, any>) => Record<string, any>): Client
-    {
-        if (typeof fhirJs == "function") {
-            const options: Record<string, any> = {
-                baseUrl: this.state.serverUrl.replace(/\/$/, "")
-            };
-
-            const accessToken = this.getState("tokenResponse.access_token");
-            if (accessToken) {
-                options.auth = { token: accessToken };
-            }
-            else {
-                const { username, password } = this.state;
-                if (username && password) {
-                    options.auth = {
-                        user: username,
-                        pass: password
-                    };
-                }
-            }
-            this.api = fhirJs(options);
-
-            const patientId = this.getState("tokenResponse.patient");
-            if (patientId) {
-                this.patient.api = fhirJs({
-                    ...options,
-                    patient: patientId
-                });
-            }
-        }
-        return this;
     }
 
     /**
@@ -535,7 +482,6 @@ export default class Client extends FhirClient
         _resolvedRefs: fhirclient.JsonObject = {}
     ): Promise<T>
     {
-        const debugRequest = _debug.extend("client:request");
         assert(requestOptions, "request requires an url or request options as argument");
 
         // url -----------------------------------------------------------------
@@ -580,7 +526,7 @@ export default class Client extends FhirClient
             };
         }
 
-        debugRequest("%s, options: %O, fhirOptions: %O", url, requestOptions, options);
+        debug("client:request: %s, options: %O, fhirOptions: %O", url, requestOptions, options);
 
         let response: Response | undefined;
 
@@ -605,7 +551,7 @@ export default class Client extends FhirClient
                 // auto-refresh not enabled and Session expired.
                 // Need to re-launch. Clear state to start over!
                 if (!options.useRefreshToken) {
-                    debugRequest("Your session has expired and the useRefreshToken option is set to false. Please re-launch the app.");
+                    debug("client:request: Your session has expired and the useRefreshToken option is set to false. Please re-launch the app.");
                     await this._clearState();
                     error.message += "\n" + str.expired;
                     throw error;
@@ -617,7 +563,7 @@ export default class Client extends FhirClient
 
                 // otherwise -> auto-refresh failed. Session expired.
                 // Need to re-launch. Clear state to start over!
-                debugRequest("Auto-refresh failed! Please re-launch the app.");
+                debug("client:request: Auto-refresh failed! Please re-launch the app.");
                 await this._clearState();
                 error.message += "\n" + str.expired;
                 throw error;
@@ -628,7 +574,7 @@ export default class Client extends FhirClient
         // Handle 403 ----------------------------------------------------------
         .catch((error: HttpError) => {
             if (error.status == 403) {
-                debugRequest("Permission denied! Please make sure that you have requested the proper scopes.");
+                debug("client:request: Permission denied! Please make sure that you have requested the proper scopes.");
             }
             throw error;
         })
@@ -769,8 +715,7 @@ export default class Client extends FhirClient
      */
     refresh(requestOptions: RequestInit = {}): Promise<fhirclient.ClientState>
     {
-        const debugRefresh = _debug.extend("client:refresh");
-        debugRefresh("Attempting to refresh with refresh_token...");
+        debug("client:refresh: Attempting to refresh with refresh_token...");
 
         const refreshToken = this.state?.tokenResponse?.refresh_token;
         assert(refreshToken, "Unable to refresh. No refresh_token found.");
@@ -818,14 +763,14 @@ export default class Client extends FhirClient
             this._refreshTask = request<fhirclient.TokenResponse>(tokenUri, refreshRequestOptions)
             .then(data => {
                 assert(data.access_token, "No access token received");
-                debugRefresh("Received new access token response %O", data);
+                debug("client:refresh: Received new access token response %O", data);
                 this.state.tokenResponse = { ...this.state.tokenResponse, ...data };
                 this.state.expiresAt = getAccessTokenExpiration(data, this.environment);
                 return this.state;
             })
             .catch((error: Error) => {
                 if (this.state?.tokenResponse?.refresh_token) {
-                    debugRefresh("Deleting the expired or invalid refresh token.");
+                    debug("client:refresh: Deleting the expired or invalid refresh token.");
                     delete this.state.tokenResponse.refresh_token;
                 }
                 throw error;
@@ -836,7 +781,7 @@ export default class Client extends FhirClient
                 if (key) {
                     this.environment.getStorage().set(key, this.state);
                 } else {
-                    debugRefresh("No 'key' found in Clint.state. Cannot persist the instance.");
+                    debug("client:refresh: No 'key' found in Clint.state. Cannot persist the instance.");
                 }
             });
         }
@@ -857,7 +802,7 @@ export default class Client extends FhirClient
      * ```
      * @param observations Array of observations
      * @param property The name of a CodeableConcept property to group by
-     * @todo This should be deprecated and moved elsewhere. One should not have
+     * @remarks This should be deprecated and moved elsewhere. One should not have
      * to obtain an instance of [[Client]] just to use utility functions like this.
      * @deprecated
      * @category Utility
@@ -882,7 +827,7 @@ export default class Client extends FhirClient
      * ```
      * @param observations Array of observations
      * @param property The name of a CodeableConcept property to group by
-     * @todo This should be deprecated and moved elsewhere. One should not have
+     * @remarks This should be deprecated and moved elsewhere. One should not have
      * to obtain an instance of [[Client]] just to use utility functions like this.
      * @deprecated
      * @category Utility
@@ -908,7 +853,7 @@ export default class Client extends FhirClient
      * @param obj The object (or Array) to walk through
      * @param path The path (eg. "a.b.4.c")
      * @returns {*} Whatever is found in the path or undefined
-     * @todo This should be deprecated and moved elsewhere. One should not have
+     * @remarks This should be deprecated and moved elsewhere. One should not have
      * to obtain an instance of [[Client]] just to use utility functions like this.
      * @deprecated
      * @category Utility

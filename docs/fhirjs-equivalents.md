@@ -1,8 +1,9 @@
-## Fhir.js methods and their client-js equivalents
+## Common FHIR operations
 
 ### read
 ```js
-client.request("ResourceType/resourceId")
+// /{{ResourceType}}/{{resourceId}}
+client.request("Patient/patient_id")
 
 // client-js also has 3 methods for reading the current user, patient and encounter
 client.user.read()
