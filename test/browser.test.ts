@@ -1406,6 +1406,69 @@ describe("Browser tests", () => {
                 expect(client.getUserType()).to.equal("Practitioner");
             });
 
+            it ("accepts an array of configs (multi mode) #116", async () => {
+                mockServer.mock({
+                    headers: { "content-type": "application/json" },
+                    status: 200,
+                    body: {
+                        authorization_endpoint: mockUrl,
+                        token_endpoint: mockUrl
+                    }
+                });
+
+                mockServer.mock({
+                    headers: { "content-type": "application/json" },
+                    status: 200,
+                    body: {
+                        access_token: "token123",
+                        scope: "launch/patient",
+                        patient: "123",
+                        token_type: "bearer",
+                        expires_in: 3600
+                    }
+                });
+
+                const env = new BrowserEnv();
+                env.redirect("http://localhost/?iss=" + mockUrl);
+
+                let client = await new Promise<any>((resolve, reject) => {
+                    env.once("redirect", async () => {
+                        env.redirect("http://localhost/?code=123&state=" + env.getUrl().searchParams.get("state"));
+                        smart.init(env, [
+                            {
+                                issMatch: "https://some-other-server",
+                                client_id: "my_web_app",
+                                scope: "launch/patient"
+                            },
+                            {
+                                issMatch: mockUrl,
+                                client_id: "my_web_app",
+                                scope: "launch/patient",
+                                iss: mockUrl
+                            }
+                        ]).then(resolve).catch(reject);
+                    });
+
+                    // This first call will NEVER resolve, but it will
+                    // trigger a "redirect" event
+                    smart.init(env, [
+                        {
+                            issMatch: "https://some-other-server",
+                            client_id: "my_web_app",
+                            scope: "launch/patient"
+                        },
+                        {
+                            issMatch: mockUrl,
+                            client_id: "my_web_app",
+                            scope: "launch/patient",
+                            iss: mockUrl
+                        }
+                    ]).catch(reject);
+                });
+
+                expect(client.state.serverUrl).to.equal(mockUrl);
+            });
+
             it ("works in EHR mode", async () => {
                 const key = "my-key";
 

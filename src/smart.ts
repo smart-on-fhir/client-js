@@ -756,7 +756,7 @@ export async function buildTokenRequest(
  */
 export async function init(
     env: fhirclient.Adapter,
-    authorizeOptions: fhirclient.AuthorizeParams,
+    authorizeOptions: fhirclient.AuthorizeParams | fhirclient.AuthorizeParams[],
     readyOptions?: fhirclient.ReadyOptions
 ): Promise<Client|never>
 {

@@ -49,7 +49,7 @@ declare namespace fhirclient {
          *      writing to localStorage).
          * @param options
          */
-        init(options: AuthorizeParams): Promise<never|Client>;
+        init(options: AuthorizeParams | AuthorizeParams[]): Promise<never|Client>;
 
         /**
          * Creates and returns a Client instance that can be used to query the
