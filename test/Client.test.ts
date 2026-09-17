@@ -1432,17 +1432,17 @@ describe("FHIR.client", () => {
                     body: json
                 });
 
-                mockServer.mock({
-                    headers: { "content-type": "application/json" },
-                    status: 200,
-                    body: { resourceType: "Organization", id: 2 }
-                });
-
-                mockServer.mock({
-                    headers: { "content-type": "application/json" },
-                    status: 200,
-                    body: { resourceType: "Organization", id: 3 }
-                });
+                // Respond based on the requested URL rather than queue order,
+                // because the two references are fetched in parallel.
+                const orgHandler = {
+                    handler: (req: any, res: any) => {
+                        const id = String(req.url).match(/Organization\/(\d+)/)?.[1];
+                        res.set("content-type", "application/json");
+                        res.status(200).json({ resourceType: "Organization", id: Number(id) });
+                    }
+                };
+                mockServer.mock(orgHandler);
+                mockServer.mock(orgHandler);
 
                 const result = await client.request(
                     "ExplanationOfBenefit/17",
