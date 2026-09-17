@@ -1,5 +1,3 @@
-const chromedriver = require('chromedriver');
-
 // Refer to the online docs for more details:
 // https://nightwatchjs.org/gettingstarted/configuration/
 //
@@ -35,8 +33,10 @@ module.exports = {
 
   webdriver: {
     start_process: true,
-    server_path: chromedriver.path,
-    port: 9515,
+    // Leave server_path empty so Selenium Manager resolves the correct
+    // chromedriver for the locally installed Chrome automatically.
+    server_path: '',
+    port: 4444,
     cli_args: ['--verbose']
   },
 
@@ -54,12 +54,7 @@ module.exports = {
       desiredCapabilities: {
         browserName: 'chrome'
       },
-      
-      webdriver: {
-        start_process: true,
-        server_path: ''
-      },
-      
+
       test_runner: {
         // set mocha as the runner
         // For more info on using Mocha with Nightwatch, visit:
@@ -91,16 +86,8 @@ module.exports = {
             '--headless'
           ]
         }
-      },
-
-      webdriver: {
-        start_process: true,
-        server_path: '',
-        cli_args: [
-          // --verbose
-        ]
       }
-    },
-    
+    }
+
   }
 };
