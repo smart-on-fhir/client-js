@@ -1,17 +1,15 @@
 # Changelog
 
-# v2.6.3
-- Added missing authorization header to sub-request client methods like `update`, `create`, `delete`, etc. Fixes #201
-
-# v2.6.2
-- Forgot to include the built files in v2.6.1. This is the version that should be used instead!
-
-# v2.7.0 (unreleased)
+# v3.0.0
 - **Removed IE11 support** and related polyfills (abortcontroller-polyfill, isomorphic-webcrypto)
 - **Now uses global `fetch`** (requires Node 18+ or browser with fetch). We no longer polyfill things like fetch, Request, Response, Headers, AbortController...
 - Cleaned up and improved TypeScript type definitions
 - Reduced dependencies for a smaller, more modern bundle
-- Incremented version for breaking changes
+- Updated most dependencies to their latest versions
+- Breaking changes, hence the major version bump
+
+# v2.6.3
+- Added missing authorization header to sub-request client methods like `update`, `create`, `delete`, etc. Fixes #201
 
 # v2.6.2
 - Forgot to include the built files in v2.6.1. This is the version that should be used instead!

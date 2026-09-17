@@ -114,4 +114,4 @@ export declare function buildTokenRequest(env: fhirclient.Adapter, { code, state
  * @param env The adapter
  * @param authorizeOptions The authorize options
  */
-export declare function init(env: fhirclient.Adapter, authorizeOptions: fhirclient.AuthorizeParams, readyOptions?: fhirclient.ReadyOptions): Promise<Client | never>;
+export declare function init(env: fhirclient.Adapter, authorizeOptions: fhirclient.AuthorizeParams | fhirclient.AuthorizeParams[], readyOptions?: fhirclient.ReadyOptions): Promise<Client | never>;
