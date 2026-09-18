@@ -6,6 +6,7 @@
 - Cleaned up and improved TypeScript type definitions
 - Reduced dependencies for a smaller, more modern bundle
 - Updated most dependencies to their latest versions
+- Made `Meta.lastUpdated` optional in the FHIR type definitions ([#170](https://github.com/smart-on-fhir/client-js/issues/170), [#206](https://github.com/smart-on-fhir/client-js/pull/206))
 - Breaking changes, hence the major version bump
 
 # v2.6.3
