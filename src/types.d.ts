@@ -1120,7 +1120,7 @@ declare namespace fhirclient {
             /**
              * When the resource version last changed
              */
-            lastUpdated: instant;
+            lastUpdated ?: instant;
         }
 
         interface Observation extends Resource {
