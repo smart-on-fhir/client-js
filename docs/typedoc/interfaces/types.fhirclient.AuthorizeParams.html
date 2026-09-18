@@ -1,5 +1,5 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>AuthorizeParams | FHIRClient - v3.0.0-beta.2</title><meta name="description" content="Documentation for FHIRClient"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
-<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">FHIRClient - v3.0.0-beta.2</a>
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>AuthorizeParams | FHIRClient - v3.0.0</title><meta name="description" content="Documentation for FHIRClient"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">FHIRClient - v3.0.0</a>
 <div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
 <ul role="listbox" id="tsd-search-results"></ul>
 <div id="tsd-search-status" aria-live="polite" aria-atomic="true">
@@ -17,7 +17,7 @@
 </div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">AuthorizeParams</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#client_id">client_id</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#clientid">clientId</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#clientprivatejwk">clientPrivateJwk</a><span class="tsd-signature-symbol">?:</span> <a href="../types/types.fhirclient.JWK.html" class="tsd-signature-type tsd-kind-type-alias">JWK</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#clientpublickeyseturl">clientPublicKeySetUrl</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#clientsecret">clientSecret</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#completeintarget">completeInTarget</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#conformancerequestoptions">conformanceRequestOptions</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">RequestInit</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#encounterid">encounterId</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#faketokenresponse">fakeTokenResponse</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#fhirserviceurl">fhirServiceUrl</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#height">height</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#iss">iss</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#issmatch">issMatch</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">RegExp</span> <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">iss</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span>)<span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#launch">launch</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#noredirect">noRedirect</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#patientid">patientId</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#pkcemode">pkceMode</a><span class="tsd-signature-symbol">?:</span> <a href="../types/types.fhirclient.PkceMode.html" class="tsd-signature-type tsd-kind-type-alias">PkceMode</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#redirect_uri">redirect_uri</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#redirecturi">redirectUri</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#scope">scope</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#statekey">stateKey</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#target">target</a><span class="tsd-signature-symbol">?:</span> <a href="../types/types.fhirclient.WindowTarget.html" class="tsd-signature-type tsd-kind-type-alias">WindowTarget</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#wellknownrequestoptions">wellKnownRequestOptions</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">RequestInit</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#width">width</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L458">src/types.d.ts:458</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L458">src/types.d.ts:458</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -68,7 +68,7 @@ FHIR servers. Note: For backwards compatibility reasons we accept
 <div class="tsd-tag-deprecated">
 <h4 class="tsd-anchor-link" id="deprecated">Deprecated<a href="#deprecated" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L531">src/types.d.ts:531</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L531">src/types.d.ts:531</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clientid"><code class="tsd-tag">Optional</code><span>client<wbr/>Id</span><a href="#clientid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">clientId</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -82,7 +82,7 @@ FHIR servers. Note: For backwards compatibility reasons we also accept
 <h4 class="tsd-anchor-link" id="alias-1">Alias<a href="#alias-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>client_id</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L521">src/types.d.ts:521</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L521">src/types.d.ts:521</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clientprivatejwk"><code class="tsd-tag">Optional</code><span>client<wbr/>Private<wbr/>Jwk</span><a href="#clientprivatejwk" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">clientPrivateJwk</span><span class="tsd-signature-symbol">?:</span> <a href="../types/types.fhirclient.JWK.html" class="tsd-signature-type tsd-kind-type-alias">JWK</a></div>
@@ -91,7 +91,7 @@ FHIR servers. Note: For backwards compatibility reasons we also accept
 the browsers are considered incapable of keeping a secret.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L575">src/types.d.ts:575</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L575">src/types.d.ts:575</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clientpublickeyseturl"><code class="tsd-tag">Optional</code><span>client<wbr/>Public<wbr/>Key<wbr/>Set<wbr/>Url</span><a href="#clientpublickeyseturl" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">clientPublicKeySetUrl</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -100,7 +100,7 @@ key online, you can pass your JWKS URL here <strong>Note: ONLY use this on the s
 browsers are considered incapable of keeping a secret.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L568">src/types.d.ts:568</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L568">src/types.d.ts:568</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clientsecret"><code class="tsd-tag">Optional</code><span>client<wbr/>Secret</span><a href="#clientsecret" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">clientSecret</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -109,7 +109,7 @@ browsers are considered incapable of keeping a secret.</p>
 browsers are considered incapable of keeping a secret.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L561">src/types.d.ts:561</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L561">src/types.d.ts:561</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="completeintarget"><code class="tsd-tag">Optional</code><span>complete<wbr/>In<wbr/>Target</span><a href="#completeintarget" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">completeInTarget</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -118,14 +118,14 @@ Otherwise, the app will be initialized in the window in which
 [[authorize]] was called.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L619">src/types.d.ts:619</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L619">src/types.d.ts:619</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="conformancerequestoptions"><code class="tsd-tag">Optional</code><span>conformance<wbr/>Request<wbr/>Options</span><a href="#conformancerequestoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">conformanceRequestOptions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">RequestInit</span></div>
 <div class="tsd-comment tsd-typography"><p>Optional request options (headers, etc) to use when calling getSecurityExtensionsFromConformanceStatement.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L660">src/types.d.ts:660</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L660">src/types.d.ts:660</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="encounterid"><code class="tsd-tag">Optional</code><span>encounter<wbr/>Id</span><a href="#encounterid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">encounterId</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -136,7 +136,7 @@ FHIR server, there is no way to obtain the launch context that would
 active encounter.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L554">src/types.d.ts:554</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L554">src/types.d.ts:554</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="faketokenresponse"><code class="tsd-tag">Optional</code><span>fake<wbr/>Token<wbr/>Response</span><a href="#faketokenresponse" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">fakeTokenResponse</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">object</span></div>
@@ -146,7 +146,7 @@ These properties will be stored into the client state, as if it has been
 authorized.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L584">src/types.d.ts:584</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L584">src/types.d.ts:584</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="fhirserviceurl"><code class="tsd-tag">Optional</code><span>fhir<wbr/>Service<wbr/>Url</span><a href="#fhirserviceurl" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">fhirServiceUrl</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -157,7 +157,7 @@ attempt to authorize. It will skip that and redirect you to your
 <code>redirect_uri</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L494">src/types.d.ts:494</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L494">src/types.d.ts:494</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="height"><code class="tsd-tag">Optional</code><span>height</span><a href="#height" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">height</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -165,7 +165,7 @@ attempt to authorize. It will skip that and redirect you to your
 and if the [[AuthorizeParams.target]] option is set to &quot;popup&quot;.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L612">src/types.d.ts:612</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L612">src/types.d.ts:612</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="iss"><code class="tsd-tag">Optional</code><span>iss</span><a href="#iss" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">iss</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -177,7 +177,7 @@ that service provider. In other words, passing an <code>iss</code> option is how
 you can do <a href="http://hl7.org/fhir/smart-app-launch/#standalone-launch-sequence">Standalone Launch</a>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L468">src/types.d.ts:468</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L468">src/types.d.ts:468</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="issmatch"><code class="tsd-tag">Optional</code><span>iss<wbr/>Match</span><a href="#issmatch" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">issMatch</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">RegExp</span> <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">iss</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span>)</div>
@@ -189,7 +189,7 @@ the current ISS, or a function that will be called with the current
 ISS and should return true or false to signify if that ISS is acceptable.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L478">src/types.d.ts:478</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L478">src/types.d.ts:478</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="launch"><code class="tsd-tag">Optional</code><span>launch</span><a href="#launch" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">launch</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -198,12 +198,12 @@ as url parameter from the SMART authorization server as part of the EHR
 launch sequence</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L485">src/types.d.ts:485</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L485">src/types.d.ts:485</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="noredirect"><code class="tsd-tag">Optional</code><span>no<wbr/>Redirect</span><a href="#noredirect" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">noRedirect</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L512">src/types.d.ts:512</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L512">src/types.d.ts:512</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="patientid"><code class="tsd-tag">Optional</code><span>patient<wbr/>Id</span><a href="#patientid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">patientId</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -213,7 +213,7 @@ the selected patient ID. This way you can &quot;inject&quot; that ID and make th
 client behave as if that is the currently active patient.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L545">src/types.d.ts:545</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L545">src/types.d.ts:545</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="pkcemode"><code class="tsd-tag">Optional</code><span>pkce<wbr/>Mode</span><a href="#pkcemode" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">pkceMode</span><span class="tsd-signature-symbol">?:</span> <a href="../types/types.fhirclient.PkceMode.html" class="tsd-signature-type tsd-kind-type-alias">PkceMode</a></div>
@@ -229,7 +229,7 @@ this setting</li>
 </ul>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L631">src/types.d.ts:631</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L631">src/types.d.ts:631</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="redirect_uri"><code class="tsd-tag">Optional</code><span class="deprecated">redirect_<wbr/>uri</span><a href="#redirect_uri" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">redirect_uri</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -242,7 +242,7 @@ this setting</li>
 <div class="tsd-tag-deprecated">
 <h4 class="tsd-anchor-link" id="deprecated-1">Deprecated<a href="#deprecated-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L507">src/types.d.ts:507</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L507">src/types.d.ts:507</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="redirecturi"><code class="tsd-tag">Optional</code><span>redirect<wbr/>Uri</span><a href="#redirecturi" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">redirectUri</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -253,7 +253,7 @@ this setting</li>
 <h4 class="tsd-anchor-link" id="alias-3">Alias<a href="#alias-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>redirect_uri</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L500">src/types.d.ts:500</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L500">src/types.d.ts:500</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="scope"><code class="tsd-tag">Optional</code><span>scope</span><a href="#scope" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">scope</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -261,7 +261,7 @@ this setting</li>
 the EHR. <a href="http://hl7.org/fhir/smart-app-launch/scopes-and-launch-context/index.html">Learn more</a></p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L537">src/types.d.ts:537</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L537">src/types.d.ts:537</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="statekey"><code class="tsd-tag">Optional</code><span>state<wbr/>Key</span><a href="#statekey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">stateKey</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -278,7 +278,7 @@ objects specific to that user. The state parameter could refer to a user session
 but its purpose may vary depending on the application.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L650">src/types.d.ts:650</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L650">src/types.d.ts:650</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="target"><code class="tsd-tag">Optional</code><span>target</span><a href="#target" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">target</span><span class="tsd-signature-symbol">?:</span> <a href="../types/types.fhirclient.WindowTarget.html" class="tsd-signature-type tsd-kind-type-alias">WindowTarget</a></div>
@@ -298,14 +298,14 @@ promise that will resolve to such value.</li>
 </ul>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L600">src/types.d.ts:600</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L600">src/types.d.ts:600</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="wellknownrequestoptions"><code class="tsd-tag">Optional</code><span>well<wbr/>Known<wbr/>Request<wbr/>Options</span><a href="#wellknownrequestoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">wellKnownRequestOptions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">RequestInit</span></div>
 <div class="tsd-comment tsd-typography"><p>Optional request options (headers, etc) to use when calling fetchWellKnownJson.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L655">src/types.d.ts:655</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L655">src/types.d.ts:655</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="width"><code class="tsd-tag">Optional</code><span>width</span><a href="#width" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">width</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -313,7 +313,7 @@ promise that will resolve to such value.</li>
 and if the [[AuthorizeParams.target]] option is set to &quot;popup&quot;.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/3e38630457c9ee16e2ecff435fe006196f8f5762/src/types.d.ts#L606">src/types.d.ts:606</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/smart-on-fhir/client-js/blob/14f69dc0a8da8375ca0a6af0f89343b5ed6eb3e6/src/types.d.ts#L606">src/types.d.ts:606</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -332,7 +332,7 @@ and if the [[AuthorizeParams.target]] option is set to &quot;popup&quot;.</p>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
 <div><a href="#client_id"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>client_<wbr/>id</span></a><a href="#clientid"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>client<wbr/>Id</span></a><a href="#clientprivatejwk"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>client<wbr/>Private<wbr/>Jwk</span></a><a href="#clientpublickeyseturl"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>client<wbr/>Public<wbr/>Key<wbr/>Set<wbr/>Url</span></a><a href="#clientsecret"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>client<wbr/>Secret</span></a><a href="#completeintarget"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>complete<wbr/>In<wbr/>Target</span></a><a href="#conformancerequestoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>conformance<wbr/>Request<wbr/>Options</span></a><a href="#encounterid"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>encounter<wbr/>Id</span></a><a href="#faketokenresponse"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>fake<wbr/>Token<wbr/>Response</span></a><a href="#fhirserviceurl"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>fhir<wbr/>Service<wbr/>Url</span></a><a href="#height"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>height</span></a><a href="#iss"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>iss</span></a><a href="#issmatch"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>iss<wbr/>Match</span></a><a href="#launch"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>launch</span></a><a href="#noredirect"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>no<wbr/>Redirect</span></a><a href="#patientid"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>patient<wbr/>Id</span></a><a href="#pkcemode"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>pkce<wbr/>Mode</span></a><a href="#redirect_uri"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>redirect_<wbr/>uri</span></a><a href="#redirecturi"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>redirect<wbr/>Uri</span></a><a href="#scope"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>scope</span></a><a href="#statekey"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>state<wbr/>Key</span></a><a href="#target"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>target</span></a><a href="#wellknownrequestoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>well<wbr/>Known<wbr/>Request<wbr/>Options</span></a><a href="#width"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>width</span></a></div></details></div></details></div>
 <div class="site-menu">
-<nav class="tsd-navigation"><a href="../modules.html">FHIRClient - v3.0.0-beta.2</a>
+<nav class="tsd-navigation"><a href="../modules.html">FHIRClient - v3.0.0</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">
 <li>Loading...</li></ul></nav></div></div></div><footer>
 <p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
