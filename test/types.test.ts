@@ -34,7 +34,7 @@ void meta;
 describe("FHIR types", () => {
 
     it("allows Meta.lastUpdated to be omitted (#170)", { timeout: 20000 }, () => {
-        const filename = Path.join(process.cwd(), "__meta_assignability__.ts");
+        const filename = Path.join(Path.resolve(__dirname, ".."), "__meta_assignability__.ts");
         const compilerOptions: ts.CompilerOptions = {
             strict: true,
             noEmit: true,
