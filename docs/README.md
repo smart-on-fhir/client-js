@@ -35,7 +35,6 @@ It works both in modern browsers and on the server (Node 18+).
     - [Express Example](https://github.com/smart-on-fhir/client-js-examples/blob/master/server/express/index.js)
     - [Native Example](https://github.com/smart-on-fhir/client-js-examples/tree/master/server/native)
     - [HAPI Example](https://github.com/smart-on-fhir/client-js-examples/blob/master/server/hapi/index.js)
-    - [Express + fhir.js Example](https://github.com/smart-on-fhir/client-js-examples/blob/master/server/express_and_fhirjs/index.js)
     
 
 <br/>
@@ -56,8 +55,8 @@ From NPM (latest version):
 - https://cdn.jsdelivr.net/npm/fhirclient/bundle/fhir-client.min.js
 
 From NPM (specific version):
-- https://cdn.jsdelivr.net/npm/fhirclient@3.0.0-beta.1/bundle/fhir-client.js
-- https://cdn.jsdelivr.net/npm/fhirclient@3.0.0-beta.1/bundle/fhir-client.min.js
+- https://cdn.jsdelivr.net/npm/fhirclient@3.0.0/bundle/fhir-client.js
+- https://cdn.jsdelivr.net/npm/fhirclient@3.0.0/bundle/fhir-client.min.js
 
 
 ## Browser Usage

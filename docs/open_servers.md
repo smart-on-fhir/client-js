@@ -38,7 +38,7 @@ If the app is designed for EHR launch, the typical approach is to have separate 
 <html>
  <head>
      <title>Launch From Cerner</title>
-     <script src="dist/build/fhir-client.js"></script>
+     <script src="dist/bundle/fhir-client.js"></script>
  </head>
  <body>
     <h3>Loading...</h3>
@@ -59,7 +59,7 @@ If the app is designed for EHR launch, the typical approach is to have separate 
 <html>
  <head>
      <title>Launch From Epic</title>
-     <script src="dist/build/fhir-client.js"></script>
+     <script src="dist/bundle/fhir-client.js"></script>
  </head>
  <body>
     <h3>Loading...</h3>
@@ -80,7 +80,7 @@ If the app is designed for EHR launch, the typical approach is to have separate 
 <html>
  <head>
      <title>Launch Local</title>
-     <script src="dist/build/fhir-client.js"></script>
+     <script src="dist/bundle/fhir-client.js"></script>
  </head>
  <body>
     <h3>Loading...</h3>

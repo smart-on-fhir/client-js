@@ -178,7 +178,7 @@ interface RequestOptions extends RequestInit {
 You can extend this class to provide additional functionality. Here is a simple example that would add an access token to every request:
 
 ```ts
-import { FhirClient } from "fhirclient";
+import { FhirClient } from "fhirclient/node";
 
 class AuthenticatedFhirClient extends FhirClient {
     async fhirRequest<T>(uri, options = {}) {

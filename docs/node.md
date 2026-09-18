@@ -2,8 +2,12 @@
 
 The API for node is exactly the same as for the browsers, with the exception of
 how the SMART API object is created. In the browser, the SMART API is available
-in the global scope at `window.FHIR.oauth2`. In Node, the `fhirclient` module
-exports a function that you need to call to obtain the same SMART API object.
+in the global scope at `window.FHIR.oauth2`. In Node, the `fhirclient/node` entry
+point exports a function that you need to call to obtain the same SMART API object.
+
+> **BREAKING CHANGE (v3):** Do NOT `require("fhirclient")` directly - that will not
+> work. Import from `fhirclient/node` (or `fhirclient/hapi`) instead. See the
+> [migration guide](migration.md) for details.
 
 > This will not work out of the box if your request object does not have a `session` object property that we can write to. This means that you may need use a middleware or plugin to provide that session support. See [sessions](#sessions).
 
@@ -14,7 +18,11 @@ do differently under the hood is how they store data in a session and how they
 handle redirects. Here is how this API object is created:
 
 ```js
-const smart = require("fhirclient");
+// CommonJS
+const { smart } = require("fhirclient/node");
+
+// ESM / TS
+import { smart } from "fhirclient/node";
 
 // Inside a route handler
 smart(request, response[, storage]) // -> { authorize, ready, init }
@@ -23,7 +31,7 @@ smart(request, response[, storage]) // -> { authorize, ready, init }
 ### authorize(options)
 Call this in your launch_uri route handler to start the authorization flow:
 ```js
-const smart = require("fhirclient");
+const { smart } = require("fhirclient/node");
 
 // inside your launch_uri route handler
 smart(request, response).authorize({
@@ -36,7 +44,7 @@ smart(request, response).authorize({
 Call this in your redirect_uri route handler to complete the authorization flow
 and obtain a FhirClient instance:
 ```js
-const smart = require("fhirclient");
+const { smart } = require("fhirclient/node");
 
 // inside your redirect_uri route handler
 smart(request, response).ready(client => client.request("Patient"));
@@ -47,7 +55,7 @@ Alternatively, you can use `init` to handle everything in single route (only if
 your launch_uri is the same as your redirect_uri). This method is not available
 with HAPI!
 ```js
-const smart = require("fhirclient");
+const { smart } = require("fhirclient/node");
 
 // inside your route handler
 smart(request, response).init({
@@ -111,15 +119,14 @@ An adapter is a class that has a few methods for doing environment-specific thin
 
 The adapters are located [here](https://github.com/smart-on-fhir/client-js/tree/master/src/adapters). They all extend one abstract base class (`BaseAdapter`).
 
-In Node `require("fhirclient")` loads the default adapter for Node and/or Express.
+`fhirclient/node` loads the default adapter for Node and/or Express.
 To use another adapter load it like so:
 ```js
+// CommonJS
+const { smart } = require("fhirclient/hapi");
 
-// NOTE
-// require("fhirclient/lib/entry/hapi") is the same as require("fhirclient/lib/adapters/HapiAdapter").default.smart;
-// but it is cleaner and comes with proper type definitions
-const smart = require("fhirclient/lib/entry/hapi");
-
+// ESM / TS
+import { smart } from "fhirclient/hapi";
 
 // inside your redirect_uri route handler
 smart(request, h).ready(client => client.request("Patient"));
@@ -128,21 +135,4 @@ Note how in the above example the signature of the `smart` function has changed
 to `smart(request, h)` which makes more sense in HAPI. This is also defined by the adapter.
 
 See the complete [HAPI Example](https://codesandbox.io/s/fhir-client-hapi-myq5q)
-
-## Fhir.js Integration
-If you want to use fhir.js along with this library, you will have to install it
-and then "connect" it using the dedicated `connect` method of the client:
-```js
-const smart  = require("fhirclient");
-const fhirJs = require("fhir.js");
-
-// Inside a route handler
-app.get("/", async (req, res) => {
-    const client = await smart(req, res).ready();
-    client.connect(fhirJs);
-    client.api.search({ type: "Patient" }).then(res.json).catch(res.json);
-});
-```
-
-Complete example is available [here](https://codesandbox.io/s/fhir-client-express-and-fhirjs-4t1mp)
 
