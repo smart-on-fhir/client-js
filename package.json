@@ -26,7 +26,7 @@
     "build": "npm-run-all --parallel build:cjs build:esm build:types build:bundle",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:esm": "tsc -p tsconfig.esm.json",
-    "build:types": "tsc -p tsconfig.types.json",
+    "build:types": "tsc -p tsconfig.types.json && cp src/types.d.ts dist/types/types.d.ts",
     "build:bundle": "node esbuild.config.js",
     "test": "npm run coverage && npm run test:e2e",
     "test:watch": "npm-run-all --parallel test:integration:watch test:e2e:watch",
