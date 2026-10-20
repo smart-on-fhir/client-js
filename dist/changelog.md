@@ -2,6 +2,8 @@
 
 # v3.0.1
 - Fixed TypeScript errors in consumers that do not use `skipLibCheck`: the shared `types.d.ts` declarations are now published, and `@types/fhir` is now a dependency ([#207](https://github.com/smart-on-fhir/client-js/issues/207), [#209](https://github.com/smart-on-fhir/client-js/pull/209))
+- Windows that were not opened by the library (for example, named tabs opened by a dashboard) are no longer closed after authorization. `ready()` now hands control back to the opener or parent window only if `authorize()` delegated the authorization to the current window ([#172](https://github.com/smart-on-fhir/client-js/issues/172), [#208](https://github.com/smart-on-fhir/client-js/pull/208))
+  - **Behavior change:** an app that runs in a named popup and calls `authorize()` there without a `completeInTarget` option now completes the authorization in that popup, instead of sending it to the opener and closing. Pass `completeInTarget: false` to keep the old behavior.
 
 # v3.0.0
 - **Removed IE11 support** and related polyfills (abortcontroller-polyfill, isomorphic-webcrypto)

@@ -1884,6 +1884,37 @@ describe("Browser tests", () => {
             expect(closed, "window must not be closed").to.equal(false);
         });
 
+        it ("ignores a delegated auth marker left by a previous authorization", async () => {
+            const opener = new MockWindow("http://localhost");
+            let notified = false;
+            opener.on("message", () => { notified = true; });
+            (global as any).opener = opener;
+
+            const win  = new MockWindow("http://localhost", "SomeNamedTab");
+            let closed = false;
+            win.close = () => { closed = true; };
+            (global as any).parent = win;
+            (global as any).top = (global as any).self = win;
+            (global as any).window = win;
+            (global as any).sessionStorage = win.sessionStorage;
+
+            // A previous authorization was delegated to this window, and the
+            // new one reuses the same (fixed) state key
+            win.sessionStorage.setItem("smart-auth-target", '"TEST"');
+
+            const env = new BrowserEnv();
+            win.location.href = await smart.authorize(env, {
+                fhirServiceUrl: "http://localhost",
+                stateKey: "TEST",
+                noRedirect: true
+            }) as string;
+
+            const client = await smart.ready(env);
+            expect(client, "ready() must resolve with a client").to.exist();
+            expect(notified, "opener must not be notified").to.equal(false);
+            expect(closed, "window must not be closed").to.equal(false);
+        });
+
         it ("authorize in frame returns control to parent", (next) => {
             const parent = new MockWindow("http://localhost?state=TEST");
             parent.location.once("change", () => next());

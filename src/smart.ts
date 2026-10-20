@@ -262,6 +262,12 @@ export async function authorize(
     const oldKey = await storage.get(SMART_KEY);
     await storage.unset(oldKey);
 
+    // Also clear any delegated auth marker left in this window by a previous
+    // authorization, so that it cannot match the new state key
+    if (isBrowser()) {
+        await storage.unset(DELEGATED_AUTH_TARGET_KEY);
+    }
+
     stateKey = stateKey ?? randomString(16);
 
     // Create initial state
