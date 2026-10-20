@@ -1,5 +1,8 @@
 # Changelog
 
+# v3.0.1
+- Fixed TypeScript errors in consumers that do not use `skipLibCheck`: the shared `types.d.ts` declarations are now published, and `@types/fhir` is now a dependency ([#207](https://github.com/smart-on-fhir/client-js/issues/207), [#209](https://github.com/smart-on-fhir/client-js/pull/209))
+
 # v3.0.0
 - **Removed IE11 support** and related polyfills (abortcontroller-polyfill, isomorphic-webcrypto)
 - **Now uses global `fetch`** (requires Node 18+ or browser with fetch). We no longer polyfill things like fetch, Request, Response, Headers, AbortController...
