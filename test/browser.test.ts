@@ -1851,8 +1851,37 @@ describe("Browser tests", () => {
             (global as any).sessionStorage = popup.sessionStorage;
             popup.sessionStorage.setItem("SMART_KEY", '"TEST"');
             popup.sessionStorage.setItem("TEST", JSON.stringify({}));
+            popup.sessionStorage.setItem("smart-auth-target", '"TEST"');
 
             smart.ready(new BrowserEnv());
+        });
+
+        it ("does not return control to an opener that did not delegate the authorization", async () => {
+            const opener = new MockWindow("http://localhost");
+            let notified = false;
+            opener.on("message", () => { notified = true; });
+            (global as any).opener = opener;
+
+            // Pretend that we are in a named window opened by another app (eg.
+            // a dashboard), not in a window opened by this library
+            const win  = new MockWindow("http://localhost", "SomeNamedTab");
+            let closed = false;
+            win.close = () => { closed = true; };
+            (global as any).parent = win;
+            (global as any).top = (global as any).self = win;
+            (global as any).window = win;
+            (global as any).sessionStorage = win.sessionStorage;
+
+            const env = new BrowserEnv();
+            win.location.href = await smart.authorize(env, {
+                fhirServiceUrl: "http://localhost",
+                noRedirect: true
+            }) as string;
+
+            const client = await smart.ready(env);
+            expect(client, "ready() must resolve with a client").to.exist();
+            expect(notified, "opener must not be notified").to.equal(false);
+            expect(closed, "window must not be closed").to.equal(false);
         });
 
         it ("authorize in frame returns control to parent", (next) => {
@@ -1868,6 +1897,7 @@ describe("Browser tests", () => {
             (global as any).sessionStorage = frame.sessionStorage;
             sessionStorage.setItem("SMART_KEY", '"TEST"');
             sessionStorage.setItem("TEST", JSON.stringify({}));
+            sessionStorage.setItem("smart-auth-target", '"TEST"');
 
             smart.ready(new BrowserEnv());
         });
