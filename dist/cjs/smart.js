@@ -18,6 +18,15 @@ const lib_1 = require("./lib");
 const Client_1 = __importDefault(require("./Client"));
 const settings_1 = require("./settings");
 Object.defineProperty(exports, "KEY", { enumerable: true, get: function () { return settings_1.SMART_KEY; } });
+/**
+ * The name of the `sessionStorage` entry holding the key of the state whose
+ * authorization was delegated to the current window. `authorize()` writes it
+ * into target windows that it resolves (and into the current window when
+ * `completeInTarget` is set to `false`). `ready()` then uses it to know that
+ * the authorization was delegated to this window by the library, and not that
+ * the window was simply opened (and named) by another application.
+ */
+const DELEGATED_AUTH_TARGET_KEY = "smart-auth-target";
 function isBrowser() {
     return typeof window === "object";
 }
@@ -189,6 +198,11 @@ async function authorize(env, params = {}) {
     // this is a re-authorize)
     const oldKey = await storage.get(settings_1.SMART_KEY);
     await storage.unset(oldKey);
+    // Also clear any delegated auth marker left in this window by a previous
+    // authorization, so that it cannot match the new state key
+    if (isBrowser()) {
+        await storage.unset(DELEGATED_AUTH_TARGET_KEY);
+    }
     stateKey = stateKey ?? (0, lib_1.randomString)(16);
     // Create initial state
     const state = {
@@ -208,6 +222,13 @@ async function authorize(env, params = {}) {
         true;
     if (fullSessionStorageSupport) {
         await storage.set(settings_1.SMART_KEY, stateKey);
+    }
+    // If the user explicitly wants to complete the authorization in the
+    // window that called `authorize()` (eg. when the app happens to run in a
+    // popup that was not opened by this library), flag this window as a
+    // delegated auth target
+    if (isBrowser() && params.completeInTarget === false) {
+        await storage.set(DELEGATED_AUTH_TARGET_KEY, stateKey);
     }
     // fakeTokenResponse to override stuff (useful in development)
     if (fakeTokenResponse) {
@@ -275,6 +296,9 @@ async function authorize(env, params = {}) {
                 // transfer the current state there
                 win.sessionStorage.removeItem(oldKey);
                 win.sessionStorage.setItem(stateKey, JSON.stringify(state));
+                // Flag the target window as a delegated auth target so that
+                // `ready()` knows it should hand control back to this window
+                win.sessionStorage.setItem(DELEGATED_AUTH_TARGET_KEY, JSON.stringify(stateKey));
             }
             catch (ex) {
                 (0, lib_1.debug)(`Failed to modify window.sessionStorage. Perhaps it is from different origin?. Failing back to "_self". %s`, ex);
@@ -403,13 +427,18 @@ async function ready(env, options = {}) {
     if (isBrowser() && state && !state.completeInTarget) {
         const inFrame = isInFrame();
         const inPopUp = isInPopUp();
+        // A window that was opened (and possibly named) by another app can
+        // look like a popup, even if it was not opened by this library. Only
+        // hand control back to the opener/parent if the authorization was
+        // actually delegated to this window by `authorize()`.
+        const delegatedAuthKey = await Storage.get(DELEGATED_AUTH_TARGET_KEY);
         // we are about to return to the opener/parent where completeAuth will
         // be called again. In rare cases the opener or parent might also be
         // a frame or popup. Then inFrame or inPopUp will be true but we still
         // have to stop going up the chain. To guard against that weird form of
         // recursion we pass one additional parameter to the url which we later
         // remove.
-        if ((inFrame || inPopUp) && !url.searchParams.get("complete")) {
+        if ((inFrame || inPopUp) && delegatedAuthKey === key && !url.searchParams.get("complete")) {
             url.searchParams.set("complete", "1");
             const { href, origin } = url;
             if (inFrame) {

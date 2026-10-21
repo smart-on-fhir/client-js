@@ -1417,6 +1417,7 @@ URL: ${response.url}`);
   };
 
   // src/smart.ts
+  var DELEGATED_AUTH_TARGET_KEY = "smart-auth-target";
   function isBrowser() {
     return typeof window === "object";
   }
@@ -1561,6 +1562,9 @@ URL: ${response.url}`);
     }
     const oldKey = await storage.get(SMART_KEY);
     await storage.unset(oldKey);
+    if (isBrowser()) {
+      await storage.unset(DELEGATED_AUTH_TARGET_KEY);
+    }
     stateKey = stateKey ?? randomString(16);
     const state = {
       clientId,
@@ -1577,6 +1581,9 @@ URL: ${response.url}`);
     const fullSessionStorageSupport = isBrowser() ? getPath(env, "options.fullSessionStorageSupport") : true;
     if (fullSessionStorageSupport) {
       await storage.set(SMART_KEY, stateKey);
+    }
+    if (isBrowser() && params.completeInTarget === false) {
+      await storage.set(DELEGATED_AUTH_TARGET_KEY, stateKey);
     }
     if (fakeTokenResponse) {
       Object.assign(state.tokenResponse, fakeTokenResponse);
@@ -1638,6 +1645,7 @@ URL: ${response.url}`);
         try {
           win.sessionStorage.removeItem(oldKey);
           win.sessionStorage.setItem(stateKey, JSON.stringify(state));
+          win.sessionStorage.setItem(DELEGATED_AUTH_TARGET_KEY, JSON.stringify(stateKey));
         } catch (ex) {
           debug(`Failed to modify window.sessionStorage. Perhaps it is from different origin?. Failing back to "_self". %s`, ex);
           win = self;
@@ -1718,7 +1726,8 @@ URL: ${response.url}`);
     if (isBrowser() && state && !state.completeInTarget) {
       const inFrame = isInFrame();
       const inPopUp = isInPopUp();
-      if ((inFrame || inPopUp) && !url.searchParams.get("complete")) {
+      const delegatedAuthKey = await Storage2.get(DELEGATED_AUTH_TARGET_KEY);
+      if ((inFrame || inPopUp) && delegatedAuthKey === key && !url.searchParams.get("complete")) {
         url.searchParams.set("complete", "1");
         const { href, origin } = url;
         if (inFrame) {
