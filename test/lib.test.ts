@@ -5,6 +5,8 @@ import mockServer     from "./mocks/mockServer";
 import ServerEnv      from "./mocks/ServerEnvironment";
 import BrowserEnv     from "./mocks/BrowserEnvironment";
 import { fhirclient } from "../src/types";
+import BrowserAdapter from "../src/adapters/BrowserAdapter";
+import NodeAdapter    from "../src/adapters/NodeAdapter";
 
 export const lab = Lab.script();
 const { it, describe, beforeEach, afterEach } = lab;
@@ -111,6 +113,53 @@ describe("Lib", () => {
             expect(lib.randomString(8, "abc")).to.match(/^[abc]{8}$/);
             expect(lib.randomString(8, "xyz")).to.match(/^[xyz]{8}$/);
             expect(lib.randomString(8, "123")).to.match(/^[123]{8}$/);
+        });
+    });
+
+    describe("jwtDecode", () => {
+
+        // Payload from issue #210. It ends with "...iJhYmN-XnRlc3..." which is
+        // valid Base64URL but not valid Base64, because of the "~" in
+        // preferred_username.
+        const payload = Buffer.from(JSON.stringify({
+            patient: "patient-ABC-12345",
+            preferred_username: "abc~^tester12345"
+        })).toString("base64url");
+
+        const token = "eyJhbGciOiJSUzI1NiJ9." + payload + ".signature";
+
+        it ("the test payload really is not plain Base64", () => {
+            expect(payload).to.match(/[-_]/);
+            expect(() => atob(payload)).to.throw();
+        });
+
+        it ("decodes Base64URL payloads with the browser adapter", () => {
+            const env = new BrowserAdapter();
+            // Make atob behave like window.atob in a browser
+            (env as any).atob = (str: string) => atob(str);
+            expect(lib.jwtDecode(token, env)).to.equal({
+                patient: "patient-ABC-12345",
+                preferred_username: "abc~^tester12345"
+            });
+        });
+
+        it ("decodes Base64URL payloads with the node adapter", () => {
+            const env = new NodeAdapter({ request: {} as any, response: {} as any });
+            expect(lib.jwtDecode(token, env)).to.equal({
+                patient: "patient-ABC-12345",
+                preferred_username: "abc~^tester12345"
+            });
+        });
+
+        it ("keeps non-ASCII characters", () => {
+            const body = { name: "Jos\u00e9 M\u00fcller" };
+            const t = "x." + Buffer.from(JSON.stringify(body)).toString("base64url") + ".y";
+            expect(lib.jwtDecode(t, new BrowserAdapter())).to.equal(body);
+            expect(lib.jwtDecode(t, new NodeAdapter({ request: {} as any, response: {} as any }))).to.equal(body);
+        });
+
+        it ("returns null for a token without a payload", () => {
+            expect(lib.jwtDecode("abc", new BrowserAdapter())).to.equal(null);
         });
     });
 
