@@ -93,6 +93,14 @@ export declare function makeArray<T = any>(arg: any): T[];
  */
 export declare function absolute(path: string, baseUrl?: string): string;
 /**
+ * Returns `true` if both URLs are absolute and share the same origin (scheme,
+ * host and port). Used to decide whether credentials may be attached to a
+ * request. Any URL that cannot be parsed is treated as cross-origin.
+ * @param url The URL to check
+ * @param baseUrl The URL to compare against (typically the FHIR server URL)
+ */
+export declare function isSameOrigin(url: string, baseUrl: string): boolean;
+/**
  * Generates random strings. By default this returns random 8 characters long
  * alphanumeric strings.
  * @param strLength The length of the output string. Defaults to 8.

@@ -15,6 +15,7 @@ exports.getPath = getPath;
 exports.setPath = setPath;
 exports.makeArray = makeArray;
 exports.absolute = absolute;
+exports.isSameOrigin = isSameOrigin;
 exports.randomString = randomString;
 exports.jwtDecode = jwtDecode;
 exports.getTimeInFuture = getTimeInFuture;
@@ -290,11 +291,26 @@ function makeArray(arg) {
  * @param baseUrl The base URL
  */
 function absolute(path, baseUrl) {
-    if (path.match(/^http/))
+    if (path.match(/^https?:\/\//i))
         return path;
-    if (path.match(/^urn/))
+    if (path.match(/^urn:/i))
         return path;
     return String(baseUrl || "").replace(/\/+$/, "") + "/" + path.replace(/^\/+/, "");
+}
+/**
+ * Returns `true` if both URLs are absolute and share the same origin (scheme,
+ * host and port). Used to decide whether credentials may be attached to a
+ * request. Any URL that cannot be parsed is treated as cross-origin.
+ * @param url The URL to check
+ * @param baseUrl The URL to compare against (typically the FHIR server URL)
+ */
+function isSameOrigin(url, baseUrl) {
+    try {
+        return new URL(url).origin === new URL(baseUrl).origin;
+    }
+    catch {
+        return false;
+    }
 }
 /**
  * Generates random strings. By default this returns random 8 characters long

@@ -3,6 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const settings_1 = require("./settings");
 const lib_1 = require("./lib");
 /**
+ * Returns a copy of the given headers without the `authorization` header
+ */
+function withoutAuthorization(headers) {
+    const out = new Headers(headers);
+    out.delete("authorization");
+    return Object.fromEntries(out.entries());
+}
+/**
  * This is a basic FHIR client for making basic FHIR API calls
  */
 class FhirClient {
@@ -257,17 +265,24 @@ class FhirClient {
      */
     async fhirRequest(uri, options = {}) {
         (0, lib_1.assert)(options, "fhirRequest requires a uri as first argument");
+        const path = uri + "";
+        const url = (0, lib_1.absolute)(path, this.fhirBaseUrl);
         const getRequestDefaults = await this.getRequestDefaults();
+        let defaultHeaders = getRequestDefaults.headers || {};
+        // Never send default credentials (e.g. the access token) to a server
+        // other than the configured FHIR server. Absolute URLs may come from
+        // resource content like references or pagination links.
+        if (!(0, lib_1.isSameOrigin)(url, this.fhirBaseUrl)) {
+            defaultHeaders = withoutAuthorization(defaultHeaders);
+        }
         options = {
             ...getRequestDefaults,
             ...options,
             headers: {
-                ...(getRequestDefaults.headers || {}),
+                ...defaultHeaders,
                 ...(options.headers || {})
             }
         };
-        const path = uri + "";
-        const url = (0, lib_1.absolute)(path, this.fhirBaseUrl);
         const { cacheMap } = options;
         if (cacheMap) {
             if (!(path in cacheMap)) {

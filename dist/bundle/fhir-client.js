@@ -362,9 +362,16 @@ URL: ${response.url}`);
     return [arg];
   }
   function absolute(path, baseUrl) {
-    if (path.match(/^http/)) return path;
-    if (path.match(/^urn/)) return path;
+    if (path.match(/^https?:\/\//i)) return path;
+    if (path.match(/^urn:/i)) return path;
     return String(baseUrl || "").replace(/\/+$/, "") + "/" + path.replace(/^\/+/, "");
+  }
+  function isSameOrigin(url, baseUrl) {
+    try {
+      return new URL(url).origin === new URL(baseUrl).origin;
+    } catch {
+      return false;
+    }
   }
   function randomString(strLength = 8, charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") {
     const result = [];
@@ -546,6 +553,11 @@ URL: ${response.url}`);
   };
 
   // src/FhirClient.ts
+  function withoutAuthorization(headers) {
+    const out = new Headers(headers);
+    out.delete("authorization");
+    return Object.fromEntries(out.entries());
+  }
   var FhirClient = class {
     /**
      * The state of the client instance is an object with various properties.
@@ -786,17 +798,21 @@ URL: ${response.url}`);
      */
     async fhirRequest(uri, options2 = {}) {
       assert(options2, "fhirRequest requires a uri as first argument");
+      const path = uri + "";
+      const url = absolute(path, this.fhirBaseUrl);
       const getRequestDefaults = await this.getRequestDefaults();
+      let defaultHeaders = getRequestDefaults.headers || {};
+      if (!isSameOrigin(url, this.fhirBaseUrl)) {
+        defaultHeaders = withoutAuthorization(defaultHeaders);
+      }
       options2 = {
         ...getRequestDefaults,
         ...options2,
         headers: {
-          ...getRequestDefaults.headers || {},
+          ...defaultHeaders,
           ...options2.headers || {}
         }
       };
-      const path = uri + "";
-      const url = absolute(path, this.fhirBaseUrl);
       const { cacheMap } = options2;
       if (cacheMap) {
         if (!(path in cacheMap)) {
@@ -1135,16 +1151,20 @@ URL: ${response.url}`);
       if (options2.useRefreshToken) {
         await this.refreshIfNeeded({ signal });
       }
+      let fetchOptions = requestOptions;
       const authHeader = this.getAuthorizationHeader();
-      if (authHeader) {
-        requestOptions.headers = {
-          ...requestOptions.headers,
-          authorization: authHeader
+      if (authHeader && isSameOrigin(url, this.state.serverUrl)) {
+        fetchOptions = {
+          ...requestOptions,
+          headers: {
+            ...requestOptions.headers,
+            authorization: authHeader
+          }
         };
       }
       debug("client:request: %s, options: %O, fhirOptions: %O", url, requestOptions, options2);
       let response;
-      return super.fhirRequest(url, requestOptions).then((result) => {
+      return super.fhirRequest(url, fetchOptions).then((result) => {
         if (requestOptions.includeResponse) {
           response = result.response;
           return result.body;
@@ -1469,6 +1489,17 @@ URL: ${response.url}`);
   async function getSecurityExtensions(baseUrl = "/", wellKnownRequestOptions, conformanceRequestOptions) {
     return getSecurityExtensionsFromWellKnownJson(baseUrl, wellKnownRequestOptions).catch(() => getSecurityExtensionsFromConformanceStatement(baseUrl, conformanceRequestOptions));
   }
+  function assertNoUrlConflict(url, name, option, reason) {
+    const fromUrl = url.searchParams.get(name);
+    const normalize = (x) => String(x).replace(/\/+$/, "");
+    if (option && fromUrl && normalize(fromUrl) !== normalize(option)) {
+      throw new Error(
+        `The "${name}" url parameter does not match the "${name}" option ("${option}") passed to authorize(). Passing "${name}" as an option means ${reason}, so a different "${name}" url parameter is not allowed. To fix this, either:
+  - remove the "${name}" option if the app should accept any "${name}" from the url (for example in EHR launches or when testing against other servers), or
+  - pass an array of configurations to authorize(), each with its own "issMatch", to list all the servers the app supports. See http://docs.smarthealthit.org/client-js/open_servers#2-using-multiple-launch-configurations`
+      );
+    }
+  }
   async function authorize(env, params = {}) {
     const url = env.getUrl();
     if (Array.isArray(params)) {
@@ -1522,6 +1553,8 @@ URL: ${response.url}`);
       stateKey
     } = params;
     const storage = env.getStorage();
+    assertNoUrlConflict(url, "iss", iss, "the app is preconfigured to work with that server");
+    assertNoUrlConflict(url, "clientId", clientId, "the app is preconfigured to use that client ID");
     iss = url.searchParams.get("iss") || iss;
     fhirServiceUrl = url.searchParams.get("fhirServiceUrl") || fhirServiceUrl;
     launch = url.searchParams.get("launch") || launch;
