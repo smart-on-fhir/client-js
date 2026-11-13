@@ -98,6 +98,11 @@ describe("Lib", () => {
             expect(lib.absolute("a/b/c")).to.equal("/a/b/c");
             expect(lib.absolute("./a/b/c")).to.equal("/./a/b/c");
         });
+
+        it ("does not treat relative paths starting with http or urn as absolute", () => {
+            expect(lib.absolute("httpFoo/1", "http://google.com")).to.equal("http://google.com/httpFoo/1");
+            expect(lib.absolute("urnBar/1", "http://google.com")).to.equal("http://google.com/urnBar/1");
+        });
     });
 
     describe("randomString", () => {

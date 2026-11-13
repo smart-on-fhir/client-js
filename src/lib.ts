@@ -288,8 +288,8 @@ export function makeArray<T = any>(arg: any): T[] {
  */
 export function absolute(path: string, baseUrl?: string): string
 {
-    if (path.match(/^http/)) return path;
-    if (path.match(/^urn/)) return path;
+    if (path.match(/^https?:\/\//i)) return path;
+    if (path.match(/^urn:/i)) return path;
     return String(baseUrl || "").replace(/\/+$/, "") + "/" + path.replace(/^\/+/, "");
 }
 
