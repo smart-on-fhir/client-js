@@ -3674,6 +3674,79 @@ describe("FHIR.client", () => {
         });
     });
 
+    describe("does not send the access token to other origins", () => {
+
+        // The mock server listens on 127.0.0.1. Using "localhost" reaches the
+        // same server but is a different origin.
+        const otherOrigin = () => mockUrl.replace("127.0.0.1", "localhost");
+
+        const recordAuth = (seen: any[], body: any = { resourceType: "Patient", id: "1" }) => ({
+            handler: (req: any, res: any) => {
+                seen.push(req.headers.authorization);
+                res.json(body);
+            }
+        });
+
+        crossPlatformTest(async (env) => {
+            const client = new Client(env, mockUrl);
+            client.state.tokenResponse = { access_token: "TEST.ACCESS.TOKEN" };
+            const seen: any[] = [];
+
+            // same origin
+            mockServer.mock(recordAuth(seen));
+            await client.request("Patient/1");
+
+            // absolute cross-origin URL passed to request()
+            mockServer.mock(recordAuth(seen));
+            await client.request(otherOrigin() + "/Patient/1");
+
+            // absolute cross-origin URL passed to delete() (uses fhirRequest
+            // and the default request headers directly)
+            mockServer.mock(recordAuth(seen));
+            await client.delete(otherOrigin() + "/Patient/1");
+
+            // cross-origin next link followed during pagination
+            mockServer.mock(recordAuth(seen, {
+                resourceType: "Bundle",
+                link: [{ relation: "next", url: otherOrigin() + "/Patient?page=2" }]
+            }));
+            mockServer.mock(recordAuth(seen, { resourceType: "Bundle" }));
+            await client.request("Patient", { pageLimit: 0 });
+
+            // cross-origin reference resolved via resolveReferences
+            mockServer.mock(recordAuth(seen, {
+                resourceType: "Encounter",
+                subject: { reference: otherOrigin() + "/Patient/1" }
+            }));
+            mockServer.mock(recordAuth(seen));
+            await client.request("Encounter/1", { resolveReferences: "subject" });
+
+            expect(seen).to.equal([
+                "Bearer TEST.ACCESS.TOKEN", // request (same origin)
+                undefined,                  // request (other origin)
+                undefined,                  // delete (other origin)
+                "Bearer TEST.ACCESS.TOKEN", // first page
+                undefined,                  // next page (other origin)
+                "Bearer TEST.ACCESS.TOKEN", // Encounter
+                undefined                   // reference (other origin)
+            ]);
+        });
+
+        crossPlatformTest(async (env) => {
+            const client = new Client(env, mockUrl);
+            client.state.tokenResponse = { access_token: "TEST.ACCESS.TOKEN" };
+            const seen: any[] = [];
+
+            // An authorization header passed explicitly by the app is kept
+            mockServer.mock(recordAuth(seen));
+            await client.request({
+                url: otherOrigin() + "/Patient/1",
+                headers: { authorization: "Bearer OTHER" }
+            });
+            expect(seen).to.equal(["Bearer OTHER"]);
+        });
+    });
+
     describe("create", () => {
         crossPlatformTest(async (env) => {
             const client = new Client(env, mockUrl);
