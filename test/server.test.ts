@@ -197,6 +197,89 @@ describe("Complete authorization [SERVER]", () => {
         expect(stored.scope).to.equal("x launch");
     });
 
+    describe("url parameters cannot override preconfigured values", () => {
+
+        it ("throws if the iss url param does not match the iss option", async () => {
+            const req = new HttpRequest("http://localhost/launch?iss=" + encodeURIComponent("https://attacker.example") + "&launch=abc");
+            const res = new HttpResponse();
+            const smartApi = smart(req as any, res as any, new MemoryStorage());
+            await expect(smartApi.authorize({
+                iss: mockUrl,
+                clientId: "my-app",
+                clientSecret: "secret"
+            })).to.reject(Error, /The "iss" url parameter does not match the "iss" option/);
+            expect(res.headers.location).to.not.exist();
+        });
+
+        it ("does not include the url value in the error message", async () => {
+            const req = new HttpRequest("http://localhost/launch?iss=" + encodeURIComponent("https://<b>x</b>.example"));
+            const res = new HttpResponse();
+            const smartApi = smart(req as any, res as any, new MemoryStorage());
+            const error = await expect(smartApi.authorize({ iss: mockUrl })).to.reject(Error);
+            expect(error.message).to.not.include("<b>");
+            expect(error.message).to.include(mockUrl);
+        });
+
+        it ("throws if the clientId url param does not match the clientId option", async () => {
+            const req = new HttpRequest("http://localhost/launch?clientId=other-app");
+            const res = new HttpResponse();
+            const smartApi = smart(req as any, res as any, new MemoryStorage());
+            await expect(smartApi.authorize({
+                fhirServiceUrl: "http://localhost",
+                clientId: "my-app"
+            })).to.reject(Error, /The "clientId" url parameter does not match the "clientId" option/);
+        });
+
+        it ("allows matching values (ignoring trailing slashes)", async () => {
+            const req = new HttpRequest("http://localhost/launch?clientId=my-app&iss=" + encodeURIComponent(mockUrl + "/"));
+            const res = new HttpResponse();
+            const smartApi = smart(req as any, res as any, new MemoryStorage());
+            mockServer.mock({
+                headers: { "content-type": "application/json" },
+                status: 200,
+                body: {
+                    authorization_endpoint: mockUrl + "/auth",
+                    token_endpoint: mockUrl + "/token"
+                }
+            });
+            await smartApi.authorize({ iss: mockUrl, clientId: "my-app" });
+            expect(res.status).to.equal(302);
+            expect(res.headers.location).to.startWith(mockUrl + "/auth?");
+        });
+
+        it ("uses the iss url param if no iss option is passed", async () => {
+            const req = new HttpRequest("http://localhost/launch?launch=abc&iss=" + encodeURIComponent(mockUrl));
+            const res = new HttpResponse();
+            const smartApi = smart(req as any, res as any, new MemoryStorage());
+            mockServer.mock({
+                headers: { "content-type": "application/json" },
+                status: 200,
+                body: {
+                    authorization_endpoint: mockUrl + "/auth",
+                    token_endpoint: mockUrl + "/token"
+                }
+            });
+            await smartApi.authorize({ clientId: "my-app" });
+            expect(res.headers.location).to.startWith(mockUrl + "/auth?");
+        });
+
+        it ("allows the iss url param to override the fhirServiceUrl option", async () => {
+            const req = new HttpRequest("http://localhost/launch?iss=" + encodeURIComponent(mockUrl));
+            const res = new HttpResponse();
+            const smartApi = smart(req as any, res as any, new MemoryStorage());
+            mockServer.mock({
+                headers: { "content-type": "application/json" },
+                status: 200,
+                body: {
+                    authorization_endpoint: mockUrl + "/auth",
+                    token_endpoint: mockUrl + "/token"
+                }
+            });
+            await smartApi.authorize({ fhirServiceUrl: "http://localhost", clientId: "my-app" });
+            expect(res.headers.location).to.startWith(mockUrl + "/auth?");
+        });
+    });
+
     // it ("can do standalone launch");
 });
 
