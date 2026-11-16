@@ -100,6 +100,30 @@ describe("Lib", () => {
             expect(lib.absolute("a/b/c")).to.equal("/a/b/c");
             expect(lib.absolute("./a/b/c")).to.equal("/./a/b/c");
         });
+
+        it ("does not treat relative paths starting with http or urn as absolute", () => {
+            expect(lib.absolute("httpFoo/1", "http://google.com")).to.equal("http://google.com/httpFoo/1");
+            expect(lib.absolute("urnBar/1", "http://google.com")).to.equal("http://google.com/urnBar/1");
+        });
+    });
+
+    describe("isSameOrigin", () => {
+        it ("returns true for the same origin", () => {
+            expect(lib.isSameOrigin("https://fhir.org/r4/Patient/1", "https://fhir.org/r4")).to.equal(true);
+            expect(lib.isSameOrigin("https://FHIR.org:443/x", "https://fhir.org")).to.equal(true);
+        });
+
+        it ("returns false for different origins", () => {
+            expect(lib.isSameOrigin("https://evil.example/Patient/1", "https://fhir.org")).to.equal(false);
+            expect(lib.isSameOrigin("https://fhir.org.evil.example/Patient/1", "https://fhir.org")).to.equal(false);
+            expect(lib.isSameOrigin("http://fhir.org/Patient/1", "https://fhir.org")).to.equal(false);
+            expect(lib.isSameOrigin("https://fhir.org:8443/Patient/1", "https://fhir.org")).to.equal(false);
+        });
+
+        it ("returns false for unparsable URLs", () => {
+            expect(lib.isSameOrigin("/Patient/1", "https://fhir.org")).to.equal(false);
+            expect(lib.isSameOrigin("https://fhir.org", "")).to.equal(false);
+        });
     });
 
     describe("randomString", () => {

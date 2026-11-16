@@ -101,6 +101,32 @@ async function getSecurityExtensions(baseUrl = "/", wellKnownRequestOptions, con
         .catch(() => getSecurityExtensionsFromConformanceStatement(baseUrl, conformanceRequestOptions));
 }
 /**
+ * Throws if `name` is passed both as an `authorize()` option and as an url
+ * parameter, and the two values are different.
+ * @param url The current url
+ * @param name The name of the option and url parameter
+ * @param option The value passed as option
+ * @param reason Explains why the option cannot be overridden
+ */
+function assertNoUrlConflict(url, name, option, reason) {
+    const fromUrl = url.searchParams.get(name);
+    const normalize = (x) => String(x).replace(/\/+$/, "");
+    if (option && fromUrl && normalize(fromUrl) !== normalize(option)) {
+        // Note: the url value is intentionally not included in the message
+        // because it is untrusted input that may end up being rendered.
+        throw new Error(`The "${name}" url parameter does not match the "${name}" option ` +
+            `("${option}") passed to authorize(). Passing "${name}" as an ` +
+            `option means ${reason}, so a different "${name}" url parameter ` +
+            `is not allowed. To fix this, either:\n` +
+            `  - remove the "${name}" option if the app should accept any ` +
+            `"${name}" from the url (for example in EHR launches or when ` +
+            `testing against other servers), or\n` +
+            `  - pass an array of configurations to authorize(), each with ` +
+            `its own "issMatch", to list all the servers the app supports. ` +
+            `See http://docs.smarthealthit.org/client-js/open_servers#2-using-multiple-launch-configurations`);
+    }
+}
+/**
  * Starts the SMART Launch Sequence.
  * > **IMPORTANT**:
  *   `authorize()` will end up redirecting you to the authorization server.
@@ -144,6 +170,12 @@ async function authorize(env, params = {}) {
     redirect_uri, client_id, } = params;
     let { iss, launch, patientId, fhirServiceUrl, redirectUri, noRedirect, scope = "", clientId, completeInTarget, clientPrivateJwk, stateKey } = params;
     const storage = env.getStorage();
+    // If the app is preconfigured to work with specific server or client,
+    // the url must not change that. Otherwise anybody could craft a launch
+    // link that makes the app authorize against a different server and send
+    // it the app's client credentials.
+    assertNoUrlConflict(url, "iss", iss, "the app is preconfigured to work with that server");
+    assertNoUrlConflict(url, "clientId", clientId, "the app is preconfigured to use that client ID");
     // For these, a url param takes precedence over inline option
     iss = url.searchParams.get("iss") || iss;
     fhirServiceUrl = url.searchParams.get("fhirServiceUrl") || fhirServiceUrl;

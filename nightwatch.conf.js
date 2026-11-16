@@ -52,7 +52,13 @@ module.exports = {
       },
 
       desiredCapabilities: {
-        browserName: 'chrome'
+        browserName: 'chrome',
+        'goog:chromeOptions': {
+          // On machines with automatic proxy discovery (WPAD) enabled, the
+          // first request in a fresh Chrome profile can stall for 30s+ and
+          // make the first tests time out. Running in incognito avoids it.
+          args: ['--incognito']
+        }
       },
 
       test_runner: {

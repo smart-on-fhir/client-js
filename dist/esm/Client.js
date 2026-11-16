@@ -1,4 +1,4 @@
-import { absolute, debug, getPath, jwtDecode, makeArray, request, byCode, byCodes, units, getPatientParam, fetchConformanceStatement, getAccessTokenExpiration, assert } from "./lib";
+import { absolute, isSameOrigin, debug, getPath, jwtDecode, makeArray, request, byCode, byCodes, units, getPatientParam, fetchConformanceStatement, getAccessTokenExpiration, assert } from "./lib";
 import str from "./strings";
 import { SMART_KEY, patientCompartment } from "./settings";
 import FhirClient from "./FhirClient";
@@ -346,17 +346,23 @@ export default class Client extends FhirClient {
             await this.refreshIfNeeded({ signal });
         }
         // Add the Authorization header now, after the access token might
-        // have been updated
+        // have been updated. Only do so for the FHIR server itself - never
+        // send the token to other origins. Use a copy so that the header does
+        // not leak into requestOptions reused for references or pagination.
+        let fetchOptions = requestOptions;
         const authHeader = this.getAuthorizationHeader();
-        if (authHeader) {
-            requestOptions.headers = {
-                ...requestOptions.headers,
-                authorization: authHeader
+        if (authHeader && isSameOrigin(url, this.state.serverUrl)) {
+            fetchOptions = {
+                ...requestOptions,
+                headers: {
+                    ...requestOptions.headers,
+                    authorization: authHeader
+                }
             };
         }
         debug("client:request: %s, options: %O, fhirOptions: %O", url, requestOptions, options);
         let response;
-        return super.fhirRequest(url, requestOptions).then(result => {
+        return super.fhirRequest(url, fetchOptions).then(result => {
             if (requestOptions.includeResponse) {
                 response = result.response;
                 return result.body;

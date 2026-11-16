@@ -288,9 +288,25 @@ export function makeArray<T = any>(arg: any): T[] {
  */
 export function absolute(path: string, baseUrl?: string): string
 {
-    if (path.match(/^http/)) return path;
-    if (path.match(/^urn/)) return path;
+    if (path.match(/^https?:\/\//i)) return path;
+    if (path.match(/^urn:/i)) return path;
     return String(baseUrl || "").replace(/\/+$/, "") + "/" + path.replace(/^\/+/, "");
+}
+
+/**
+ * Returns `true` if both URLs are absolute and share the same origin (scheme,
+ * host and port). Used to decide whether credentials may be attached to a
+ * request. Any URL that cannot be parsed is treated as cross-origin.
+ * @param url The URL to check
+ * @param baseUrl The URL to compare against (typically the FHIR server URL)
+ */
+export function isSameOrigin(url: string, baseUrl: string): boolean
+{
+    try {
+        return new URL(url).origin === new URL(baseUrl).origin;
+    } catch {
+        return false;
+    }
 }
 
 /**
