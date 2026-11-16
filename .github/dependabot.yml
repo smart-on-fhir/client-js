@@ -1,0 +1,26 @@
+version: 2
+updates:
+  # Root package.json. Dev tooling is grouped into one PR. Runtime
+  # dependencies (jose, js-base64) get their own PRs; when merging one,
+  # also update dist/package.json, which is what gets published.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types: [minor, patch]
+    commit-message:
+      prefix: chore
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
