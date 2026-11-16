@@ -1,5 +1,14 @@
 # Changelog
 
+# v3.0.2
+- **Security:** The `Authorization` header (the access token, or basic auth credentials) is now only sent to the origin of the configured FHIR server. Previously it was also sent to absolute URLs on other origins, including pagination links and references resolved by the client. An `authorization` header passed explicitly in the request options is still sent as given.
+- **Security:** If `iss` or `clientId` is passed to `authorize()` and the url contains a different value, `authorize()` now throws an error instead of silently using the url value.
+  - **Behavior change:** apps that override a configured `iss` or `clientId` with url parameters (for example during development) must either remove that option, so that the url value is used, or pass [multiple configurations](http://docs.smarthealthit.org/client-js/open_servers#2-using-multiple-launch-configurations) with `issMatch`.
+- Fixed decoding of JWT payloads that contain Base64URL characters (`-` or `_`), which made `getIdToken()`, `getFhirUser()` and the token expiration check throw in browsers. Non-ASCII claims are now also decoded correctly on Node ([#210](https://github.com/smart-on-fhir/client-js/issues/210), [#211](https://github.com/smart-on-fhir/client-js/pull/211))
+- Relative paths that merely start with `http` or `urn` (such as `httpFoo/1`) are no longer treated as absolute URLs.
+
+Thanks to Vo Le Anh Tuan (Swinburne University of Technology) for reporting the security issues.
+
 # v3.0.1
 - Fixed TypeScript errors in consumers that do not use `skipLibCheck`: the shared `types.d.ts` declarations are now published, and `@types/fhir` is now a dependency ([#207](https://github.com/smart-on-fhir/client-js/issues/207), [#209](https://github.com/smart-on-fhir/client-js/pull/209))
 - Windows that were not opened by the library (for example, named tabs opened by a dashboard) are no longer closed after authorization. `ready()` now hands control back to the opener or parent window only if `authorize()` delegated the authorization to the current window ([#172](https://github.com/smart-on-fhir/client-js/issues/172), [#208](https://github.com/smart-on-fhir/client-js/pull/208))
