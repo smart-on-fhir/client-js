@@ -303,12 +303,16 @@ export function randomString(strLength = 8, charSet = "ABCDEFGHIJKLMNOPQRSTUVWXY
 /**
  * Decodes a JWT token and returns it's body.
  * @param token The token to read
- * @param env An `Adapter` or any other object that has an `atob` method
+ * @param env An `Adapter` or any other object that has a `base64urldecode`
+ * method
  * @category Utility
  */
 export function jwtDecode(token, env) {
     const payload = token.split(".")[1];
-    return payload ? JSON.parse(env.atob(payload)) : null;
+    // JWT segments are Base64URL encoded (RFC 7515). They can contain "-" and
+    // "_" and have no padding, so they must not be passed to atob(), which
+    // only accepts standard Base64 and throws in browsers for those characters.
+    return payload ? JSON.parse(env.base64urldecode(payload)) : null;
 }
 /**
  * Add a supplied number of seconds to the supplied Date, returning

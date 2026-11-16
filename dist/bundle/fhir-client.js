@@ -383,7 +383,7 @@ URL: ${response.url}`);
   }
   function jwtDecode(token, env) {
     const payload = token.split(".")[1];
-    return payload ? JSON.parse(env.atob(payload)) : null;
+    return payload ? JSON.parse(env.base64urldecode(payload)) : null;
   }
   function getTimeInFuture(secondsAhead = 120, from) {
     return Math.floor(+(from || /* @__PURE__ */ new Date()) / 1e3 + secondsAhead);
