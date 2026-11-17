@@ -47,7 +47,7 @@ and obtain a FhirClient instance:
 const { smart } = require("fhirclient/node");
 
 // inside your redirect_uri route handler
-smart(request, response).ready(client => client.request("Patient"));
+smart(request, response).ready().then(client => client.request("Patient"));
 ```
 
 ### init(options)
@@ -70,11 +70,13 @@ smart(request, response).init({
 
 
 ## Sessions
-If you use Express with `express-session`, or HAPI with `hapi-server-session`,
-or anything else that will ad a `session` object to your http request objects,
-then this library should work fine. Otherwise (or if you prefer some alternative
-storage), you will have to create custom session storage for storing the SMART
-state.
+If you use Express with `express-session`, or anything else that will add a
+`session` object to your http request objects, then this library should work
+fine. Otherwise (or if you prefer some alternative storage), you will have to
+create custom session storage for storing the SMART state. For example, the
+official HAPI session plugin [@hapi/yar](https://hapi.dev/module/yar/) stores
+the session in `request.yar` instead, so it needs a small storage adapter. See
+the [HAPI Example](https://github.com/smart-on-fhir/client-js-examples/blob/master/server/hapi/index.js).
 
 A valid storage object must implement the following interface:
 ```js
@@ -129,10 +131,10 @@ const { smart } = require("fhirclient/hapi");
 import { smart } from "fhirclient/hapi";
 
 // inside your redirect_uri route handler
-smart(request, h).ready(client => client.request("Patient"));
+smart(request, h).ready().then(client => client.request("Patient"));
 ```
 Note how in the above example the signature of the `smart` function has changed
 to `smart(request, h)` which makes more sense in HAPI. This is also defined by the adapter.
 
-See the complete [HAPI Example](https://codesandbox.io/s/fhir-client-hapi-myq5q)
+See the complete [HAPI Example](https://github.com/smart-on-fhir/client-js-examples/blob/master/server/hapi/index.js)
 
