@@ -65,8 +65,8 @@ smart(request, response).init({
 ```
 
 ## Examples
-- [Example with Express](https://codesandbox.io/s/jovial-dew-c0che)
-- [Example with no dependencies](https://codesandbox.io/s/brave-wildflower-q4mhq)
+- [Example with Express](https://github.com/smart-on-fhir/client-js-examples/blob/master/server/express/index.js)
+- [Example with no dependencies](https://github.com/smart-on-fhir/client-js-examples/blob/master/server/native/index.js)
 
 
 ## Sessions
@@ -105,7 +105,7 @@ function createStorage({ request, response }) {
 smart(request, response, createStorage).authorize(options)
 ```
 
-For working example of custom session storage see [this example](https://codesandbox.io/s/brave-wildflower-q4mhq).
+For working example of custom session storage see [this example](https://github.com/smart-on-fhir/client-js-examples/blob/master/server/native/index.js).
 
 
 ## Adapters
